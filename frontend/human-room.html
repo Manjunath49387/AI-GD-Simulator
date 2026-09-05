@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Human GD Room — GD Simulator</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/ai-room.css" />
+  <style>
+    .room-id-display-big {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .host-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+    }
+    .host-controls.hidden { display: none; }
+
+    select.form-input { padding: 8px 12px; }
+  </style>
+</head>
+<body id="human-room-page">
+
+<!-- JOIN MODAL -->
+<div id="join-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(8px)">
+  <div class="glass-card-flat animate-scale-in" style="padding:36px; max-width:440px; width:90%; border-radius:var(--radius-xl); text-align:center">
+    <div style="font-size:2.5rem; margin-bottom:16px">🚪</div>
+    <h2 style="margin-bottom:8px">Join GD Room</h2>
+    <p style="font-size:0.9rem; margin-bottom:24px">Enter the Room ID shared by the host</p>
+    <div class="form-group">
+      <input id="room-id-input" class="form-input" type="text" placeholder="e.g. GD2026"
+        style="text-align:center; font-size:1.3rem; letter-spacing:0.15em; text-transform:uppercase"
+        maxlength="8" />
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" id="join-submit">
+      Join Room →
+    </button>
+    <div style="margin-top:12px">
+      <a href="/human-room.html?action=create" style="font-size:0.82rem; color:var(--text-muted)">
+        or create a new room →
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ROOM LAYOUT -->
+<div class="room-layout">
+
+  <!-- HEADER -->
+  <header class="room-header">
+    <div style="display:flex; align-items:center; gap:12px">
+      <a href="/dashboard.html" class="btn-icon">🏠</a>
+      <div>
+        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:600">GD Simulator</div>
+        <div style="font-size:0.82rem; font-weight:600; color:#34d399">👥 Human Mode</div>
+      </div>
+    </div>
+
+    <div class="room-topic">
+      <div class="room-topic-label">Topic</div>
+      <div class="room-topic-text" id="room-topic-text">Waiting for topic...</div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px">
+      <div style="text-align:center">
+        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase">Room</div>
+        <div style="font-family:var(--font-display); font-weight:800; color:var(--accent-secondary)" id="room-id-display">—</div>
+      </div>
+      <div class="room-timer">
+        <div class="timer-display" id="timer-display">--:--</div>
+        <div class="timer-label">Remaining</div>
+      </div>
+      <span class="badge badge-green" id="status-badge">🟡 Waiting</span>
+    </div>
+  </header>
+
+  <!-- LEFT: PARTICIPANTS PANEL -->
+  <aside class="participants-panel">
+    <div class="panel-title">
+      👥 Participants
+      <span style="margin-left:auto; background:rgba(108,99,255,0.2); color:var(--accent-secondary); padding:2px 8px; border-radius:10px; font-size:0.7rem" id="participant-count">0</span>
+    </div>
+
+    <div id="participants-list">
+      <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:20px">
+        Waiting for participants...
+      </div>
+    </div>
+
+    <div style="margin-top:16px; padding:14px; background:rgba(255,255,255,0.03); border-radius:var(--radius-md); border:1px solid var(--glass-border)">
+      <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; margin-bottom:8px">Share Room ID</div>
+      <div class="room-id-display-big" style="font-size:1.4rem; letter-spacing:0.2em" id="share-room-id">—</div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px; width:100%" onclick="copyRoomId()">
+        📋 Copy Room ID
+      </button>
+    </div>
+  </aside>
+
+  <!-- CENTER: CHAT AREA -->
+  <div class="chat-area">
+    <div class="chat-messages" id="chat-messages">
+      <div style="text-align:center; color:var(--text-muted); padding:40px 20px; font-size:0.9rem">
+        <div style="font-size:2rem; margin-bottom:12px">👥</div>
+        <div>Waiting for participants to join...</div>
+        <div style="font-size:0.8rem; margin-top:6px">Share the Room ID with your participants</div>
+      </div>
+    </div>
+
+    <!-- Host Controls -->
+    <div class="host-controls hidden" id="host-controls">
+      <span style="font-size:0.8rem; color:#34d399; font-weight:600">🎯 Host Controls</span>
+      <select class="form-input" id="duration-select" style="padding:6px 10px; font-size:0.8rem; flex:1">
+        <option value="300">5 min</option>
+        <option value="600" selected>10 min</option>
+        <option value="900">15 min</option>
+        <option value="1200">20 min</option>
+      </select>
+      <button class="btn btn-success btn-sm" id="start-btn" onclick="HumanRoom && HumanRoom.startDiscussion ? HumanRoom.startDiscussion() : null">
+        ▶️ Start Discussion
+      </button>
+      <button class="btn btn-danger btn-sm" id="end-btn" onclick="HumanRoom && HumanRoom.endDiscussion ? HumanRoom.endDiscussion() : null">
+        ⏹️ End
+      </button>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <div class="input-row">
+        <textarea
+          id="chat-input"
+          class="chat-input"
+          placeholder="Type your message and press Enter..."
+          rows="2"
+        ></textarea>
+        <button class="voice-btn" id="voice-btn" title="Voice input">🎤</button>
+        <button class="btn btn-primary" id="send-btn">➤</button>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between">
+        <button class="btn btn-secondary btn-sm" id="mute-btn">🎤 Mute</button>
+        <div style="font-size:0.72rem; color:var(--text-muted)">Real-time · Powered by Socket.IO</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: INSIGHTS PANEL -->
+  <aside class="insights-panel">
+    <div class="panel-title">ℹ️ Room Info</div>
+
+    <div class="live-stat">
+      <div class="live-stat-label">Room ID</div>
+      <div style="font-family:var(--font-display); font-size:1.4rem; font-weight:800; color:var(--accent-secondary); letter-spacing:0.15em" id="room-id-stat">—</div>
+    </div>
+
+    <div class="live-stat">
+      <div class="live-stat-label">Participants</div>
+      <div class="live-stat-value" id="stat-participants">0</div>
+    </div>
+
+    <div style="margin-top:8px">
+      <div class="panel-title">📋 GD Rules</div>
+      <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.8; padding:12px; background:rgba(255,255,255,0.03); border-radius:var(--radius-md); border:1px solid var(--glass-border)">
+        <div>• Speak one at a time</div>
+        <div>• Be respectful always</div>
+        <div>• Support points with facts</div>
+        <div>• Listen when others speak</div>
+        <div>• Stay on the topic</div>
+        <div>• Avoid interrupting</div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <div class="panel-title">🎯 Quick Phrases</div>
+      <div style="display:flex; flex-direction:column; gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="insertPhrase('I would like to add that...')">I would like to add...</button>
+        <button class="btn btn-secondary btn-sm" onclick="insertPhrase('I agree with the point that...')">I agree that...</button>
+        <button class="btn btn-secondary btn-sm" onclick="insertPhrase('To conclude, I believe...')">To conclude...</button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/speech.js"></script>
+<script>
+  // Patch HumanRoom to expose controls
+  const _hrModule = {};
+
+  document.addEventListener('DOMContentLoaded', () => {
+    AppUtils.requireAuth();
+    const user = AppUtils.getUser();
+
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action') || 'join';
+    const topic = decodeURIComponent(params.get('topic') || '');
+    const sessionId = params.get('session');
+    const roomId = params.get('roomId');
+
+    // Update room ID displays
+    const updateRoomDisplay = (id) => {
+      ['room-id-display', 'share-room-id', 'room-id-stat'].forEach(elId => {
+        const el = document.getElementById(elId);
+        if (el) el.textContent = id || '—';
+      });
+    };
+
+    if (topic) document.getElementById('room-topic-text').textContent = `"${topic}"`;
+
+    // Socket setup
+    const socket = io(window.location.origin);
+    let currentRoomId = roomId;
+    let isMuted = false;
+    let isHost = action === 'create';
+
+    // Show host controls
+    if (isHost) {
+      document.getElementById('host-controls')?.classList.remove('hidden');
+    }
+
+    socket.on('connect', () => {
+      if (action === 'create' && roomId) {
+        updateRoomDisplay(roomId);
+        socket.emit('room:create', { roomId, topic, userName: user.name, userId: user.user_id });
+      } else {
+        document.getElementById('join-modal').style.display = 'flex';
+      }
+    });
+
+    socket.on('room:joined', (data) => {
+      currentRoomId = data.roomId;
+      updateRoomDisplay(data.roomId);
+      if (data.topic) document.getElementById('room-topic-text').textContent = `"${data.topic}"`;
+      updateParticipants(data.participants);
+      appendSystem(`Welcome! You joined room: ${data.roomId}`);
+      if (isHost) document.getElementById('host-controls')?.classList.remove('hidden');
+    });
+
+    socket.on('room:error', (data) => {
+      AppUtils.showToast(data.message, 'error');
+    });
+
+    socket.on('room:participant_joined', (data) => {
+      updateParticipants(data.participants);
+      appendSystem(`${data.participant.name} joined`);
+    });
+
+    socket.on('room:participant_left', (data) => {
+      updateParticipants(data.participants);
+      appendSystem(`${data.name} left the room`);
+    });
+
+    socket.on('room:participants_update', updateParticipants);
+
+    socket.on('room:message', (data) => {
+      appendMessage(data.userName, data.message, data.userName === user.name);
+    });
+
+    socket.on('room:started', () => {
+      appendSystem('🚀 Discussion started! Good luck everyone!');
+      document.getElementById('status-badge').textContent = '🔴 LIVE';
+      document.getElementById('start-btn')?.setAttribute('disabled', true);
+    });
+
+    socket.on('room:timer', (data) => {
+      const m = Math.floor(data.remaining / 60);
+      const s = data.remaining % 60;
+      const el = document.getElementById('timer-display');
+      if (el) {
+        el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.className = 'timer-display';
+        if (data.remaining <= 60) el.classList.add('danger');
+        else if (data.remaining <= 120) el.classList.add('warning');
+      }
+    });
+
+    socket.on('room:ended', (data) => {
+      appendSystem(`⏹️ ${data.message}`);
+      AppUtils.showToast('Discussion ended!', 'info');
+      if (sessionId) {
+        API.Sessions.end(sessionId).finally(() => {
+          setTimeout(() => window.location.href = `/results.html?session=${sessionId}&human=1`, 2000);
+        });
+      }
+    });
+
+    // Send message
+    function sendMsg() {
+      const input = document.getElementById('chat-input');
+      const msg = input?.value.trim();
+      if (!msg || !socket) return;
+      socket.emit('room:message', { roomId: currentRoomId, userName: user.name, message: msg });
+      if (sessionId) API.Sessions.addTranscript(sessionId, user.name, 'user', msg).catch(console.error);
+      input.value = '';
+    }
+
+    document.getElementById('send-btn')?.addEventListener('click', sendMsg);
+    document.getElementById('chat-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    });
+
+    document.getElementById('start-btn')?.addEventListener('click', () => {
+      const duration = parseInt(document.getElementById('duration-select')?.value || '600');
+      socket.emit('room:start', { roomId: currentRoomId, duration });
+    });
+
+    document.getElementById('end-btn')?.addEventListener('click', () => {
+      if (confirm('End the discussion for all participants?')) {
+        socket.emit('room:end', { roomId: currentRoomId });
+      }
+    });
+
+    document.getElementById('mute-btn')?.addEventListener('click', () => {
+      isMuted = !isMuted;
+      socket.emit('room:toggle_mute', { roomId: currentRoomId, isMuted });
+      const btn = document.getElementById('mute-btn');
+      if (btn) { btn.textContent = isMuted ? '🔇 Unmute' : '🎤 Mute'; btn.className = isMuted ? 'btn btn-danger btn-sm' : 'btn btn-secondary btn-sm'; }
+    });
+
+    document.getElementById('voice-btn')?.addEventListener('click', () => {
+      const voiceBtn = document.getElementById('voice-btn');
+      const chatInput = document.getElementById('chat-input');
+      if (Speech.isListening()) {
+        Speech.stopListening();
+        if (voiceBtn) { voiceBtn.innerHTML = '🎤'; voiceBtn.classList.remove('recording'); }
+        return;
+      }
+      Speech.startListening(
+        (final, interim) => { if (chatInput) chatInput.value = final || interim; },
+        (final) => {
+          if (voiceBtn) { voiceBtn.innerHTML = '🎤'; voiceBtn.classList.remove('recording'); }
+          if (final?.trim()) { chatInput.value = final; sendMsg(); }
+        }
+      );
+      if (voiceBtn) { voiceBtn.innerHTML = '⏹️'; voiceBtn.classList.add('recording'); }
+    });
+
+    document.getElementById('join-submit')?.addEventListener('click', () => {
+      const inputId = document.getElementById('room-id-input')?.value.trim().toUpperCase();
+      if (!inputId) { AppUtils.showToast('Enter a Room ID', 'error'); return; }
+      currentRoomId = inputId;
+      document.getElementById('join-modal').style.display = 'none';
+      socket.emit('room:join', { roomId: inputId, userName: user.name, userId: user.user_id });
+    });
+
+    function updateParticipants(participants) {
+      const list = document.getElementById('participants-list');
+      const count = document.getElementById('participant-count');
+      const statCount = document.getElementById('stat-participants');
+      if (count) count.textContent = participants.length;
+      if (statCount) statCount.textContent = participants.length;
+
+      if (!list) return;
+      list.innerHTML = participants.map(p => `
+        <div class="participant-card ${p.name === user.name ? 'user-card-room' : ''}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(108,99,255,0.2);border:2px solid rgba(108,99,255,0.3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:var(--accent-secondary)">
+              ${p.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary)">${p.name}${p.name === user.name ? ' <span style="color:#34d399;font-size:0.68rem">(You)</span>' : ''}</div>
+              <div style="font-size:0.7rem;color:var(--text-muted)">${p.isMuted ? '🔇 Muted' : '🟢 Active'}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function appendMessage(speaker, message, isOwn) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      const colors = ['#6c63ff','#10b981','#3b82f6','#ec4899','#f59e0b','#ef4444'];
+      const idx = Math.abs(speaker.split('').reduce((a,c) => a+c.charCodeAt(0),0)) % colors.length;
+      const color = isOwn ? '#10b981' : colors[idx];
+      const time = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      const bubble = document.createElement('div');
+      bubble.className = `message-bubble ${isOwn ? 'user' : ''}`;
+      bubble.innerHTML = `
+        <div class="message-avatar" style="background:${color}20;color:${color}">${speaker.charAt(0).toUpperCase()}</div>
+        <div class="message-content">
+          <div class="message-header">
+            <span class="message-speaker" style="color:${color}">${speaker}</span>
+            <span class="message-time">${time}</span>
+          </div>
+          <div class="message-text">${escapeHtml(message)}</div>
+        </div>
+      `;
+      container.appendChild(bubble);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function appendSystem(text) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.style.cssText = 'text-align:center;color:var(--text-muted);font-size:0.75rem;padding:6px 12px;background:rgba(255,255,255,0.03);border-radius:20px;margin:4px auto;max-width:400px';
+      el.textContent = text;
+      container.appendChild(el);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(t) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(t));
+      return d.innerHTML;
+    }
+  });
+
+  function copyRoomId() {
+    const id = document.getElementById('share-room-id')?.textContent;
+    if (id && id !== '—') {
+      navigator.clipboard.writeText(id).then(() => AppUtils.showToast(`Room ID "${id}" copied!`, 'success'));
+    }
+  }
+
+  function insertPhrase(phrase) {
+    const input = document.getElementById('chat-input');
+    if (input) { input.value = phrase; input.focus(); }
+  }
+</script>
+</body>
+</html>

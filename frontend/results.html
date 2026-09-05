@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GD Results — GD Simulator</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/results.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎤</div>
+      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
+      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
+      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
+      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">Loading...</div>
+          <div class="email" id="sidebar-email">--</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content" style="overflow-y:auto">
+
+    <!-- Loading State -->
+    <div id="loading-state" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:16px">
+      <div class="spinner" style="width:48px; height:48px; border-width:4px"></div>
+      <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary)">Analyzing your GD performance...</div>
+      <div style="font-size:0.85rem; color:var(--text-muted)">The AI is reviewing the full transcript. This takes a few seconds.</div>
+    </div>
+
+    <!-- Results Content (hidden until loaded) -->
+    <div id="results-content" style="display:none">
+
+      <!-- Hero Section -->
+      <div class="results-hero">
+        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.2); border-radius:var(--radius-full); font-size:0.8rem; color:var(--accent-secondary); margin-bottom:20px">
+          🏆 GD Performance Results
+        </div>
+
+        <!-- Animated Score Ring -->
+        <div class="overall-score-ring">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="14"/>
+            <circle id="score-circle" cx="90" cy="90" r="78" fill="none" stroke="url(#scoreGrad)" stroke-width="14"
+              stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"
+              style="transition: stroke-dashoffset 2s cubic-bezier(0.4,0,0.2,1)"/>
+            <defs>
+              <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#6c63ff"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="score-ring-text">
+            <div class="overall-score-value text-gradient" id="overall-score-display">0</div>
+            <div style="font-size:0.75rem; color:var(--text-muted)">out of 100</div>
+          </div>
+        </div>
+
+        <div class="score-grade" id="score-grade-badge">Loading...</div>
+        <h1 style="font-size:1.5rem; margin:8px 0 4px" id="results-topic">GD Performance Analysis</h1>
+        <p id="results-meta" style="font-size:0.82rem; color:var(--text-muted)"></p>
+      </div>
+
+      <!-- Scores Breakdown -->
+      <div style="padding:0 40px 24px">
+        <h2 style="font-size:1.1rem; margin-bottom:16px">📊 Detailed Score Breakdown</h2>
+        <div class="scores-grid" id="scores-grid"></div>
+      </div>
+
+      <!-- Charts -->
+      <div style="padding:0 40px 24px">
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-card-title">Skill Radar Chart</div>
+            <div style="height:280px; position:relative">
+              <canvas id="radar-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">Score Breakdown</div>
+            <div style="height:280px; position:relative">
+              <canvas id="bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Feedback -->
+      <div style="padding:0 40px 24px">
+        <h2 style="font-size:1.1rem; margin-bottom:16px">🤖 AI Feedback</h2>
+        <div class="full-feedback-card">
+          <div class="full-feedback-text" id="full-feedback"></div>
+        </div>
+      </div>
+
+      <!-- Feedback Cards Grid -->
+      <div style="padding:0 40px 24px">
+        <div class="feedback-grid" id="feedback-grid"></div>
+      </div>
+
+      <!-- Transcript -->
+      <div style="padding:0 40px 24px">
+        <div class="transcript-toggle" id="transcript-toggle" onclick="toggleTranscript()">
+          <span style="font-weight:700">📝 View Full Transcript</span>
+          <span class="chevron">▼</span>
+        </div>
+        <div class="transcript-content" id="transcript-content">
+          <div style="padding:16px; background:rgba(255,255,255,0.02); border-radius:0 0 var(--radius-lg) var(--radius-lg); border:1px solid var(--glass-border); border-top:none" id="transcript-list"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="padding:0 40px 48px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+        <a href="/select-mode.html" class="btn btn-primary btn-lg">🔄 Practice Again</a>
+        <a href="/performance.html" class="btn btn-secondary btn-lg">📊 View Progress</a>
+        <a href="/history.html" class="btn btn-secondary btn-lg">📋 GD History</a>
+        <a href="/dashboard.html" class="btn btn-secondary btn-lg">🏠 Dashboard</a>
+      </div>
+
+    </div><!-- /results-content -->
+
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  AppUtils.requireAuth();
+  const user = AppUtils.getUser();
+  if (user) {
+    document.getElementById('sidebar-name').textContent = user.name;
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session') || params.get('session_id') || params.get('id');
+
+  async function loadResults() {
+    if (!sessionId) {
+      window.location.href = '/history.html';
+      return;
+    }
+
+    try {
+      const data = await API.Performance.getSession(sessionId);
+      const { performance: perf, transcript } = data;
+
+      // Parse JSON strings if needed
+      let strengths = perf.strengths;
+      let improvements = perf.improvements;
+      let recommendations = perf.recommendations;
+
+      if (typeof strengths === 'string') { try { strengths = JSON.parse(strengths); } catch { strengths = []; } }
+      if (typeof improvements === 'string') { try { improvements = JSON.parse(improvements); } catch { improvements = []; } }
+      if (typeof recommendations === 'string') { try { recommendations = JSON.parse(recommendations); } catch { recommendations = []; } }
+
+      // Show results
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('results-content').style.display = 'block';
+
+      // Score ring animation
+      const score = Math.round(perf.overall_score || 0);
+      const circumference = 490;
+      const offset = circumference - (score / 100) * circumference;
+
+      setTimeout(() => {
+        document.getElementById('score-circle').style.strokeDashoffset = offset;
+        animateCounter('overall-score-display', score, 2000);
+      }, 300);
+
+      // Grade
+      const { grade, cls } = AppUtils.getScoreGrade(score);
+      const gradeBadge = document.getElementById('score-grade-badge');
+      gradeBadge.textContent = grade;
+      gradeBadge.className = `score-grade ${cls}`;
+
+      // Topic & meta
+      document.getElementById('results-topic').textContent = `"${perf.topic}"`;
+      document.getElementById('results-meta').textContent = `${perf.mode === 'ai' ? '🤖 AI Mode' : '👥 Human Mode'} · ${perf.category} · ${AppUtils.formatDate(perf.created_at)} · ${perf.speaking_turns} speaking turns · ${perf.total_words} words`;
+
+      // Score breakdown
+      const scoreItems = [
+        { label: 'Communication', icon: '🗣️', key: 'communication_score', color: '#6c63ff' },
+        { label: 'Fluency', icon: '💬', key: 'fluency_score', color: '#ec4899' },
+        { label: 'Vocabulary', icon: '📚', key: 'vocabulary_score', color: '#3b82f6' },
+        { label: 'Content Quality', icon: '💡', key: 'content_score', color: '#10b981' },
+        { label: 'Confidence', icon: '💪', key: 'confidence_score', color: '#f59e0b' },
+        { label: 'Leadership', icon: '🎯', key: 'leadership_score', color: '#9c27b0' },
+        { label: 'Teamwork', icon: '🤝', key: 'teamwork_score', color: '#ef4444' },
+        { label: 'Critical Thinking', icon: '🧠', key: 'critical_thinking', color: '#0ea5e9' }
+      ];
+
+      document.getElementById('scores-grid').innerHTML = scoreItems.map(item => {
+        const val = Math.round(perf[item.key] || 0);
+        return `
+          <div class="score-item">
+            <div class="score-item-icon" style="background:${item.color}20; color:${item.color}">${item.icon}</div>
+            <div class="score-item-info">
+              <div class="score-item-label">${item.label}</div>
+              <div class="progress-bar" style="margin-top:4px">
+                <div class="progress-fill" style="width:0%; background:${item.color}" data-width="${val}%"></div>
+              </div>
+            </div>
+            <div class="score-item-pct" style="color:${AppUtils.getScoreColor(val)}">${val}%</div>
+          </div>
+        `;
+      }).join('');
+
+      // Animate progress bars
+      setTimeout(() => {
+        document.querySelectorAll('.progress-fill[data-width]').forEach(el => {
+          el.style.width = el.getAttribute('data-width');
+        });
+      }, 500);
+
+      // Charts
+      renderRadarChart(scoreItems.map(i => ({ label: i.label, value: Math.round(perf[i.key] || 0), color: i.color })));
+      renderBarChart(scoreItems.map(i => ({ label: i.label, value: Math.round(perf[i.key] || 0), color: i.color })));
+
+      // Full feedback
+      document.getElementById('full-feedback').textContent = perf.full_feedback || 'No detailed feedback available.';
+
+      // Feedback cards
+      document.getElementById('feedback-grid').innerHTML = `
+        <div class="feedback-card strengths-card">
+          <div class="feedback-card-title">✅ Strengths</div>
+          <ul class="feedback-list">
+            ${(strengths || []).map(s => `<li>${s}</li>`).join('') || '<li>Complete a GD session to see your strengths</li>'}
+          </ul>
+        </div>
+        <div class="feedback-card improvements-card">
+          <div class="feedback-card-title">⚠️ Areas for Improvement</div>
+          <ul class="feedback-list">
+            ${(improvements || []).map(s => `<li>${s}</li>`).join('') || '<li>Keep practicing to identify improvement areas</li>'}
+          </ul>
+        </div>
+        <div class="feedback-card recommendations-card">
+          <div class="feedback-card-title">🎯 Recommendations</div>
+          <ul class="feedback-list">
+            ${(recommendations || []).map(s => `<li>${s}</li>`).join('') || '<li>Practice regularly to get personalized recommendations</li>'}
+          </ul>
+        </div>
+      `;
+
+      // Transcript
+      if (transcript && transcript.length > 0) {
+        const colors = { user: '#10b981', ai: '#a78bfa', system: '#475569' };
+        document.getElementById('transcript-list').innerHTML = transcript.map(t => `
+          <div class="transcript-entry">
+            <div class="transcript-speaker" style="color:${colors[t.speaker_type] || '#a78bfa'}">${t.speaker}</div>
+            <div class="transcript-message">${t.message}</div>
+          </div>
+        `).join('');
+      }
+
+    } catch (err) {
+      console.error('Results load error:', err);
+      document.getElementById('loading-state').innerHTML = `
+        <div style="text-align:center; color:var(--text-muted); padding:40px">
+          <div style="font-size:2rem; margin-bottom:12px">⚠️</div>
+          <div style="font-size:1rem; color:var(--text-primary); margin-bottom:8px">Could not load results</div>
+          <div style="font-size:0.85rem; margin-bottom:20px">${err.message}</div>
+          <a href="/history.html" class="btn btn-secondary">View History</a>
+        </div>
+      `;
+    }
+  }
+
+  function renderRadarChart(data) {
+    const ctx = document.getElementById('radar-chart');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [{
+          label: 'Your Score',
+          data: data.map(d => d.value),
+          borderColor: '#6c63ff',
+          backgroundColor: 'rgba(108,99,255,0.12)',
+          pointBackgroundColor: '#6c63ff',
+          pointRadius: 4,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            angleLines: { color: 'rgba(255,255,255,0.06)' },
+            ticks: { color: '#94a3b8', stepSize: 25, backdropColor: 'transparent' },
+            pointLabels: { color: '#94a3b8', font: { size: 10 } }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderBarChart(data) {
+    const ctx = document.getElementById('bar-chart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [{
+          data: data.map(d => d.value),
+          backgroundColor: data.map(d => d.color + '80'),
+          borderColor: data.map(d => d.color),
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+        }
+      }
+    });
+  }
+
+  function animateCounter(id, target, duration) {
+    const el = document.getElementById(id);
+    const start = Date.now();
+    const update = () => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  function toggleTranscript() {
+    const toggle = document.getElementById('transcript-toggle');
+    const content = document.getElementById('transcript-content');
+    toggle.classList.toggle('open');
+    content.classList.toggle('open');
+  }
+
+  loadResults();
+</script>
+</body>
+</html>

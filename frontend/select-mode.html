@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select GD Mode — GD Simulator</title>
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .mode-card {
+      border-radius: var(--radius-xl);
+      padding: 48px 36px;
+      border: 2px solid var(--glass-border);
+      cursor: pointer;
+      transition: all var(--transition-slow);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity var(--transition-slow);
+    }
+
+    .mode-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .mode-card.ai-card {
+      background: linear-gradient(145deg, rgba(108,99,255,0.08) 0%, rgba(236,72,153,0.05) 100%);
+      border-color: rgba(108,99,255,0.25);
+    }
+    .mode-card.ai-card:hover {
+      border-color: rgba(108,99,255,0.6);
+      background: linear-gradient(145deg, rgba(108,99,255,0.15) 0%, rgba(236,72,153,0.08) 100%);
+    }
+
+    .mode-card.human-card {
+      background: linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.05) 100%);
+      border-color: rgba(16,185,129,0.25);
+    }
+    .mode-card.human-card:hover {
+      border-color: rgba(16,185,129,0.6);
+      background: linear-gradient(145deg, rgba(16,185,129,0.15) 0%, rgba(59,130,246,0.08) 100%);
+    }
+
+    .mode-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      display: block;
+      animation: float 3s ease infinite;
+    }
+
+    .mode-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .ai-card .mode-title { background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .human-card .mode-title { background: var(--grad-green); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .mode-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .mode-features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 28px;
+    }
+
+    .mode-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .mode-features li:last-child { border-bottom: none; }
+    .mode-features .check { font-size: 1rem; }
+
+    .ai-agents-preview {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .agent-mini {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+
+    @media (max-width: 700px) {
+      .mode-grid { grid-template-columns: 1fr; }
+      .mode-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎤</div>
+      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
+      <a href="/select-mode.html" class="nav-item active"><span class="icon">▶️</span> Start GD</a>
+      <div class="nav-section-label">Analytics</div>
+      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
+      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">Loading...</div>
+          <div class="email" id="sidebar-email">--</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+      <div>
+        <a href="/dashboard.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:10px">
+          ← Back to Dashboard
+        </a>
+        <div class="page-title">Select GD Mode</div>
+        <div class="page-subtitle">Choose how you want to practice today</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="mode-grid">
+
+        <!-- AI MODE -->
+        <div class="mode-card ai-card animate-fade-in" onclick="selectMode('ai')">
+          <span class="mode-icon">🤖</span>
+
+          <div class="ai-agents-preview">
+            <div class="agent-mini" style="background:rgba(16,185,129,0.15); color:#34d399" title="Arjun - Supporter">🧑‍💼</div>
+            <div class="agent-mini" style="background:rgba(239,68,68,0.15); color:#f87171" title="Meera - Opponent">👩‍💼</div>
+            <div class="agent-mini" style="background:rgba(59,130,246,0.15); color:#60a5fa" title="Ravi - Analyst">👨‍🔬</div>
+            <div class="agent-mini" style="background:rgba(156,39,176,0.15); color:#c084fc" title="Priya - Moderator">👩‍🏫</div>
+          </div>
+
+          <div class="mode-title">AI Mode</div>
+          <div class="mode-desc">
+            Practice with 4 unique AI participants — each with distinct personalities and debating styles.
+          </div>
+
+          <ul class="mode-features">
+            <li><span class="check">✅</span> 4 AI participants (Supporter, Opponent, Analyst, Moderator)</li>
+            <li><span class="check">✅</span> Voice input & AI speech output</li>
+            <li><span class="check">✅</span> Real-time turn management</li>
+            <li><span class="check">✅</span> Full AI performance evaluation</li>
+            <li><span class="check">✅</span> Available 24/7 — no waiting</li>
+          </ul>
+
+          <button class="btn btn-primary btn-full btn-lg">
+            Start AI Mode →
+          </button>
+        </div>
+
+        <!-- HUMAN MODE -->
+        <div class="mode-card human-card animate-fade-in" style="animation-delay:0.1s" onclick="selectMode('human')">
+          <span class="mode-icon">👥</span>
+
+          <div style="display:flex; justify-content:center; gap:-8px; margin-bottom:24px">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,0.2);border:2px solid rgba(16,185,129,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem">R</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(59,130,246,0.2);border:2px solid rgba(59,130,246,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">P</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.2);border:2px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">A</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(236,72,153,0.2);border:2px solid rgba(236,72,153,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">+</div>
+          </div>
+
+          <div class="mode-title">Human Mode</div>
+          <div class="mode-desc">
+            Create a room or join with a Room ID. Practice with your classmates, friends, or batchmates.
+          </div>
+
+          <ul class="mode-features">
+            <li><span class="check">✅</span> Real-time multiplayer discussion room</li>
+            <li><span class="check">✅</span> Create room & share Room ID</li>
+            <li><span class="check">✅</span> Text chat + voice input</li>
+            <li><span class="check">✅</span> Discussion timer & turn management</li>
+            <li><span class="check">✅</span> AI feedback after discussion</li>
+          </ul>
+
+          <button class="btn btn-success btn-full btn-lg">
+            Start Human Mode →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  AppUtils.requireAuth();
+  const user = AppUtils.getUser();
+  if (user) {
+    document.getElementById('sidebar-name').textContent = user.name;
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  }
+
+  function selectMode(mode) {
+    localStorage.setItem('gd_selected_mode', mode);
+    window.location.href = `/select-topic.html?mode=${mode}`;
+  }
+</script>
+</body>
+</html>
