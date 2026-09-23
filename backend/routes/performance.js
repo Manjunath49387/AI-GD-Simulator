@@ -14,7 +14,8 @@ router.get('/history', authMiddleware, (req, res) => {
       s.session_id, s.mode, s.topic, s.category, s.duration, s.created_at,
       p.overall_score, p.communication_score, p.fluency_score, p.content_score,
       p.confidence_score, p.leadership_score, p.teamwork_score, p.critical_thinking,
-      p.speaking_turns, p.total_words
+      p.participation_score, p.relevance_score, p.listening_score, p.conclusion_score,
+      p.speaking_turns, p.total_words, p.placement_readiness
     FROM gd_sessions s
     JOIN performance p ON s.session_id = p.session_id
     WHERE s.user_id = ? AND s.status = 'completed'
@@ -48,6 +49,10 @@ router.get('/stats', authMiddleware, (req, res) => {
       ROUND(AVG(p.leadership_score), 1) as avg_leadership,
       ROUND(AVG(p.teamwork_score), 1) as avg_teamwork,
       ROUND(AVG(p.critical_thinking), 1) as avg_critical_thinking,
+      ROUND(AVG(p.participation_score), 1) as avg_participation,
+      ROUND(AVG(p.relevance_score), 1) as avg_relevance,
+      ROUND(AVG(p.listening_score), 1) as avg_listening,
+      ROUND(AVG(p.conclusion_score), 1) as avg_conclusion,
       SUM(s.duration) as total_practice_time,
       SUM(p.total_words) as total_words_spoken
     FROM performance p
@@ -61,6 +66,8 @@ router.get('/stats', authMiddleware, (req, res) => {
       p.overall_score, 
       p.communication_score,
       p.content_score,
+      p.participation_score,
+      p.leadership_score,
       s.created_at,
       s.topic
     FROM performance p
@@ -86,10 +93,15 @@ router.get('/:sessionId', authMiddleware, (req, res) => {
     return res.status(404).json({ error: 'Performance record not found.' });
   }
 
-  // Parse JSON fields
-  try { perf.strengths = JSON.parse(perf.strengths); } catch { perf.strengths = []; }
-  try { perf.improvements = JSON.parse(perf.improvements); } catch { perf.improvements = []; }
-  try { perf.recommendations = JSON.parse(perf.recommendations); } catch { perf.recommendations = []; }
+  // Parse all JSON fields safely
+  const jsonFields = ['strengths', 'improvements', 'recommendations', 'evidence', 'practice_plan', 'improvement_suggestions'];
+  for (const field of jsonFields) {
+    if (perf[field] && typeof perf[field] === 'string') {
+      try { perf[field] = JSON.parse(perf[field]); } catch { perf[field] = []; }
+    } else if (!perf[field]) {
+      perf[field] = [];
+    }
+  }
 
   // Get transcript
   const transcript = db.prepare(
@@ -100,3 +112,4 @@ router.get('/:sessionId', authMiddleware, (req, res) => {
 });
 
 module.exports = router;
+

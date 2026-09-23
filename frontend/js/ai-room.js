@@ -88,8 +88,8 @@ const AIRoom = (() => {
   async function startDiscussion() {
     startTimer();
 
-    // Opening message from Priya (moderator)
-    await triggerAgentResponse('priya', `Welcome everyone! Let's begin our Group Discussion on the topic: "${topic}". I'll start us off — please feel free to share your thoughts as we go. Let me open the floor.`);
+    // Opening message from Priya (moderator) using simple, warm language
+    await triggerAgentResponse('priya', `Welcome everyone! Let's begin our group discussion on the topic: "${topic}". Please feel free to share your thoughts, and anyone can speak up. Let us start!`);
   }
 
   // ─── TIMER ──────────────────────────────────────────────

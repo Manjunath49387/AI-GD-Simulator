@@ -1,0 +1,9 @@
+{
+  "name": "ai-gd-simulator",
+  "version": "1.0.0",
+  "description": "AI-Based Group Discussion Simulator",
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev"
+  }
+}

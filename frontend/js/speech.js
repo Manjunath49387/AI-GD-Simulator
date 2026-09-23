@@ -12,14 +12,26 @@ const Speech = (() => {
   let onResultCallback = null;
   let onEndCallback = null;
 
-  // Voice preferences per agent
+  // Voice preferences per agent — strictly separating male and female personas
   const VOICE_PREFS = {
-    arjun: { lang: 'en-IN', pitch: 1.1, rate: 0.95, preferMale: true },
-    meera: { lang: 'en-IN', pitch: 1.3, rate: 1.0, preferMale: false },
-    ravi: { lang: 'en-IN', pitch: 0.95, rate: 0.88, preferMale: true },
-    priya: { lang: 'en-IN', pitch: 1.2, rate: 1.05, preferMale: false },
-    default: { lang: 'en-US', pitch: 1.0, rate: 1.0, preferMale: false }
+    arjun: { lang: 'en-IN', pitch: 0.88, rate: 0.95, preferMale: true, preferredNames: ['arjun', 'prabhat', 'david', 'mark', 'george', 'alex'] },
+    meera: { lang: 'en-IN', pitch: 1.15, rate: 1.00, preferMale: false, preferredNames: ['meera', 'heera', 'hazel', 'susan', 'katherine'] },
+    ravi:  { lang: 'en-IN', pitch: 0.82, rate: 0.90, preferMale: true, preferredNames: ['ravi', 'mark', 'david', 'guy', 'daniel'] },
+    priya: { lang: 'en-IN', pitch: 1.10, rate: 1.02, preferMale: false, preferredNames: ['priya', 'neerja', 'zira', 'samantha', 'jenny'] },
+    default: { lang: 'en-US', pitch: 1.00, rate: 1.00, preferMale: false, preferredNames: [] }
   };
+
+  // Known voice name patterns for reliable gender classification
+  const MALE_VOICE_REGEX = /male|man|boy|\bdavid\b|\bmark\b|\bgeorge\b|\bguy\b|\balex\b|\bdaniel\b|\bjames\b|\bjohn\b|\bbrian\b|\brichard\b|\bpaul\b|\bpeter\b|\bsteven\b|\bandrew\b|\bedward\b|\bchristopher\b|\bravi\b|\bprabhat\b|\braj\b|\barjun\b|\brohan\b|\bvikram\b|\bdeepak\b|\bamit\b|\bgaurav\b|\bneel\b/i;
+  const FEMALE_VOICE_REGEX = /female|woman|girl|\bzira\b|\bheera\b|\bneerja\b|\bhazel\b|\bsusan\b|\bsamantha\b|\bkatherine\b|\bvictoria\b|\bkaren\b|\bmoira\b|\bfiona\b|\bveena\b|\bleena\b|\bkalpana\b|\bpriya\b|\bmeera\b|\bsita\b|\bananya\b|\bswara\b|\baditi\b|\bkavya\b|\bpooja\b|\bjenny\b|\baria\b|\bava\b|\bemma\b|\bsarah\b/i;
+
+  let cachedVoices = [];
+
+  function updateVoicesCache() {
+    if (synthesis) {
+      cachedVoices = synthesis.getVoices() || [];
+    }
+  }
 
   // ─── SPEECH RECOGNITION (STT) ───────────────────────────
   function isSTTSupported() {
@@ -103,29 +115,55 @@ const Speech = (() => {
   }
 
   function getVoice(prefs) {
-    const voices = synthesis.getVoices();
-    if (!voices.length) return null;
+    updateVoicesCache();
+    const voices = cachedVoices.length ? cachedVoices : (synthesis ? synthesis.getVoices() : []);
+    if (!voices || !voices.length) return null;
 
-    // Try to find an Indian English voice
-    let preferred = voices.find(v =>
-      v.lang.includes('en-IN') && (prefs.preferMale ? v.name.match(/male|man|raj|arjun|ravi/i) : v.name.match(/female|woman|meera|priya/i))
-    );
+    const isMale = !!prefs.preferMale;
+    const preferredNames = prefs.preferredNames || [];
 
-    if (!preferred) {
-      preferred = voices.find(v => v.lang.includes('en-IN'));
+    // 1. Strict filtering by gender:
+    // A male agent MUST NOT be assigned a female voice.
+    // A female agent MUST NOT be assigned a male voice.
+    let genderMatchingVoices = voices.filter(v => {
+      const name = v.name || '';
+      if (isMale) {
+        if (FEMALE_VOICE_REGEX.test(name)) return false;
+        if (MALE_VOICE_REGEX.test(name)) return true;
+        return false;
+      } else {
+        if (MALE_VOICE_REGEX.test(name)) return false;
+        if (FEMALE_VOICE_REGEX.test(name)) return true;
+        return false;
+      }
+    });
+
+    // 2. If no strictly matching gender voice was found by keyword, fallback to voices that do NOT contradict the gender
+    if (!genderMatchingVoices.length) {
+      genderMatchingVoices = voices.filter(v => {
+        const name = v.name || '';
+        return isMale ? !FEMALE_VOICE_REGEX.test(name) : !MALE_VOICE_REGEX.test(name);
+      });
     }
 
-    if (!preferred) {
-      preferred = voices.find(v =>
-        v.lang.includes('en') && (prefs.preferMale ? v.name.match(/male|man|david|mark/i) : v.name.match(/female|woman|samantha|zira|hazel/i))
-      );
+    // 3. Fallback to all voices if system has only one generic voice
+    const pool = genderMatchingVoices.length ? genderMatchingVoices : voices;
+
+    // Check preferred names for this specific persona
+    for (const prefName of preferredNames) {
+      const match = pool.find(v => (v.name || '').toLowerCase().includes(prefName.toLowerCase()));
+      if (match) return match;
     }
 
-    if (!preferred) {
-      preferred = voices.find(v => v.lang.includes('en'));
-    }
+    // Next, check for Indian English voice matching gender
+    const indianVoice = pool.find(v => (v.lang || '').toLowerCase().includes('en-in'));
+    if (indianVoice) return indianVoice;
 
-    return preferred || null;
+    // Next, check for any English voice matching gender
+    const englishVoice = pool.find(v => (v.lang || '').toLowerCase().startsWith('en'));
+    if (englishVoice) return englishVoice;
+
+    return pool[0] || null;
   }
 
   function speak(text, agentId = 'default', onDone = null) {
@@ -139,14 +177,32 @@ const Speech = (() => {
 
     const prefs = VOICE_PREFS[agentId] || VOICE_PREFS.default;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = prefs.lang;
-    utterance.pitch = prefs.pitch;
-    utterance.rate = prefs.rate;
+    utterance.lang = prefs.lang || 'en-US';
+    utterance.rate = prefs.rate || 1.0;
     utterance.volume = 1;
 
-    // Set voice
-    const voice = getVoice(prefs);
+    // Set gender-appropriate voice
+    const voice = getVoice({ ...prefs, agentId });
     if (voice) utterance.voice = voice;
+
+    // Adjust pitch to guarantee gender distinction even on single-voice systems
+    let finalPitch = prefs.pitch;
+    if (prefs.preferMale) {
+      // If the selected voice happens to have a feminine name fallback, drastically lower pitch
+      if (voice && FEMALE_VOICE_REGEX.test(voice.name)) {
+        finalPitch = 0.72;
+      } else {
+        finalPitch = Math.min(prefs.pitch || 0.88, 0.92);
+      }
+    } else {
+      // Female voice: ensure feminine pitch register
+      if (voice && MALE_VOICE_REGEX.test(voice.name)) {
+        finalPitch = 1.25;
+      } else {
+        finalPitch = Math.max(prefs.pitch || 1.12, 1.05);
+      }
+    }
+    utterance.pitch = finalPitch;
 
     utterance.onstart = () => { isSpeaking = true; };
     utterance.onend = () => {
@@ -171,8 +227,8 @@ const Speech = (() => {
 
   // Load voices (Chrome loads them async)
   if (isTTSSupported()) {
-    synthesis.getVoices();
-    synthesis.onvoiceschanged = () => { synthesis.getVoices(); };
+    updateVoicesCache();
+    synthesis.onvoiceschanged = () => { updateVoicesCache(); };
   }
 
   // ─── FILLER WORD DETECTION ───────────────────────────────

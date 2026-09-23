@@ -5,72 +5,63 @@ const db = require('../db');
 
 const router = express.Router();
 
-// AI Agent System Prompts — each has a unique personality
+// AI Agent System Prompts — each has a unique personality with simple vocabulary and clear language
 const AI_AGENTS = {
   arjun: {
     name: 'Arjun',
     role: 'Supporter',
     avatar: '🧑‍💼',
     color: '#4CAF50',
-    systemPrompt: `You are Arjun, an enthusiastic and optimistic GD participant who SUPPORTS the discussion topic.
-Your personality:
-- Enthusiastic and positive, use statistics and facts to back your points
-- You strongly support the topic with well-researched arguments
-- You use phrases like "Absolutely!", "That's a great point!", "Studies show that..."
-- You sometimes directly address other participants by name
-- You speak clearly, in 2-4 sentences max per turn
-- You NEVER repeat the same argument twice
-- You build on previous points made in the discussion
-- You ask the user thought-provoking questions occasionally
-- Keep responses concise and GD-appropriate`
+    systemPrompt: `You are Arjun, a friendly and positive participant in a group discussion who SUPPORTS the topic.
+Your personality and speaking style:
+- Speak in simple, clear, and everyday English that is easy for anyone to understand.
+- Do NOT use difficult words, heavy jargon, or complicated phrases.
+- Enthusiastic and positive, give real-life examples and practical reasons to support the topic.
+- Use friendly phrases like "I really agree with this because...", "That is a great point, and...", "In our daily lives, we can see..."
+- Keep your turn to 2-3 short, clear sentences.
+- Speak naturally like a college student in a friendly discussion.`
   },
   meera: {
     name: 'Meera',
     role: 'Opponent',
     avatar: '👩‍💼',
     color: '#F44336',
-    systemPrompt: `You are Meera, a critical and sharp GD participant who OPPOSES or challenges arguments.
-Your personality:
-- Analytical, skeptical, and good at finding counterarguments
-- You challenge weak reasoning with "But have you considered...", "That argument overlooks..."
-- You play devil's advocate even when you partially agree
-- You speak confidently, in 2-4 sentences max per turn
-- You directly challenge the user's statements when they are weak
-- You introduce new counterpoints and perspectives
-- You sometimes reference real-world examples that contradict the dominant view
-- Keep responses sharp and debate-worthy`
+    systemPrompt: `You are Meera, a practical participant in a group discussion who points out challenges and OPPOSES the topic.
+Your personality and speaking style:
+- Speak in simple, clear, and everyday English that is easy for anyone to understand.
+- Do NOT use difficult words, heavy jargon, or confusing arguments.
+- Point out real problems, risks, or another side of the topic using simple everyday examples.
+- Use simple, polite phrases like "I see your point, but consider...", "On the other hand, what about...", "In real life, this can cause problems like..."
+- Keep your turn to 2-3 short, clear sentences.
+- Speak naturally and respectfully, asking simple questions that make others think.`
   },
   ravi: {
     name: 'Ravi',
     role: 'Analyst',
     avatar: '👨‍🔬',
     color: '#2196F3',
-    systemPrompt: `You are Ravi, a logical and balanced GD participant who provides analytical perspectives.
-Your personality:
-- Calm, data-driven, and balanced in your approach
-- You use phrases like "Looking at this from both angles...", "The data suggests...", "Let me analyze this..."
-- You acknowledge valid points from both sides before giving your analysis
-- You speak in a measured, academic tone in 2-4 sentences max per turn
-- You often introduce new dimensions to the discussion
-- You ask probing questions to deepen the analysis
-- You summarize what has been discussed and add new insight
-- Keep responses thoughtful and structured`
+    systemPrompt: `You are Ravi, a calm and balanced participant who looks at facts and both sides of the topic.
+Your personality and speaking style:
+- Speak in simple, clear, and everyday English that is easy for anyone to understand.
+- Do NOT use complex academic words, dense statistics, or confusing terms.
+- Look at both the pros and cons in very simple words.
+- Use clear phrases like "If we look at both sides...", "For example, the biggest benefit is...", "However, the biggest challenge is..."
+- Keep your turn to 2-3 short, clear sentences.
+- Explain things step-by-step so that every listener can follow easily.`
   },
   priya: {
     name: 'Priya',
     role: 'Moderator',
     avatar: '👩‍🏫',
     color: '#9C27B0',
-    systemPrompt: `You are Priya, a confident moderator-type GD participant who facilitates the discussion.
-Your personality:
-- You control the flow, ensure everyone participates, and summarize key points
-- You use phrases like "Let's hear from...", "To summarize so far...", "That's an interesting angle, but..."
-- You challenge the user to speak up if they've been quiet: "We haven't heard your thoughts on this yet..."
-- You speak in 2-3 sentences, clear and authoritative
-- You sometimes call out when someone hasn't addressed the actual question
-- You push for concrete examples and real-world application
-- You create pressure for the user to take a stance
-- Keep responses facilitating and energetic`
+    systemPrompt: `You are Priya, a helpful and encouraging discussion leader who guides the conversation.
+Your personality and speaking style:
+- Speak in simple, warm, and very clear English.
+- Do NOT use complex words or complicated phrasing.
+- Guide the flow, summarize main points in simple terms, and invite others to speak.
+- Use welcoming phrases like "Let us hear what others think about...", "To put it simply...", "What is your opinion on this?"
+- Keep your turn to 2-3 short, clear sentences.
+- Make everyone feel comfortable and encourage the student to share their views.`
   }
 };
 
@@ -92,12 +83,12 @@ router.post('/respond', authMiddleware, async (req, res) => {
 
 CURRENT GD TOPIC: "${topic}"
 
-IMPORTANT RULES:
-1. Never say the same thing twice. Always add something NEW to the discussion.
-2. Keep your response to 2-4 sentences maximum.
-3. Be conversational and natural, not like a speech or essay.
-4. Sometimes directly address "the student" or "you" to encourage them.
-5. React to what was just said, don't ignore the conversation flow.`;
+CRITICAL INSTRUCTIONS:
+1. VOCABULARY: Use SIMPLE, CLEAR, and EVERYDAY WORDS. Avoid fancy words, buzzwords, or complicated sentences. Any beginner student should understand you immediately.
+2. LENGTH: Keep your answer to 2-3 short, simple sentences maximum.
+3. TONE: Be natural, conversational, and direct — speak just like a real person in a group discussion.
+4. FRESH CONTENT: Never repeat the same point twice. Add one simple new insight or example.
+5. ENGAGEMENT: React to what the previous speaker said in simple words, and sometimes ask the student what they think.`;
 
   // Build history for Gemini (last 10 messages to stay within limits)
   const history = (conversationHistory || []).slice(-10).map(msg => ({
@@ -170,44 +161,84 @@ router.post('/evaluate', authMiddleware, async (req, res) => {
   try {
     const evaluation = await evaluatePerformance(transcript, user.name, session.topic, apiKey);
 
-    // Count stats
-    const totalWords = userMessages.reduce((sum, t) => sum + (t.word_count || 0), 0);
+    // ── Aggregate stats ───────────────────────────────────────────────────────
+    const totalWords    = userMessages.reduce((sum, t) => sum + (t.word_count || 0), 0);
     const speakingTurns = userMessages.length;
 
-    // Save performance to DB
+    // Use evaluator-provided behavioral metrics when available, else compute
+    const speakingTimeSec   = evaluation.speaking_time_seconds    || Math.round((totalWords / 130) * 60);
+    const meaningfulContr   = evaluation.meaningful_contributions || Math.max(1, speakingTurns - 1);
+    const interruptions     = evaluation.interruptions            || 0;
+    const repeatedPoints    = evaluation.repeated_points          || 0;
+    const responsesToOthers = evaluation.responses_to_others      || 0;
+    const questionsAsked    = evaluation.questions_asked          || 0;
+    const topicDeviations   = evaluation.topic_deviations         || 0;
+
+    // ── Save performance to DB — all 10 metrics + behavioral + feedback ───────
     db.prepare(`
-      INSERT OR REPLACE INTO performance 
-      (session_id, user_id, communication_score, fluency_score, vocabulary_score, 
+      INSERT OR REPLACE INTO performance
+      (session_id, user_id,
+       communication_score, fluency_score, vocabulary_score,
        content_score, confidence_score, leadership_score, teamwork_score, critical_thinking,
-       overall_score, strengths, improvements, recommendations, full_feedback,
-       total_words, speaking_turns)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       participation_score, relevance_score, listening_score, conclusion_score,
+       overall_score,
+       strengths, improvements, recommendations,
+       evidence, practice_plan, placement_readiness, improvement_suggestions,
+       full_feedback,
+       total_words, speaking_turns,
+       speaking_time_seconds, meaningful_contributions, interruptions,
+       repeated_points, responses_to_others, questions_asked, topic_deviations)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       sessionId,
       req.user.user_id,
-      evaluation.communication_score,
-      evaluation.fluency_score,
-      evaluation.vocabulary_score,
-      evaluation.content_score,
-      evaluation.confidence_score,
-      evaluation.leadership_score,
-      evaluation.teamwork_score,
-      evaluation.critical_thinking,
-      evaluation.overall_score,
-      JSON.stringify(evaluation.strengths || []),
-      JSON.stringify(evaluation.improvements || []),
-      JSON.stringify(evaluation.recommendations || []),
-      evaluation.full_feedback || '',
+      // 8 legacy metric scores
+      evaluation.communication_score  || 0,
+      evaluation.fluency_score        || 0,
+      evaluation.vocabulary_score     || 0,
+      evaluation.content_score        || 0,
+      evaluation.confidence_score     || 0,
+      evaluation.leadership_score     || 0,
+      evaluation.teamwork_score       || 0,
+      evaluation.critical_thinking    || 0,
+      // 4 new metric scores
+      evaluation.participation_score  || 0,
+      evaluation.relevance_score      || 0,
+      evaluation.listening_score      || 0,
+      evaluation.conclusion_score     || 0,
+      // overall
+      evaluation.overall_score        || 0,
+      // feedback JSON arrays
+      JSON.stringify(evaluation.strengths              || []),
+      JSON.stringify(evaluation.improvements           || []),
+      JSON.stringify(evaluation.recommendations        || []),
+      JSON.stringify(evaluation.evidence               || []),
+      JSON.stringify(evaluation.practice_plan          || []),
+      evaluation.placement_readiness                   || '',
+      JSON.stringify(evaluation.improvement_suggestions|| []),
+      evaluation.full_feedback                         || '',
+      // behavioral stats
       totalWords,
-      speakingTurns
+      speakingTurns,
+      speakingTimeSec,
+      meaningfulContr,
+      interruptions,
+      repeatedPoints,
+      responsesToOthers,
+      questionsAsked,
+      topicDeviations
     );
 
-    res.json({ evaluation, stats: { totalWords, speakingTurns } });
+    res.json({
+      evaluation,
+      stats: { totalWords, speakingTurns, speakingTimeSec, meaningfulContr, questionsAsked, responsesToOthers }
+    });
   } catch (err) {
     console.error('Evaluation error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ─── GET /api/ai/agents ──────────────────────────────────────────────────────
 router.get('/agents', authMiddleware, (req, res) => {

@@ -123,6 +123,39 @@ const createTables = db.transaction(() => {
 
 createTables();
 
+// ============================================================
+// MIGRATIONS — safely add new columns if they don't exist yet
+// (node:sqlite has no IF NOT EXISTS for ADD COLUMN, so we try/catch)
+// ============================================================
+const MIGRATIONS = [
+  // ── New 10-metric scoring columns ──────────────────────────
+  `ALTER TABLE performance ADD COLUMN participation_score  REAL DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN relevance_score      REAL DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN listening_score      REAL DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN conclusion_score     REAL DEFAULT 0`,
+  // ── Behavioral metric columns ───────────────────────────────
+  `ALTER TABLE performance ADD COLUMN speaking_time_seconds    INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN meaningful_contributions INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN interruptions            INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN repeated_points         INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN responses_to_others     INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN questions_asked         INTEGER DEFAULT 0`,
+  `ALTER TABLE performance ADD COLUMN topic_deviations        INTEGER DEFAULT 0`,
+  // ── Extended feedback columns ───────────────────────────────
+  `ALTER TABLE performance ADD COLUMN evidence               TEXT DEFAULT '[]'`,
+  `ALTER TABLE performance ADD COLUMN practice_plan          TEXT DEFAULT '[]'`,
+  `ALTER TABLE performance ADD COLUMN placement_readiness    TEXT DEFAULT ''`,
+  `ALTER TABLE performance ADD COLUMN improvement_suggestions TEXT DEFAULT '[]'`,
+];
+
+for (const sql of MIGRATIONS) {
+  try {
+    db.exec(sql);
+  } catch (_) {
+    // Column already exists — silently skip
+  }
+}
+
 console.log('✅ Database initialized successfully via node:sqlite:', DB_PATH);
 
 module.exports = db;

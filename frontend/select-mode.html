@@ -117,6 +117,134 @@
       .mode-grid { grid-template-columns: 1fr; }
       .mode-card { padding: 32px 24px; }
     }
+
+    /* ── Join Code modal ── */
+    .join-code-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+    .join-code-box {
+      padding: 40px 36px 32px;
+      max-width: 450px;
+      width: 92%;
+      border-radius: 20px;
+      position: relative;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(16,24,40,0.98) 0%, rgba(10,14,28,0.98) 100%);
+      border: 1.5px solid rgba(16,185,129,0.25);
+      box-shadow: 0 0 60px rgba(16,185,129,0.1), 0 20px 60px rgba(0,0,0,0.6);
+      animation: jcSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes jcSlideUp {
+      from { opacity:0; transform: translateY(24px) scale(0.96); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    .join-code-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      font-size: 1rem;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .join-code-close:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+
+    /* Animated code input */
+    .room-code-input-big {
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 1.8rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-weight: 800;
+      font-family: var(--font-display);
+      background: rgba(16,185,129,0.06);
+      border: 2px solid rgba(16,185,129,0.3);
+      border-radius: 12px;
+      padding: 16px 14px;
+      color: #34d399;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: #34d399;
+    }
+    .room-code-input-big::placeholder { color: rgba(52,211,153,0.3); letter-spacing: 0.15em; font-size: 1.4rem; font-weight: 600; }
+    .room-code-input-big:focus {
+      border-color: rgba(52,211,153,0.7);
+      box-shadow: 0 0 0 3px rgba(52,211,153,0.15), 0 0 20px rgba(52,211,153,0.1);
+    }
+    .room-code-input-big.error {
+      border-color: rgba(239,68,68,0.7);
+      color: #f87171;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+      animation: shake 0.35s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-6px); }
+      75%     { transform: translateX(6px); }
+    }
+    .join-hint {
+      font-size: 0.78rem;
+      margin-top: 8px;
+      min-height: 18px;
+      transition: color 0.15s;
+    }
+    .join-hint.ok  { color: #34d399; }
+    .join-hint.err { color: #f87171; }
+    .join-hint.dim { color: var(--text-muted); }
+
+    /* Two action buttons in Human Mode card */
+    .human-action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-host {
+      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(52,211,153,0.15));
+      border: 1.5px solid rgba(52,211,153,0.45);
+      color: #34d399;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-host:hover {
+      background: rgba(52,211,153,0.28);
+      box-shadow: 0 0 20px rgba(52,211,153,0.2);
+      transform: translateY(-1px);
+    }
+    .btn-join-code {
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.14);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.93rem;
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-join-code:hover {
+      background: rgba(16,185,129,0.1);
+      border-color: rgba(16,185,129,0.35);
+      color: #34d399;
+    }
   </style>
 </head>
 <body>
@@ -186,7 +314,7 @@
             <li><span class="check">✅</span> Available 24/7 — no waiting</li>
           </ul>
 
-          <button class="btn btn-primary btn-full btn-lg">
+          <button class="btn btn-primary btn-full btn-lg" onclick="event.stopPropagation(); selectMode('ai');">
             Start AI Mode →
           </button>
         </div>
@@ -215,14 +343,64 @@
             <li><span class="check">✅</span> AI feedback after discussion</li>
           </ul>
 
-          <button class="btn btn-success btn-full btn-lg">
-            Start Human Mode →
-          </button>
+          <!-- Two distinct action buttons -->
+          <div class="human-action-btns">
+            <button class="btn-host" id="btn-host-new-room" onclick="event.stopPropagation(); hostHumanRoom(event);">
+              🎯 Host New Room
+            </button>
+            <button class="btn-join-code" id="btn-open-join-modal" onclick="event.stopPropagation(); openJoinCodeModal(event);">
+              🔑 Join with Room Code
+            </button>
+            <a href="/select-topic.html?mode=human"
+               onclick="event.stopPropagation();"
+               style="font-size:0.76rem; color:var(--text-muted); text-align:center; display:block; margin-top:2px">
+              or choose a custom topic first →
+            </a>
+          </div>
         </div>
 
       </div>
     </div>
   </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JOIN WITH CODE MODAL
+═══════════════════════════════════════════════════════════ -->
+<div id="join-code-modal" class="join-code-overlay" onclick="if(event.target===this) closeJoinCodeModal();">
+  <div class="join-code-box">
+
+    <button class="join-code-close" onclick="closeJoinCodeModal()" title="Close">✕</button>
+
+    <div style="font-size:2.8rem; margin-bottom:12px; animation:float 3s ease infinite">🔑</div>
+    <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:6px">Join Human GD Room</h2>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:22px">
+      Enter or paste the Room Code (or full invite link) shared by your host
+    </p>
+
+    <div style="margin-bottom:6px">
+      <input
+        id="room-code-input"
+        class="room-code-input-big"
+        type="text"
+        placeholder="GD····"
+        maxlength="120"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+    <div id="join-code-hint" class="join-hint dim">Accepts a code like GD2341 or a full invite URL</div>
+
+    <button
+      class="btn btn-success btn-full btn-lg"
+      id="join-code-submit"
+      onclick="submitJoinCode()"
+      style="margin-top:20px; font-size:1rem; font-weight:700; padding:14px"
+    >
+      Join Discussion Now →
+    </button>
+
+  </div>
 </div>
 
 <script src="/js/api.js"></script>
@@ -239,6 +417,133 @@
     localStorage.setItem('gd_selected_mode', mode);
     window.location.href = `/select-topic.html?mode=${mode}`;
   }
+
+  async function hostHumanRoom(e) {
+    if (e) e.stopPropagation();
+    const btn = document.getElementById('btn-host-new-room');
+    if (btn) {
+      btn.innerHTML = '🎯 Creating Room...';
+      btn.disabled = true;
+    }
+
+    const roomId = 'GD' + Math.floor(1000 + Math.random() * 9000);
+    const defaultTopic = 'Artificial Intelligence in Modern Education';
+
+    try {
+      if (window.API && window.API.Sessions) {
+        const res = await window.API.Sessions.create('human', defaultTopic, 'General', roomId);
+        const sid = res?.session?.session_id || '';
+        window.location.href = `/human-room.html?action=create&roomId=${roomId}&topic=${encodeURIComponent(defaultTopic)}` + (sid ? `&session=${sid}` : '');
+        return;
+      }
+    } catch (err) {
+      console.warn('Session creation fallback:', err);
+    }
+    window.location.href = `/human-room.html?action=create&roomId=${roomId}&topic=${encodeURIComponent(defaultTopic)}`;
+  }
+
+  /* ── Join Code Modal ────────────────────────────────────────── */
+  function openJoinCodeModal(e, prefill) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const modal = document.getElementById('join-code-modal');
+    modal.style.display = 'flex';
+    const inp = document.getElementById('room-code-input');
+    if (prefill && inp) {
+      inp.value = prefill;
+      validateRoomInput(inp);
+    }
+    setTimeout(() => inp?.focus(), 60);
+  }
+
+  function closeJoinCodeModal() {
+    document.getElementById('join-code-modal').style.display = 'none';
+    const hint = document.getElementById('join-code-hint');
+    if (hint) { hint.textContent = 'Accepts a code like GD2341 or a full invite URL'; hint.className = 'join-hint dim'; }
+    const inp = document.getElementById('room-code-input');
+    if (inp) { inp.value = ''; inp.className = 'room-code-input-big'; }
+    const btn = document.getElementById('join-code-submit');
+    if (btn) { btn.innerHTML = 'Join Discussion Now →'; btn.disabled = false; }
+  }
+
+  /* Live validation + auto-caps + URL paste detection */
+  function validateRoomInput(inp) {
+    let raw = inp.value;
+    if (raw.includes('roomId=')) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        const extracted = u.searchParams.get('roomId');
+        if (extracted) raw = extracted;
+      } catch (e) {}
+    }
+    const clean = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 10);
+    inp.value = clean;
+    const hint = document.getElementById('join-code-hint');
+    inp.classList.remove('error');
+    if (!clean) {
+      hint.textContent = 'Accepts a code like GD2341 or a full invite URL';
+      hint.className = 'join-hint dim';
+    } else if (clean.length < 4) {
+      hint.textContent = 'Room codes are at least 4 characters';
+      hint.className = 'join-hint err';
+    } else {
+      hint.textContent = `✓ Room code looks good — press Join to continue`;
+      hint.className = 'join-hint ok';
+    }
+  }
+
+  const roomCodeInp = document.getElementById('room-code-input');
+  if (roomCodeInp) {
+    roomCodeInp.addEventListener('input', () => validateRoomInput(roomCodeInp));
+    roomCodeInp.addEventListener('paste', () => setTimeout(() => validateRoomInput(roomCodeInp), 0));
+    roomCodeInp.addEventListener('keydown', e => { if (e.key === 'Enter') submitJoinCode(); });
+  }
+
+  async function submitJoinCode() {
+    const inp = document.getElementById('room-code-input');
+    const btn = document.getElementById('join-code-submit');
+    let raw = inp?.value.trim() || '';
+    if (raw.includes('roomId=')) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        raw = u.searchParams.get('roomId') || raw;
+      } catch (e) {}
+    }
+    const code = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    if (!code || code.length < 2) {
+      if (inp) inp.classList.add('error');
+      const hint = document.getElementById('join-code-hint');
+      if (hint) { hint.textContent = 'Please enter a valid Room Code'; hint.className = 'join-hint err'; }
+      setTimeout(() => inp?.classList.remove('error'), 700);
+      return;
+    }
+
+    if (btn) {
+      btn.innerHTML = 'Joining...';
+      btn.disabled = true;
+    }
+
+    try {
+      if (window.API && window.API.Sessions) {
+        const res = await window.API.Sessions.create('human', 'Group Discussion Room ' + code, 'General', code);
+        const sid = res?.session?.session_id || '';
+        window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}` + (sid ? `&session=${sid}` : '');
+        return;
+      }
+    } catch (err) {
+      console.warn('Session join fallback:', err);
+    }
+    window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}`;
+  }
+
+  /* ── Auto-open join modal if page URL has ?roomId=... or ?action=join&roomId=... ── */
+  (function checkUrlAutoJoin() {
+    const p = new URLSearchParams(window.location.search);
+    const rid = p.get('roomId') || p.get('room');
+    const act = p.get('action');
+    if (rid && (act === 'join' || !act)) {
+      openJoinCodeModal(null, rid.trim().toUpperCase());
+    }
+  })();
 </script>
 </body>
 </html>

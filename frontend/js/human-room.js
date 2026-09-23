@@ -38,6 +38,11 @@ const HumanRoom = (() => {
       if (roomIdEl) roomIdEl.textContent = roomId;
 
       socket.emit('room:create', { roomId, topic, userName, userId });
+    } else if (params.get('roomId')) {
+      roomId = params.get('roomId');
+      const roomIdEl = document.getElementById('room-id-display');
+      if (roomIdEl) roomIdEl.textContent = roomId;
+      socket.emit('room:join', { roomId, userName, userId });
     } else {
       // Show join form
       showJoinForm();

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GD Results — GD Simulator</title>
+  <meta name="description" content="Detailed AI-powered Group Discussion performance analysis with 10 evaluation metrics, behavioral stats, and personalized improvement plan." />
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/results.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -75,11 +76,26 @@
         <div class="score-grade" id="score-grade-badge">Loading...</div>
         <h1 style="font-size:1.5rem; margin:8px 0 4px" id="results-topic">GD Performance Analysis</h1>
         <p id="results-meta" style="font-size:0.82rem; color:var(--text-muted)"></p>
+
+        <!-- Placement Readiness -->
+        <div class="placement-badge" id="placement-badge" style="display:none; margin-top:20px">
+          <div class="placement-badge-icon" id="placement-icon">🎓</div>
+          <div>
+            <div class="placement-badge-label">Placement Readiness</div>
+            <div class="placement-badge-text" id="placement-text"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Scores Breakdown -->
+      <!-- Behavioral Stats Panel -->
       <div style="padding:0 40px 24px">
-        <h2 style="font-size:1.1rem; margin-bottom:16px">📊 Detailed Score Breakdown</h2>
+        <h2 class="section-heading">📈 Behavioral Metrics</h2>
+        <div class="behavioral-grid" id="behavioral-grid"></div>
+      </div>
+
+      <!-- 10-Metric Score Breakdown -->
+      <div style="padding:0 40px 24px">
+        <h2 class="section-heading">📊 10-Metric Score Breakdown</h2>
         <div class="scores-grid" id="scores-grid"></div>
       </div>
 
@@ -88,30 +104,54 @@
         <div class="charts-row">
           <div class="chart-card">
             <div class="chart-card-title">Skill Radar Chart</div>
-            <div style="height:280px; position:relative">
+            <div style="height:320px; position:relative">
               <canvas id="radar-chart"></canvas>
             </div>
           </div>
           <div class="chart-card">
             <div class="chart-card-title">Score Breakdown</div>
-            <div style="height:280px; position:relative">
+            <div style="height:320px; position:relative">
               <canvas id="bar-chart"></canvas>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Full Feedback -->
+      <!-- Full AI Feedback -->
       <div style="padding:0 40px 24px">
-        <h2 style="font-size:1.1rem; margin-bottom:16px">🤖 AI Feedback</h2>
+        <h2 class="section-heading">🤖 AI Feedback</h2>
         <div class="full-feedback-card">
           <div class="full-feedback-text" id="full-feedback"></div>
         </div>
       </div>
 
-      <!-- Feedback Cards Grid -->
+      <!-- Strengths / Weaknesses / Recommendations Grid -->
       <div style="padding:0 40px 24px">
         <div class="feedback-grid" id="feedback-grid"></div>
+      </div>
+
+      <!-- Evidence Section -->
+      <div style="padding:0 40px 24px" id="evidence-section" style="display:none">
+        <div class="feedback-card evidence-card" id="evidence-card">
+          <div class="feedback-card-title">🔍 Evidence & Scoring Rationale</div>
+          <ul class="feedback-list" id="evidence-list"></ul>
+        </div>
+      </div>
+
+      <!-- Improvement Suggestions -->
+      <div style="padding:0 40px 24px" id="improvement-section" style="display:none">
+        <div class="feedback-card improvement-card" id="improvement-card">
+          <div class="feedback-card-title">🎯 Targeted Improvement Suggestions</div>
+          <ul class="feedback-list" id="improvement-list"></ul>
+        </div>
+      </div>
+
+      <!-- Practice Plan -->
+      <div style="padding:0 40px 24px" id="practice-plan-section" style="display:none">
+        <div class="feedback-card practice-plan-card" id="practice-plan-card">
+          <div class="feedback-card-title">📋 Personalized Practice Plan</div>
+          <ol class="practice-plan-list" id="practice-plan-list"></ol>
+        </div>
       </div>
 
       <!-- Transcript -->
@@ -151,6 +191,20 @@
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('session') || params.get('session_id') || params.get('id');
 
+  // ── 10-Metric Definition ──────────────────────────────────────────────────
+  const METRIC_DEFS = [
+    { label: 'Content Quality',    icon: '💡', key: 'content_score',        color: '#10b981', weight: '15%' },
+    { label: 'Communication',      icon: '🗣️', key: 'communication_score',  color: '#6c63ff', weight: '15%' },
+    { label: 'Participation',      icon: '🙋', key: 'participation_score',  color: '#f59e0b', weight: '10%' },
+    { label: 'Relevance',          icon: '🎯', key: 'relevance_score',      color: '#3b82f6', weight: '10%' },
+    { label: 'Listening & Response', icon: '👂', key: 'listening_score',     color: '#14b8a6', weight: '10%' },
+    { label: 'Teamwork',           icon: '🤝', key: 'teamwork_score',       color: '#ef4444', weight: '10%' },
+    { label: 'Leadership',         icon: '👑', key: 'leadership_score',     color: '#9c27b0', weight: '10%' },
+    { label: 'Critical Thinking',  icon: '🧠', key: 'critical_thinking',    color: '#0ea5e9', weight: '10%' },
+    { label: 'Confidence',         icon: '💪', key: 'confidence_score',     color: '#ec4899', weight: '5%' },
+    { label: 'Conclusion',         icon: '📌', key: 'conclusion_score',     color: '#a78bfa', weight: '5%' },
+  ];
+
   async function loadResults() {
     if (!sessionId) {
       window.location.href = '/history.html';
@@ -162,19 +216,23 @@
       const { performance: perf, transcript } = data;
 
       // Parse JSON strings if needed
-      let strengths = perf.strengths;
-      let improvements = perf.improvements;
-      let recommendations = perf.recommendations;
-
-      if (typeof strengths === 'string') { try { strengths = JSON.parse(strengths); } catch { strengths = []; } }
-      if (typeof improvements === 'string') { try { improvements = JSON.parse(improvements); } catch { improvements = []; } }
-      if (typeof recommendations === 'string') { try { recommendations = JSON.parse(recommendations); } catch { recommendations = []; } }
+      const parseJsonField = (val) => {
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') { try { return JSON.parse(val); } catch { return []; } }
+        return [];
+      };
+      const strengths       = parseJsonField(perf.strengths);
+      const improvements    = parseJsonField(perf.improvements);
+      const recommendations = parseJsonField(perf.recommendations);
+      const evidence        = parseJsonField(perf.evidence);
+      const practicePlan    = parseJsonField(perf.practice_plan);
+      const improveSugs     = parseJsonField(perf.improvement_suggestions);
 
       // Show results
       document.getElementById('loading-state').style.display = 'none';
       document.getElementById('results-content').style.display = 'block';
 
-      // Score ring animation
+      // ── Score ring animation ──────────────────────────────────────────
       const score = Math.round(perf.overall_score || 0);
       const circumference = 490;
       const offset = circumference - (score / 100) * circumference;
@@ -192,28 +250,48 @@
 
       // Topic & meta
       document.getElementById('results-topic').textContent = `"${perf.topic}"`;
-      document.getElementById('results-meta').textContent = `${perf.mode === 'ai' ? '🤖 AI Mode' : '👥 Human Mode'} · ${perf.category} · ${AppUtils.formatDate(perf.created_at)} · ${perf.speaking_turns} speaking turns · ${perf.total_words} words`;
+      document.getElementById('results-meta').textContent = `${perf.mode === 'ai' ? '🤖 AI Mode' : '👥 Human Mode'} · ${perf.category || 'General'} · ${AppUtils.formatDate(perf.created_at)} · ${perf.speaking_turns || 0} turns · ${perf.total_words || 0} words`;
 
-      // Score breakdown
-      const scoreItems = [
-        { label: 'Communication', icon: '🗣️', key: 'communication_score', color: '#6c63ff' },
-        { label: 'Fluency', icon: '💬', key: 'fluency_score', color: '#ec4899' },
-        { label: 'Vocabulary', icon: '📚', key: 'vocabulary_score', color: '#3b82f6' },
-        { label: 'Content Quality', icon: '💡', key: 'content_score', color: '#10b981' },
-        { label: 'Confidence', icon: '💪', key: 'confidence_score', color: '#f59e0b' },
-        { label: 'Leadership', icon: '🎯', key: 'leadership_score', color: '#9c27b0' },
-        { label: 'Teamwork', icon: '🤝', key: 'teamwork_score', color: '#ef4444' },
-        { label: 'Critical Thinking', icon: '🧠', key: 'critical_thinking', color: '#0ea5e9' }
+      // ── Placement Readiness ───────────────────────────────────────────
+      if (perf.placement_readiness) {
+        const pb = document.getElementById('placement-badge');
+        pb.style.display = 'flex';
+        document.getElementById('placement-text').textContent = perf.placement_readiness;
+        // Choose icon based on score
+        const pIcon = score >= 90 ? '🌟' : score >= 80 ? '✅' : score >= 70 ? '💪' : score >= 60 ? '📈' : '🔄';
+        document.getElementById('placement-icon').textContent = pIcon;
+      }
+
+      // ── Behavioral Stats Panel ────────────────────────────────────────
+      const behavioralStats = [
+        { icon: '⏱️', value: formatTime(perf.speaking_time_seconds || 0), label: 'Speaking Time' },
+        { icon: '💬', value: perf.speaking_turns || 0, label: 'Speaking Turns' },
+        { icon: '📝', value: perf.total_words || 0, label: 'Total Words' },
+        { icon: '✨', value: perf.meaningful_contributions || 0, label: 'Key Contributions' },
+        { icon: '↩️', value: perf.responses_to_others || 0, label: 'Responses to Others' },
+        { icon: '❓', value: perf.questions_asked || 0, label: 'Questions Asked' },
+        { icon: '🔄', value: perf.repeated_points || 0, label: 'Repeated Points' },
+        { icon: '🚧', value: perf.topic_deviations || 0, label: 'Topic Deviations' },
       ];
 
-      document.getElementById('scores-grid').innerHTML = scoreItems.map(item => {
+      document.getElementById('behavioral-grid').innerHTML = behavioralStats.map(s => `
+        <div class="behavioral-stat">
+          <div class="behavioral-stat-icon">${s.icon}</div>
+          <div class="behavioral-stat-value">${s.value}</div>
+          <div class="behavioral-stat-label">${s.label}</div>
+        </div>
+      `).join('');
+
+      // ── 10-Metric Score Breakdown ──────────────────────────────────────
+      document.getElementById('scores-grid').innerHTML = METRIC_DEFS.map(item => {
         const val = Math.round(perf[item.key] || 0);
         return `
           <div class="score-item">
             <div class="score-item-icon" style="background:${item.color}20; color:${item.color}">${item.icon}</div>
             <div class="score-item-info">
               <div class="score-item-label">${item.label}</div>
-              <div class="progress-bar" style="margin-top:4px">
+              <div class="score-item-weight">Weight: ${item.weight}</div>
+              <div class="progress-bar" style="margin-top:2px">
                 <div class="progress-fill" style="width:0%; background:${item.color}" data-width="${val}%"></div>
               </div>
             </div>
@@ -229,14 +307,17 @@
         });
       }, 500);
 
-      // Charts
-      renderRadarChart(scoreItems.map(i => ({ label: i.label, value: Math.round(perf[i.key] || 0), color: i.color })));
-      renderBarChart(scoreItems.map(i => ({ label: i.label, value: Math.round(perf[i.key] || 0), color: i.color })));
+      // ── Charts ─────────────────────────────────────────────────────────
+      const chartData = METRIC_DEFS.map(i => ({
+        label: i.label, value: Math.round(perf[i.key] || 0), color: i.color
+      }));
+      renderRadarChart(chartData);
+      renderBarChart(chartData);
 
-      // Full feedback
+      // ── Full Feedback ──────────────────────────────────────────────────
       document.getElementById('full-feedback').textContent = perf.full_feedback || 'No detailed feedback available.';
 
-      // Feedback cards
+      // ── Strengths / Weaknesses / Recommendations ───────────────────────
       document.getElementById('feedback-grid').innerHTML = `
         <div class="feedback-card strengths-card">
           <div class="feedback-card-title">✅ Strengths</div>
@@ -258,7 +339,28 @@
         </div>
       `;
 
-      // Transcript
+      // ── Evidence ───────────────────────────────────────────────────────
+      if (evidence && evidence.length > 0) {
+        document.getElementById('evidence-section').style.display = 'block';
+        document.getElementById('evidence-list').innerHTML =
+          evidence.map(e => `<li>${e}</li>`).join('');
+      }
+
+      // ── Improvement Suggestions ────────────────────────────────────────
+      if (improveSugs && improveSugs.length > 0) {
+        document.getElementById('improvement-section').style.display = 'block';
+        document.getElementById('improvement-list').innerHTML =
+          improveSugs.map(s => `<li>${s}</li>`).join('');
+      }
+
+      // ── Practice Plan ──────────────────────────────────────────────────
+      if (practicePlan && practicePlan.length > 0) {
+        document.getElementById('practice-plan-section').style.display = 'block';
+        document.getElementById('practice-plan-list').innerHTML =
+          practicePlan.map(p => `<li>${p}</li>`).join('');
+      }
+
+      // ── Transcript ─────────────────────────────────────────────────────
       if (transcript && transcript.length > 0) {
         const colors = { user: '#10b981', ai: '#a78bfa', system: '#475569' };
         document.getElementById('transcript-list').innerHTML = transcript.map(t => `
@@ -282,6 +384,13 @@
     }
   }
 
+  function formatTime(seconds) {
+    if (!seconds || seconds < 0) return '0s';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  }
+
   function renderRadarChart(data) {
     const ctx = document.getElementById('radar-chart');
     new Chart(ctx, {
@@ -293,7 +402,8 @@
           data: data.map(d => d.value),
           borderColor: '#6c63ff',
           backgroundColor: 'rgba(108,99,255,0.12)',
-          pointBackgroundColor: '#6c63ff',
+          pointBackgroundColor: data.map(d => d.color),
+          pointBorderColor: data.map(d => d.color),
           pointRadius: 4,
           borderWidth: 2
         }]
@@ -306,7 +416,7 @@
             grid: { color: 'rgba(255,255,255,0.06)' },
             angleLines: { color: 'rgba(255,255,255,0.06)' },
             ticks: { color: '#94a3b8', stepSize: 25, backdropColor: 'transparent' },
-            pointLabels: { color: '#94a3b8', font: { size: 10 } }
+            pointLabels: { color: '#94a3b8', font: { size: 9 } }
           }
         },
         plugins: { legend: { display: false } }
@@ -333,7 +443,7 @@
         plugins: { legend: { display: false } },
         scales: {
           y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 8 }, maxRotation: 45 } }
         }
       }
     });

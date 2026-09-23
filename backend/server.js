@@ -54,8 +54,11 @@ io.on('connection', (socket) => {
 
   // Create a new human GD room
   socket.on('room:create', ({ roomId, topic, userName, userId }) => {
-    rooms[roomId] = {
-      topic,
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!cleanRoomId) return;
+
+    rooms[cleanRoomId] = {
+      topic: topic || 'The Role of Artificial Intelligence in Modern Education',
       participants: [],
       timerDuration: 10 * 60, // 10 minutes
       timerRemaining: 10 * 60,
@@ -64,99 +67,106 @@ io.on('connection', (socket) => {
     };
 
     const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
-    rooms[roomId].participants.push(participant);
-    socket.join(roomId);
+    rooms[cleanRoomId].participants.push(participant);
+    socket.join(cleanRoomId);
 
     socket.emit('room:joined', {
-      roomId,
-      topic,
-      participants: rooms[roomId].participants
+      roomId: cleanRoomId,
+      topic: rooms[cleanRoomId].topic,
+      participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`🏠 Room created: ${roomId} by ${userName}`);
+    console.log(`🏠 Room created: ${cleanRoomId} by ${userName}`);
   });
 
   // Join an existing room
   socket.on('room:join', ({ roomId, userName, userId }) => {
-    if (!rooms[roomId]) {
-      socket.emit('room:error', { message: `Room "${roomId}" does not exist. Please check the Room ID.` });
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!rooms[cleanRoomId]) {
+      socket.emit('room:error', { message: `Room "${cleanRoomId || roomId}" does not exist. Please check the Room ID.` });
       return;
     }
 
-    if (rooms[roomId].status === 'ended') {
+    if (rooms[cleanRoomId].status === 'ended') {
       socket.emit('room:error', { message: 'This discussion has already ended.' });
       return;
     }
 
     const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
-    rooms[roomId].participants.push(participant);
-    socket.join(roomId);
+    rooms[cleanRoomId].participants.push(participant);
+    socket.join(cleanRoomId);
 
     // Notify the joiner
     socket.emit('room:joined', {
-      roomId,
-      topic: rooms[roomId].topic,
-      participants: rooms[roomId].participants
+      roomId: cleanRoomId,
+      topic: rooms[cleanRoomId].topic,
+      participants: rooms[cleanRoomId].participants
     });
 
     // Notify others in room
-    socket.to(roomId).emit('room:participant_joined', {
+    socket.to(cleanRoomId).emit('room:participant_joined', {
       participant,
-      participants: rooms[roomId].participants
+      participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`👤 ${userName} joined room: ${roomId}`);
+    console.log(`👤 ${userName} joined room: ${cleanRoomId}`);
   });
 
   // Send a chat message
   socket.on('room:message', ({ roomId, userName, message, timestamp }) => {
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!cleanRoomId) return;
     const msgData = { userName, message, timestamp: timestamp || new Date().toISOString() };
-    io.to(roomId).emit('room:message', msgData);
+    io.to(cleanRoomId).emit('room:message', msgData);
   });
 
   // Mute/unmute toggle
   socket.on('room:toggle_mute', ({ roomId, isMuted }) => {
-    if (rooms[roomId]) {
-      const participant = rooms[roomId].participants.find(p => p.socketId === socket.id);
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (rooms[cleanRoomId]) {
+      const participant = rooms[cleanRoomId].participants.find(p => p.socketId === socket.id);
       if (participant) {
         participant.isMuted = isMuted;
-        io.to(roomId).emit('room:participants_update', rooms[roomId].participants);
+        io.to(cleanRoomId).emit('room:participants_update', rooms[cleanRoomId].participants);
       }
     }
   });
 
   // Start the discussion timer
   socket.on('room:start', ({ roomId, duration }) => {
-    if (!rooms[roomId]) return;
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!rooms[cleanRoomId]) return;
 
-    rooms[roomId].status = 'active';
-    rooms[roomId].timerDuration = duration || 10 * 60;
-    rooms[roomId].timerRemaining = rooms[roomId].timerDuration;
+    rooms[cleanRoomId].status = 'active';
+    rooms[cleanRoomId].timerDuration = duration || 10 * 60;
+    rooms[cleanRoomId].timerRemaining = rooms[cleanRoomId].timerDuration;
 
-    io.to(roomId).emit('room:started', { topic: rooms[roomId].topic });
+    io.to(cleanRoomId).emit('room:started', { topic: rooms[cleanRoomId].topic });
 
     // Start timer
-    rooms[roomId].timerInterval = setInterval(() => {
-      if (!rooms[roomId]) {
+    if (rooms[cleanRoomId].timerInterval) clearInterval(rooms[cleanRoomId].timerInterval);
+    rooms[cleanRoomId].timerInterval = setInterval(() => {
+      if (!rooms[cleanRoomId]) {
         return;
       }
-      rooms[roomId].timerRemaining--;
-      io.to(roomId).emit('room:timer', { remaining: rooms[roomId].timerRemaining });
+      rooms[cleanRoomId].timerRemaining--;
+      io.to(cleanRoomId).emit('room:timer', { remaining: rooms[cleanRoomId].timerRemaining });
 
-      if (rooms[roomId].timerRemaining <= 0) {
-        clearInterval(rooms[roomId].timerInterval);
-        rooms[roomId].status = 'ended';
-        io.to(roomId).emit('room:ended', { message: 'Discussion time is up!' });
+      if (rooms[cleanRoomId].timerRemaining <= 0) {
+        clearInterval(rooms[cleanRoomId].timerInterval);
+        rooms[cleanRoomId].status = 'ended';
+        io.to(cleanRoomId).emit('room:ended', { message: 'Discussion time is up!' });
       }
     }, 1000);
   });
 
   // End discussion manually
   socket.on('room:end', ({ roomId }) => {
-    if (!rooms[roomId]) return;
-    if (rooms[roomId].timerInterval) clearInterval(rooms[roomId].timerInterval);
-    rooms[roomId].status = 'ended';
-    io.to(roomId).emit('room:ended', { message: 'Discussion ended by host.' });
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!rooms[cleanRoomId]) return;
+    if (rooms[cleanRoomId].timerInterval) clearInterval(rooms[cleanRoomId].timerInterval);
+    rooms[cleanRoomId].status = 'ended';
+    io.to(cleanRoomId).emit('room:ended', { message: 'Discussion ended by host.' });
   });
 
   // Handle disconnect
@@ -164,22 +174,23 @@ io.on('connection', (socket) => {
     console.log(`❌ Socket disconnected: ${socket.id}`);
 
     // Remove from any room
-    for (const roomId in rooms) {
-      const idx = rooms[roomId].participants.findIndex(p => p.socketId === socket.id);
+    for (const rId in rooms) {
+      if (!rooms[rId] || !rooms[rId].participants) continue;
+      const idx = rooms[rId].participants.findIndex(p => p.socketId === socket.id);
       if (idx !== -1) {
-        const name = rooms[roomId].participants[idx].name;
-        rooms[roomId].participants.splice(idx, 1);
+        const name = rooms[rId].participants[idx].name;
+        rooms[rId].participants.splice(idx, 1);
 
-        socket.to(roomId).emit('room:participant_left', {
+        socket.to(rId).emit('room:participant_left', {
           name,
-          participants: rooms[roomId].participants
+          participants: rooms[rId].participants
         });
 
         // Clean up empty rooms
-        if (rooms[roomId].participants.length === 0) {
-          if (rooms[roomId].timerInterval) clearInterval(rooms[roomId].timerInterval);
-          delete rooms[roomId];
-          console.log(`🗑️  Room ${roomId} cleaned up (empty)`);
+        if (rooms[rId].participants.length === 0) {
+          if (rooms[rId].timerInterval) clearInterval(rooms[rId].timerInterval);
+          delete rooms[rId];
+          console.log(`🗑️  Room ${rId} cleaned up (empty)`);
         }
         break;
       }

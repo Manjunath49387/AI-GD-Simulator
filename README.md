@@ -117,3 +117,9 @@ Final_demo_GD/
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
    * **Demo Account**: `demo@gd.com` / `demo123`
+
+
+
+cd d:\Final_demo_GD\backend
+npm start
+

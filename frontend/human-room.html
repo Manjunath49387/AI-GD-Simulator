@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Human GD Room — GD Simulator</title>
+  <meta name="description" content="Real-time Human Group Discussion room — GD Simulator" />
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/ai-room.css" />
   <style>
+    /* ── Room ID display ── */
     .room-id-display-big {
       font-family: var(--font-display);
       font-size: 2rem;
@@ -18,6 +20,7 @@
       background-clip: text;
     }
 
+    /* ── Host controls strip ── */
     .host-controls {
       display: flex;
       align-items: center;
@@ -29,31 +32,317 @@
       margin-bottom: 12px;
     }
     .host-controls.hidden { display: none; }
-
     select.form-input { padding: 8px 12px; }
+
+    /* ── Share Code header button ── */
+    .share-code-btn {
+      background: rgba(16,185,129,0.15);
+      color: #34d399;
+      border: 1px solid rgba(16,185,129,0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .share-code-btn:hover {
+      background: rgba(16,185,129,0.28);
+      box-shadow: 0 0 16px rgba(52,211,153,0.35);
+      transform: translateY(-1px);
+    }
+    .share-code-btn::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: calc(var(--radius-md) + 3px);
+      border: 2px solid rgba(52,211,153,0.5);
+      animation: shareGlow 2.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes shareGlow {
+      0%,100% { opacity: 0.4; transform: scale(1); }
+      50%      { opacity: 1;   transform: scale(1.03); }
+    }
+
+    /* ── Share modal ── */
+    .share-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+    .share-modal-box {
+      padding: 36px 32px 28px;
+      max-width: 490px;
+      width: 92%;
+      border-radius: 20px;
+      position: relative;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(16,24,40,0.98) 0%, rgba(10,14,28,0.98) 100%);
+      border: 1.5px solid rgba(52,211,153,0.2);
+      box-shadow: 0 0 60px rgba(16,185,129,0.12), 0 20px 60px rgba(0,0,0,0.6);
+      animation: modalSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modalSlideUp {
+      from { opacity:0; transform: translateY(24px) scale(0.96); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    .share-modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      font-size: 1rem;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .share-modal-close:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+
+    /* Code display box */
+    .share-code-box {
+      background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(52,211,153,0.06) 100%);
+      border: 2px dashed rgba(52,211,153,0.45);
+      border-radius: 14px;
+      padding: 20px 16px 16px;
+      margin-bottom: 18px;
+    }
+    .share-code-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .share-code-value {
+      font-family: var(--font-display);
+      font-size: 2.6rem;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      background: linear-gradient(90deg, #34d399, #6ee7b7, #34d399);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 2.5s linear infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    .share-copy-code-btn {
+      margin-top: 12px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(52,211,153,0.15));
+      border: 1px solid rgba(52,211,153,0.4);
+      color: #34d399;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s;
+    }
+    .share-copy-code-btn:hover { background: rgba(52,211,153,0.25); box-shadow: 0 0 14px rgba(52,211,153,0.25); }
+
+    /* Invite link row */
+    .invite-link-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .invite-link-input {
+      flex: 1;
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text-secondary);
+      outline: none;
+      min-width: 0;
+    }
+    .invite-link-copy-btn {
+      background: rgba(108,99,255,0.18);
+      border: 1px solid rgba(108,99,255,0.35);
+      color: #a78bfa;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 5px;
+      transition: all 0.2s;
+    }
+    .invite-link-copy-btn:hover { background: rgba(108,99,255,0.28); }
+
+    /* Social share row */
+    .share-social-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .share-social-btn {
+      padding: 10px 8px;
+      border-radius: 10px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s;
+      border: 1px solid;
+    }
+    .share-social-btn.whatsapp {
+      background: rgba(37,211,102,0.12);
+      border-color: rgba(37,211,102,0.35);
+      color: #25D366;
+    }
+    .share-social-btn.whatsapp:hover { background: rgba(37,211,102,0.22); }
+    .share-social-btn.native {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      color: var(--text-secondary);
+    }
+    .share-social-btn.native:hover { background: rgba(255,255,255,0.1); }
+
+    /* Sidebar share card enhancements */
+    .sidebar-share-card {
+      margin-top: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+    }
+    .sidebar-share-card .code-display {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      background: var(--grad-green);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 4px 0 10px;
+    }
+    .sidebar-share-btn {
+      width: 100%;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.18s;
+      border: 1px solid;
+      margin-bottom: 6px;
+    }
+    .sidebar-share-btn:last-child { margin-bottom: 0; }
+    .sidebar-share-btn.copy-code {
+      background: rgba(108,99,255,0.15);
+      border-color: rgba(108,99,255,0.3);
+      color: #a78bfa;
+    }
+    .sidebar-share-btn.copy-code:hover { background: rgba(108,99,255,0.25); }
+    .sidebar-share-btn.copy-link {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.3);
+      color: #34d399;
+    }
+    .sidebar-share-btn.copy-link:hover { background: rgba(16,185,129,0.22); }
+    .sidebar-share-btn.open-modal {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+    }
+    .sidebar-share-btn.open-modal:hover { background: rgba(255,255,255,0.1); }
   </style>
 </head>
 <body id="human-room-page">
 
-<!-- JOIN MODAL -->
-<div id="join-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(8px)">
+<!-- JOIN / HOST MODAL -->
+<div id="join-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(8px)">
   <div class="glass-card-flat animate-scale-in" style="padding:36px; max-width:440px; width:90%; border-radius:var(--radius-xl); text-align:center">
-    <div style="font-size:2.5rem; margin-bottom:16px">🚪</div>
+    <div style="font-size:2.5rem; margin-bottom:12px">🚪</div>
     <h2 style="margin-bottom:8px">Join GD Room</h2>
-    <p style="font-size:0.9rem; margin-bottom:24px">Enter the Room ID shared by the host</p>
-    <div class="form-group">
+    <p style="font-size:0.9rem; margin-bottom:20px">Enter the Room ID shared by the host</p>
+    <div class="form-group" style="margin-bottom:16px">
       <input id="room-id-input" class="form-input" type="text" placeholder="e.g. GD2026"
-        style="text-align:center; font-size:1.3rem; letter-spacing:0.15em; text-transform:uppercase"
-        maxlength="8" />
+        style="text-align:center; font-size:1.35rem; letter-spacing:0.18em; text-transform:uppercase; font-weight:700"
+        maxlength="10" />
     </div>
     <button class="btn btn-primary btn-full btn-lg" id="join-submit">
       Join Room →
     </button>
-    <div style="margin-top:12px">
-      <a href="/human-room.html?action=create" style="font-size:0.82rem; color:var(--text-muted)">
-        or create a new room →
-      </a>
+    <div style="margin:20px 0 16px; border-top:1px solid rgba(255,255,255,0.08); position:relative; text-align:center">
+      <span style="position:relative; top:-10px; background:#111827; padding:0 12px; font-size:0.75rem; color:var(--text-muted)">OR START A NEW ROOM</span>
     </div>
+    <button class="btn btn-success btn-full" id="btn-modal-create-room" onclick="createNewRoomNow()">
+      ✨ Host New Room (Generate Code)
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SHARE ROOM CODE MODAL  (enhanced)
+═══════════════════════════════════════════════════════════ -->
+<div id="share-modal" class="share-modal-overlay">
+  <div class="share-modal-box">
+
+    <!-- Close button -->
+    <button class="share-modal-close" onclick="closeShareModal()" title="Close">✕</button>
+
+    <!-- Header -->
+    <div style="font-size:2.8rem; margin-bottom:10px; animation:float 3s ease infinite">🔗</div>
+    <h2 style="font-size:1.45rem; font-weight:800; margin-bottom:5px">Share Room Code</h2>
+    <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:22px">
+      Invite classmates or friends — they join in seconds
+    </p>
+
+    <!-- Animated Room Code Display -->
+    <div class="share-code-box">
+      <div class="share-code-label">Room Code</div>
+      <div id="modal-share-code" class="share-code-value">——</div>
+      <button class="share-copy-code-btn" id="modal-copy-code-btn" onclick="copyRoomCodeModal()">
+        📋 Copy Room Code
+      </button>
+    </div>
+
+    <!-- Invite Link Row -->
+    <div style="text-align:left; margin-bottom:18px">
+      <div class="share-code-label" style="margin-bottom:6px">Direct Invite Link</div>
+      <div class="invite-link-row">
+        <input id="modal-share-link" class="invite-link-input" type="text" readonly
+               placeholder="Generating link…" />
+        <button class="invite-link-copy-btn" id="modal-copy-link-btn" onclick="copyInviteLinkModal()">
+          🔗 Copy
+        </button>
+      </div>
+    </div>
+
+    <!-- Social / Native Share -->
+    <div class="share-social-row">
+      <button class="share-social-btn whatsapp" onclick="shareViaWhatsApp()">
+        💬 WhatsApp
+      </button>
+      <button class="share-social-btn native" id="native-share-btn" onclick="shareViaNative()">
+        📤 Share…
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -76,6 +365,10 @@
     </div>
 
     <div style="display:flex; align-items:center; gap:12px">
+      <!-- Glowing Share Code button -->
+      <button class="share-code-btn" id="btn-share-room-code" onclick="openShareModal()">
+        🔗 Share Code
+      </button>
       <div style="text-align:center">
         <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase">Room</div>
         <div style="font-family:var(--font-display); font-weight:800; color:var(--accent-secondary)" id="room-id-display">—</div>
@@ -101,11 +394,18 @@
       </div>
     </div>
 
-    <div style="margin-top:16px; padding:14px; background:rgba(255,255,255,0.03); border-radius:var(--radius-md); border:1px solid var(--glass-border)">
-      <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; margin-bottom:8px">Share Room ID</div>
-      <div class="room-id-display-big" style="font-size:1.4rem; letter-spacing:0.2em" id="share-room-id">—</div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px; width:100%" onclick="copyRoomId()">
-        📋 Copy Room ID
+    <!-- Enhanced sidebar share card -->
+    <div class="sidebar-share-card">
+      <div style="font-size:0.68rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.08em">📡 Share Room</div>
+      <div class="code-display" id="share-room-id">——</div>
+      <button class="sidebar-share-btn copy-code" onclick="copyRoomId()" id="sidebar-copy-code-btn">
+        📋 Copy Code
+      </button>
+      <button class="sidebar-share-btn copy-link" onclick="copySidebarInviteLink()" id="sidebar-copy-link-btn">
+        🔗 Copy Invite Link
+      </button>
+      <button class="sidebar-share-btn open-modal" onclick="openShareModal()">
+        ✨ More Share Options…
       </button>
     </div>
   </aside>
@@ -206,37 +506,95 @@
     const user = AppUtils.getUser();
 
     const params = new URLSearchParams(window.location.search);
-    const action = params.get('action') || 'join';
-    const topic = decodeURIComponent(params.get('topic') || '');
+    let action = params.get('action'); // 'create' | 'join' | null
+    let topic = decodeURIComponent(params.get('topic') || '');
+    if (!topic || topic === 'null' || topic === 'undefined' || topic === '—') {
+      topic = 'The Role of Artificial Intelligence in Modern Education';
+    }
     const sessionId = params.get('session');
-    const roomId = params.get('roomId');
+    // Accept ?roomId=... OR ?room=...
+    let roomId = params.get('roomId') || params.get('room');
+    if (roomId) roomId = roomId.trim().toUpperCase();
 
-    // Update room ID displays
+    // Helper: generate a short room code
+    function generateRoomCode() {
+      return 'GD' + Math.floor(1000 + Math.random() * 9000);
+    }
+
+    // Joining via direct URL (?roomId=...) auto-sets action to 'join'
+    if (roomId && !action) action = 'join';
+
+    // Host if action=create, or no action and no roomId
+    let isHost = action === 'create' || (!action && !roomId);
+    let currentRoomId = roomId;
+
+    if (isHost && !currentRoomId) {
+      currentRoomId = generateRoomCode();
+    }
+
+    // ── Update all Room ID displays ────────────────────────────
     const updateRoomDisplay = (id) => {
-      ['room-id-display', 'share-room-id', 'room-id-stat'].forEach(elId => {
+      currentRoomId = id;
+      ['room-id-display', 'share-room-id', 'room-id-stat', 'modal-share-code'].forEach(elId => {
         const el = document.getElementById(elId);
         if (el) el.textContent = id || '—';
       });
+      const inviteLink = id && id !== '—'
+        ? `${window.location.origin}/human-room.html?roomId=${id}`
+        : '';
+      const modalLink = document.getElementById('modal-share-link');
+      if (modalLink && inviteLink) modalLink.value = inviteLink;
+    };
+
+    // ── Host creates a new room on-the-fly ────────────────────
+    window.createNewRoomNow = function() {
+      isHost = true;
+      currentRoomId = generateRoomCode();
+      updateRoomDisplay(currentRoomId);
+      document.getElementById('join-modal').style.display = 'none';
+      document.getElementById('host-controls')?.classList.remove('hidden');
+      if (socket && socket.connected) {
+        socket.emit('room:create', { roomId: currentRoomId, topic, userName: user.name, userId: user.user_id });
+      }
+      setTimeout(() => openShareModal(), 300);
     };
 
     if (topic) document.getElementById('room-topic-text').textContent = `"${topic}"`;
-
-    // Socket setup
-    const socket = io(window.location.origin);
-    let currentRoomId = roomId;
-    let isMuted = false;
-    let isHost = action === 'create';
+    if (currentRoomId) {
+      updateRoomDisplay(currentRoomId);
+      const roomInput = document.getElementById('room-id-input');
+      if (roomInput) roomInput.value = currentRoomId;
+    }
 
     // Show host controls
     if (isHost) {
       document.getElementById('host-controls')?.classList.remove('hidden');
     }
 
+    // ── Socket setup ──────────────────────────────────────────
+    const socket = io(window.location.origin);
+    let isMuted = false;
+
     socket.on('connect', () => {
-      if (action === 'create' && roomId) {
-        updateRoomDisplay(roomId);
-        socket.emit('room:create', { roomId, topic, userName: user.name, userId: user.user_id });
+      if (isHost && currentRoomId) {
+        // Host: suppress join modal, create room, open share modal
+        updateRoomDisplay(currentRoomId);
+        document.getElementById('join-modal').style.display = 'none';
+        socket.emit('room:create', { roomId: currentRoomId, topic, userName: user.name, userId: user.user_id });
+        // Auto-open share modal after a brief delay so the host can immediately send invites
+        setTimeout(() => {
+          if (document.getElementById('share-modal').style.display !== 'flex') {
+            openShareModal();
+          }
+        }, 500);
+      } else if (currentRoomId) {
+        // Guest joining via URL or manual entry — suppress join modal, go straight in
+        updateRoomDisplay(currentRoomId);
+        document.getElementById('join-modal').style.display = 'none';
+        socket.emit('room:join', { roomId: currentRoomId, userName: user.name, userId: user.user_id });
+        AppUtils.showToast(`Joining room ${currentRoomId}…`, 'info');
       } else {
+        // No room ID at all — show the join/create modal
         document.getElementById('join-modal').style.display = 'flex';
       }
     });
@@ -252,6 +610,9 @@
 
     socket.on('room:error', (data) => {
       AppUtils.showToast(data.message, 'error');
+      document.getElementById('join-modal').style.display = 'flex';
+      const input = document.getElementById('room-id-input');
+      if (input) input.focus();
     });
 
     socket.on('room:participant_joined', (data) => {
@@ -420,11 +781,138 @@
     }
   });
 
-  function copyRoomId() {
-    const id = document.getElementById('share-room-id')?.textContent;
-    if (id && id !== '—') {
-      navigator.clipboard.writeText(id).then(() => AppUtils.showToast(`Room ID "${id}" copied!`, 'success'));
+  function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
     }
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '-9999px';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    return new Promise((resolve, reject) => {
+      try {
+        const ok = document.execCommand('copy');
+        ok ? resolve() : reject(new Error('execCommand failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        textArea.remove();
+      }
+    });
+  }
+
+  function getEffectiveRoomId() {
+    let id = document.getElementById('modal-share-code')?.textContent;
+    if (!id || id === '—') id = document.getElementById('room-id-display')?.textContent;
+    if (!id || id === '—') id = document.getElementById('share-room-id')?.textContent;
+    if (!id || id === '—') {
+      id = 'GD' + Math.floor(1000 + Math.random() * 9000);
+      ['room-id-display', 'share-room-id', 'room-id-stat', 'modal-share-code'].forEach(elId => {
+        const el = document.getElementById(elId);
+        if (el) el.textContent = id;
+      });
+    }
+    return id;
+  }
+
+  function copyRoomId() {
+    const id = getEffectiveRoomId();
+    copyToClipboard(id).then(() => {
+      AppUtils.showToast(`Room Code "${id}" copied to clipboard! 📋`, 'success');
+    }).catch(() => {
+      AppUtils.showToast(`Room Code: ${id}`, 'info');
+    });
+  }
+
+  function openShareModal() {
+    const id = getEffectiveRoomId();
+    const codeEl = document.getElementById('modal-share-code');
+    if (codeEl) codeEl.textContent = id;
+    const linkInput = document.getElementById('modal-share-link');
+    if (linkInput) linkInput.value = `${window.location.origin}/human-room.html?roomId=${id}`;
+    document.getElementById('share-modal').style.display = 'flex';
+  }
+
+  function closeShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function copyRoomCodeModal() {
+    const id = getEffectiveRoomId();
+    copyToClipboard(id).then(() => {
+      AppUtils.showToast(`Room Code "${id}" copied! 📋`, 'success');
+      const btn = document.getElementById('modal-copy-code-btn');
+      if (btn) {
+        btn.innerHTML = '✓ Copied Room Code!';
+        setTimeout(() => { btn.innerHTML = '📋 Copy Room Code'; }, 2000);
+      }
+    }).catch(() => {
+      AppUtils.showToast(`Room Code: ${id}`, 'info');
+    });
+  }
+
+  function copyInviteLinkModal() {
+    const id = getEffectiveRoomId();
+    const link = document.getElementById('modal-share-link')?.value || `${window.location.origin}/human-room.html?roomId=${id}`;
+    copyToClipboard(link).then(() => {
+      AppUtils.showToast('Direct invite link copied to clipboard! 🔗', 'success');
+      const btn = document.getElementById('modal-copy-link-btn');
+      if (btn) {
+        btn.innerHTML = '✓ Copied Link!';
+        setTimeout(() => { btn.innerHTML = '🔗 Copy Link'; }, 2000);
+      }
+    }).catch(() => {
+      AppUtils.showToast('Link ready: ' + link, 'info');
+    });
+  }
+
+  function shareViaWhatsApp() {
+    const id = getEffectiveRoomId();
+    const topic = document.getElementById('room-topic-text')?.textContent || 'Group Discussion';
+    const link = `${window.location.origin}/human-room.html?roomId=${id}`;
+    const text = `Join my Group Discussion practice on GD Simulator!\n\nTopic: ${topic}\nRoom Code: ${id}\nJoin Link: ${link}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  }
+
+  async function shareViaNative() {
+    const id = getEffectiveRoomId();
+    const topicText = document.getElementById('room-topic-text')?.textContent || 'Group Discussion';
+    const link = `${window.location.origin}/human-room.html?roomId=${id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join Group Discussion — GD Simulator',
+          text: `Join our Group Discussion!\nTopic: ${topicText}\nRoom Code: ${id}`,
+          url: link
+        });
+      } catch (e) {
+        // User dismissed the native share sheet — no-op
+      }
+    } else {
+      // Fallback: copy the invite link
+      copyInviteLinkModal();
+    } // ← fix: was missing this closing brace
+  }
+
+  // ── Quick invite-link copy from sidebar ──────────────────────
+  function copySidebarInviteLink() {
+    const id = getEffectiveRoomId();
+    const link = `${window.location.origin}/human-room.html?roomId=${id}`;
+    const btn = document.getElementById('sidebar-copy-link-btn');
+    copyToClipboard(link).then(() => {
+      AppUtils.showToast('Invite link copied! 🔗', 'success');
+      if (btn) {
+        btn.innerHTML = '✓ Link Copied!';
+        btn.style.color = '#34d399';
+        setTimeout(() => { btn.innerHTML = '🔗 Copy Invite Link'; btn.style.color = ''; }, 2200);
+      }
+    }).catch(() => AppUtils.showToast('Invite link: ' + link, 'info'));
   }
 
   function insertPhrase(phrase) {
