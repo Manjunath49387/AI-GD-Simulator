@@ -203,15 +203,21 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
-// ─── START SERVER ─────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
-  console.log('');
-  console.log('🚀 ========================================');
-  console.log(`🎯  GD Simulator Server Running!`);
-  console.log(`🌐  http://localhost:${PORT}`);
-  console.log(`📊  API: http://localhost:${PORT}/api/health`);
-  console.log('🚀 ========================================');
-  console.log('');
-});
+// ─── START SERVER (Only when run directly, not in Vercel Serverless) ─────────
+if (!process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log('');
+    console.log('🚀 ========================================');
+    console.log(`🎯  GD Simulator Server Running!`);
+    console.log(`🌐  http://localhost:${PORT}`);
+    console.log(`📊  API: http://localhost:${PORT}/api/health`);
+    console.log('🚀 ========================================');
+    console.log('');
+  });
+}
 
-module.exports = { app, server, io };
+app.app = app;
+app.server = server;
+app.io = io;
+
+module.exports = app;

@@ -1,12 +1,29 @@
 require('dotenv').config();
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || './gd_simulator.db';
-const db = new DatabaseSync(path.resolve(__dirname, DB_PATH));
+let dbFilePath;
+if (process.env.VERCEL) {
+  dbFilePath = path.join('/tmp', 'gd_simulator.db');
+  const localDb = path.resolve(__dirname, 'gd_simulator.db');
+  if (fs.existsSync(localDb) && !fs.existsSync(dbFilePath)) {
+    try {
+      fs.copyFileSync(localDb, dbFilePath);
+    } catch (e) {
+      console.error('Could not copy initial DB to /tmp:', e);
+    }
+  }
+} else {
+  dbFilePath = path.resolve(__dirname, process.env.DB_PATH || './gd_simulator.db');
+}
+
+const db = new DatabaseSync(dbFilePath);
 
 // Enable WAL mode & foreign keys
-db.exec('PRAGMA journal_mode = WAL;');
+try {
+  db.exec('PRAGMA journal_mode = WAL;');
+} catch (e) {}
 db.exec('PRAGMA foreign_keys = ON;');
 
 // Polyfill transaction method for compatibility with better-sqlite3 callers
@@ -146,6 +163,7 @@ const MIGRATIONS = [
   `ALTER TABLE performance ADD COLUMN practice_plan          TEXT DEFAULT '[]'`,
   `ALTER TABLE performance ADD COLUMN placement_readiness    TEXT DEFAULT ''`,
   `ALTER TABLE performance ADD COLUMN improvement_suggestions TEXT DEFAULT '[]'`,
+  `ALTER TABLE performance ADD COLUMN score_projection       TEXT DEFAULT '{}'`,
 ];
 
 for (const sql of MIGRATIONS) {
@@ -156,6 +174,6 @@ for (const sql of MIGRATIONS) {
   }
 }
 
-console.log('✅ Database initialized successfully via node:sqlite:', DB_PATH);
+console.log('✅ Database initialized successfully via node:sqlite:', dbFilePath);
 
 module.exports = db;

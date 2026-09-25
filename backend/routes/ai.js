@@ -174,7 +174,7 @@ router.post('/evaluate', authMiddleware, async (req, res) => {
     const questionsAsked    = evaluation.questions_asked          || 0;
     const topicDeviations   = evaluation.topic_deviations         || 0;
 
-    // ── Save performance to DB — all 10 metrics + behavioral + feedback ───────
+    // ── Save performance to DB — all 10 metrics + behavioral + feedback + projection ───
     db.prepare(`
       INSERT OR REPLACE INTO performance
       (session_id, user_id,
@@ -184,11 +184,11 @@ router.post('/evaluate', authMiddleware, async (req, res) => {
        overall_score,
        strengths, improvements, recommendations,
        evidence, practice_plan, placement_readiness, improvement_suggestions,
-       full_feedback,
+       full_feedback, score_projection,
        total_words, speaking_turns,
        speaking_time_seconds, meaningful_contributions, interruptions,
        repeated_points, responses_to_others, questions_asked, topic_deviations)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       sessionId,
       req.user.user_id,
@@ -217,6 +217,7 @@ router.post('/evaluate', authMiddleware, async (req, res) => {
       evaluation.placement_readiness                   || '',
       JSON.stringify(evaluation.improvement_suggestions|| []),
       evaluation.full_feedback                         || '',
+      JSON.stringify(evaluation.score_projection       || {}),
       // behavioral stats
       totalWords,
       speakingTurns,

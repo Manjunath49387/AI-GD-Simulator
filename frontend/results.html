@@ -87,20 +87,87 @@
         </div>
       </div>
 
+      <!-- Quick Executive Summary Banner -->
+      <div style="padding:0 40px 20px" id="summary-section">
+        <div class="exec-summary-card">
+          <div class="exec-summary-header">
+            <span style="font-size:1.4rem">💡</span>
+            <span style="font-weight:700; font-size:1.1rem; color:var(--text-primary)">Simple Performance Verdict</span>
+          </div>
+          <div class="exec-summary-grid">
+            <div class="exec-box strength-box">
+              <div class="exec-box-title">🟢 Top Strength</div>
+              <div class="exec-box-content" id="exec-strength">Loading...</div>
+            </div>
+            <div class="exec-box focus-box">
+              <div class="exec-box-title">🔴 Key Focus Area</div>
+              <div class="exec-box-content" id="exec-focus">Loading...</div>
+            </div>
+            <div class="exec-box action-box">
+              <div class="exec-box-title">🚀 Immediate Action Step</div>
+              <div class="exec-box-content" id="exec-action">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs for Easy Section Switching -->
+      <div style="padding:0 40px 24px; display:flex; gap:10px; overflow-x:auto; flex-wrap:wrap">
+        <button class="results-tab active" onclick="switchResultTab('all', this)">🌐 All Analysis</button>
+        <button class="results-tab" onclick="switchResultTab('summary', this)">💡 Verdict Summary</button>
+        <button class="results-tab" onclick="switchResultTab('projection', this)">🧮 Score Projection</button>
+        <button class="results-tab" onclick="switchResultTab('metrics', this)">📊 10-Metric Breakdown</button>
+        <button class="results-tab" onclick="switchResultTab('plan', this)">🎯 Action Plan</button>
+        <button class="results-tab" onclick="switchResultTab('transcript', this)">📝 Transcript</button>
+      </div>
+
       <!-- Behavioral Stats Panel -->
-      <div style="padding:0 40px 24px">
+      <div style="padding:0 40px 24px" id="behavioral-section">
         <h2 class="section-heading">📈 Behavioral Metrics</h2>
         <div class="behavioral-grid" id="behavioral-grid"></div>
       </div>
 
+      <!-- Score Projection & Formula Details -->
+      <div style="padding:0 40px 24px" id="projection-section">
+        <h2 class="section-heading">🧮 How Your Score Was Projected</h2>
+        <div class="projection-card">
+          <div class="projection-header">
+            <div class="projection-badge-level" id="projection-level">🔥 Active Engagement</div>
+            <div style="font-size:0.85rem; color:var(--text-muted)" id="projection-summary">Calculated using 10 weighted metrics based on active transcript turns.</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="projection-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Weight</th>
+                  <th>Raw Score</th>
+                  <th>Weighted Contribution</th>
+                  <th>Discussion Activity Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="projection-tbody"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="font-weight:700">Projected Overall Score</td>
+                  <td id="projection-total" style="font-weight:800; font-size:1.1rem; color:var(--accent-secondary)">--</td>
+                  <td style="font-size:0.8rem; color:var(--text-muted)">Sum of (Raw Score × Weight) for all 10 metrics</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="projection-formula-box" id="projection-formula"></div>
+        </div>
+      </div>
+
       <!-- 10-Metric Score Breakdown -->
-      <div style="padding:0 40px 24px">
+      <div style="padding:0 40px 24px" id="metrics-section">
         <h2 class="section-heading">📊 10-Metric Score Breakdown</h2>
         <div class="scores-grid" id="scores-grid"></div>
       </div>
 
       <!-- Charts -->
-      <div style="padding:0 40px 24px">
+      <div style="padding:0 40px 24px" id="charts-section">
         <div class="charts-row">
           <div class="chart-card">
             <div class="chart-card-title">Skill Radar Chart</div>
@@ -117,45 +184,48 @@
         </div>
       </div>
 
-      <!-- Full AI Feedback -->
-      <div style="padding:0 40px 24px">
-        <h2 class="section-heading">🤖 AI Feedback</h2>
-        <div class="full-feedback-card">
-          <div class="full-feedback-text" id="full-feedback"></div>
+      <!-- Full AI Feedback & Action Plan Container -->
+      <div id="plan-section">
+        <!-- Full AI Feedback -->
+        <div style="padding:0 40px 24px">
+          <h2 class="section-heading">🤖 AI Feedback</h2>
+          <div class="full-feedback-card">
+            <div class="full-feedback-text" id="full-feedback"></div>
+          </div>
         </div>
-      </div>
 
-      <!-- Strengths / Weaknesses / Recommendations Grid -->
-      <div style="padding:0 40px 24px">
-        <div class="feedback-grid" id="feedback-grid"></div>
-      </div>
-
-      <!-- Evidence Section -->
-      <div style="padding:0 40px 24px" id="evidence-section" style="display:none">
-        <div class="feedback-card evidence-card" id="evidence-card">
-          <div class="feedback-card-title">🔍 Evidence & Scoring Rationale</div>
-          <ul class="feedback-list" id="evidence-list"></ul>
+        <!-- Strengths / Weaknesses / Recommendations Grid -->
+        <div style="padding:0 40px 24px">
+          <div class="feedback-grid" id="feedback-grid"></div>
         </div>
-      </div>
 
-      <!-- Improvement Suggestions -->
-      <div style="padding:0 40px 24px" id="improvement-section" style="display:none">
-        <div class="feedback-card improvement-card" id="improvement-card">
-          <div class="feedback-card-title">🎯 Targeted Improvement Suggestions</div>
-          <ul class="feedback-list" id="improvement-list"></ul>
+        <!-- Evidence Section -->
+        <div style="padding:0 40px 24px" id="evidence-section" style="display:none">
+          <div class="feedback-card evidence-card" id="evidence-card">
+            <div class="feedback-card-title">🔍 Evidence & Scoring Rationale</div>
+            <ul class="feedback-list" id="evidence-list"></ul>
+          </div>
         </div>
-      </div>
 
-      <!-- Practice Plan -->
-      <div style="padding:0 40px 24px" id="practice-plan-section" style="display:none">
-        <div class="feedback-card practice-plan-card" id="practice-plan-card">
-          <div class="feedback-card-title">📋 Personalized Practice Plan</div>
-          <ol class="practice-plan-list" id="practice-plan-list"></ol>
+        <!-- Improvement Suggestions -->
+        <div style="padding:0 40px 24px" id="improvement-section" style="display:none">
+          <div class="feedback-card improvement-card" id="improvement-card">
+            <div class="feedback-card-title">🎯 Targeted Improvement Suggestions</div>
+            <ul class="feedback-list" id="improvement-list"></ul>
+          </div>
+        </div>
+
+        <!-- Practice Plan -->
+        <div style="padding:0 40px 24px" id="practice-plan-section" style="display:none">
+          <div class="feedback-card practice-plan-card" id="practice-plan-card">
+            <div class="feedback-card-title">📋 Personalized Practice Plan</div>
+            <ol class="practice-plan-list" id="practice-plan-list"></ol>
+          </div>
         </div>
       </div>
 
       <!-- Transcript -->
-      <div style="padding:0 40px 24px">
+      <div style="padding:0 40px 24px" id="transcript-section">
         <div class="transcript-toggle" id="transcript-toggle" onclick="toggleTranscript()">
           <span style="font-weight:700">📝 View Full Transcript</span>
           <span class="chevron">▼</span>
@@ -193,16 +263,16 @@
 
   // ── 10-Metric Definition ──────────────────────────────────────────────────
   const METRIC_DEFS = [
-    { label: 'Content Quality',    icon: '💡', key: 'content_score',        color: '#10b981', weight: '15%' },
-    { label: 'Communication',      icon: '🗣️', key: 'communication_score',  color: '#6c63ff', weight: '15%' },
-    { label: 'Participation',      icon: '🙋', key: 'participation_score',  color: '#f59e0b', weight: '10%' },
-    { label: 'Relevance',          icon: '🎯', key: 'relevance_score',      color: '#3b82f6', weight: '10%' },
-    { label: 'Listening & Response', icon: '👂', key: 'listening_score',     color: '#14b8a6', weight: '10%' },
-    { label: 'Teamwork',           icon: '🤝', key: 'teamwork_score',       color: '#ef4444', weight: '10%' },
-    { label: 'Leadership',         icon: '👑', key: 'leadership_score',     color: '#9c27b0', weight: '10%' },
-    { label: 'Critical Thinking',  icon: '🧠', key: 'critical_thinking',    color: '#0ea5e9', weight: '10%' },
-    { label: 'Confidence',         icon: '💪', key: 'confidence_score',     color: '#ec4899', weight: '5%' },
-    { label: 'Conclusion',         icon: '📌', key: 'conclusion_score',     color: '#a78bfa', weight: '5%' },
+    { label: 'Content Quality',    icon: '💡', key: 'content_score',        color: '#10b981', weight: '15%', desc: 'Depth of ideas & real-world examples' },
+    { label: 'Communication',      icon: '🗣️', key: 'communication_score',  color: '#6c63ff', weight: '15%', desc: 'Clarity, fluency & vocabulary' },
+    { label: 'Participation',      icon: '🙋', key: 'participation_score',  color: '#f59e0b', weight: '10%', desc: 'Active speaking turns & volume' },
+    { label: 'Relevance',          icon: '🎯', key: 'relevance_score',      color: '#3b82f6', weight: '10%', desc: 'Staying focused on topic' },
+    { label: 'Listening & Response', icon: '👂', key: 'listening_score',     color: '#14b8a6', weight: '10%', desc: 'Building on peer contributions' },
+    { label: 'Teamwork',           icon: '🤝', key: 'teamwork_score',       color: '#ef4444', weight: '10%', desc: 'Encouraging collaborative discussion' },
+    { label: 'Leadership',         icon: '👑', key: 'leadership_score',     color: '#9c27b0', weight: '10%', desc: 'Guiding discussion flow' },
+    { label: 'Critical Thinking',  icon: '🧠', key: 'critical_thinking',    color: '#0ea5e9', weight: '10%', desc: 'Logical reasoning & analysis' },
+    { label: 'Confidence',         icon: '💪', key: 'confidence_score',     color: '#ec4899', weight: '5%',  desc: 'Professional tone & poise' },
+    { label: 'Conclusion',         icon: '📌', key: 'conclusion_score',     color: '#a78bfa', weight: '5%',  desc: 'Summarizing key discussion points' },
   ];
 
   async function loadResults() {
@@ -262,6 +332,14 @@
         document.getElementById('placement-icon').textContent = pIcon;
       }
 
+      // ── Executive Summary Populator ──────────────────────────────────
+      const topStrengthItem = METRIC_DEFS.reduce((max, item) => (perf[item.key] || 0) > (perf[max.key] || 0) ? item : max, METRIC_DEFS[0]);
+      const topFocusItem = METRIC_DEFS.reduce((min, item) => (perf[item.key] || 0) < (perf[min.key] || 0) ? item : min, METRIC_DEFS[0]);
+
+      document.getElementById('exec-strength').textContent = `${topStrengthItem.label} (${Math.round(perf[topStrengthItem.key] || 0)}%) — ${strengths[0] || topStrengthItem.desc}`;
+      document.getElementById('exec-focus').textContent = `${topFocusItem.label} (${Math.round(perf[topFocusItem.key] || 0)}%) — ${improvements[0] || topFocusItem.desc}`;
+      document.getElementById('exec-action').textContent = recommendations[0] || (practicePlan[0] ? practicePlan[0] : 'Aim for 4+ active turns and acknowledge peer points.');
+
       // ── Behavioral Stats Panel ────────────────────────────────────────
       const behavioralStats = [
         { icon: '⏱️', value: formatTime(perf.speaking_time_seconds || 0), label: 'Speaking Time' },
@@ -282,6 +360,62 @@
         </div>
       `).join('');
 
+      // ── Score Projection Details ──────────────────────────────────────
+      let scoreProj = perf.score_projection;
+      if (typeof scoreProj === 'string') {
+        try { scoreProj = JSON.parse(scoreProj); } catch { scoreProj = null; }
+      }
+
+      if (scoreProj && scoreProj.items && scoreProj.items.length > 0) {
+        document.getElementById('projection-level').textContent = scoreProj.activity_level || 'Active Discussion Evaluation';
+        document.getElementById('projection-summary').textContent = scoreProj.activity_metrics_summary || 'Weighted projection formula based on user speech activity.';
+        document.getElementById('projection-formula').textContent = `📐 ${scoreProj.formula}`;
+
+        document.getElementById('projection-tbody').innerHTML = scoreProj.items.map(item => `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px">
+                <span>${item.icon || '📊'}</span>
+                <span style="font-weight:600; color:var(--text-primary)">${item.metric}</span>
+              </div>
+            </td>
+            <td><span class="badge" style="background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:4px; font-size:0.78rem">${item.weight}</span></td>
+            <td><span style="font-weight:700; color:${AppUtils.getScoreColor(item.score)}">${item.score}/100</span></td>
+            <td><span style="font-weight:700; color:var(--accent-secondary)">+${item.weighted_points} pts</span></td>
+            <td style="font-size:0.82rem; color:var(--text-muted)">${item.rationale}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('projection-total').textContent = `${scoreProj.total_projected_score || score}/100`;
+      } else {
+        // Fallback calculation projection display
+        document.getElementById('projection-level').textContent = 'Weighted Projection Breakdown';
+        document.getElementById('projection-summary').textContent = `Based on ${perf.speaking_turns || 0} active speaking turn(s) and ${perf.total_words || 0} total word(s) spoken.`;
+        document.getElementById('projection-formula').textContent = '📐 Overall Score = (Content×15%) + (Comm×15%) + (Participation×10%) + (Relevance×10%) + (Listening×10%) + (Teamwork×10%) + (Leadership×10%) + (CritThinking×10%) + (Confidence×5%) + (Conclusion×5%)';
+
+        document.getElementById('projection-tbody').innerHTML = METRIC_DEFS.map(item => {
+          const raw = Math.round(perf[item.key] || 0);
+          const wNum = parseFloat(item.weight) / 100;
+          const weightedPts = (raw * wNum).toFixed(2);
+          return `
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px">
+                  <span>${item.icon}</span>
+                  <span style="font-weight:600; color:var(--text-primary)">${item.label}</span>
+                </div>
+              </td>
+              <td><span class="badge" style="background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:4px; font-size:0.78rem">${item.weight}</span></td>
+              <td><span style="font-weight:700; color:${AppUtils.getScoreColor(raw)}">${raw}/100</span></td>
+              <td><span style="font-weight:700; color:var(--accent-secondary)">+${weightedPts} pts</span></td>
+              <td style="font-size:0.82rem; color:var(--text-muted)">Evaluated from user transcript activity.</td>
+            </tr>
+          `;
+        }).join('');
+
+        document.getElementById('projection-total').textContent = `${score}/100`;
+      }
+
       // ── 10-Metric Score Breakdown ──────────────────────────────────────
       document.getElementById('scores-grid').innerHTML = METRIC_DEFS.map(item => {
         const val = Math.round(perf[item.key] || 0);
@@ -290,6 +424,7 @@
             <div class="score-item-icon" style="background:${item.color}20; color:${item.color}">${item.icon}</div>
             <div class="score-item-info">
               <div class="score-item-label">${item.label}</div>
+              <div class="score-item-desc">${item.desc}</div>
               <div class="score-item-weight">Weight: ${item.weight}</div>
               <div class="progress-bar" style="margin-top:2px">
                 <div class="progress-fill" style="width:0%; background:${item.color}" data-width="${val}%"></div>
@@ -467,6 +602,37 @@
     const content = document.getElementById('transcript-content');
     toggle.classList.toggle('open');
     content.classList.toggle('open');
+  }
+
+  function switchResultTab(tab, btn) {
+    document.querySelectorAll('.results-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const sections = {
+      summary: ['summary-section', 'behavioral-section'],
+      projection: ['projection-section'],
+      metrics: ['metrics-section', 'charts-section'],
+      plan: ['plan-section'],
+      transcript: ['transcript-section']
+    };
+
+    const allSections = ['summary-section', 'behavioral-section', 'projection-section', 'metrics-section', 'charts-section', 'plan-section', 'transcript-section'];
+
+    if (tab === 'all') {
+      allSections.forEach(sId => {
+        const el = document.getElementById(sId);
+        if (el) el.style.display = 'block';
+      });
+    } else {
+      allSections.forEach(sId => {
+        const el = document.getElementById(sId);
+        if (el) el.style.display = 'none';
+      });
+      (sections[tab] || []).forEach(sId => {
+        const el = document.getElementById(sId);
+        if (el) el.style.display = 'block';
+      });
+    }
   }
 
   loadResults();

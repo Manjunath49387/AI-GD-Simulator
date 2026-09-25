@@ -297,7 +297,7 @@ Return ONLY this JSON (all scores 0–100, no markdown):
     const match = cleaned.match(/\{[\s\S]*\}/);
     if (match) {
       const parsed = JSON.parse(match[0]);
-      return normalizeEvaluation(parsed, turnsCount, totalUserWords);
+      return normalizeEvaluation(parsed, turnsCount, totalUserWords, userTurns);
     }
   } catch (err) {
     console.warn('Gemini evaluation API error, applying algorithmic evaluation:', err.message);
@@ -307,16 +307,103 @@ Return ONLY this JSON (all scores 0–100, no markdown):
 }
 
 /**
+ * Helper to build the 10-metric score projection details object
+ */
+function buildScoreProjection(metrics, turnsCount, totalWords, userTurns = []) {
+  const contentQ   = Number(metrics.content_score || metrics.content_quality || 70);
+  const comm       = Number(metrics.communication_score || metrics.communication || 70);
+  const partic     = Number(metrics.participation_score || metrics.participation || 70);
+  const relev      = Number(metrics.relevance_score || metrics.relevance || 70);
+  const listening  = Number(metrics.listening_score || metrics.listening_response || 70);
+  const teamwork   = Number(metrics.teamwork_score || metrics.teamwork || 70);
+  const leadership = Number(metrics.leadership_score || metrics.leadership || 70);
+  const critThink  = Number(metrics.critical_thinking || 70);
+  const confProf   = Number(metrics.confidence_score || metrics.confidence_professionalism || 70);
+  const conclusion = Number(metrics.conclusion_score || metrics.conclusion || 70);
+
+  const responsesToOthers = userTurns.filter(t => t.message && /\b(agree|disagree|build|add|point|said|think)\b/i.test(t.message)).length;
+  const questionsAsked = userTurns.filter(t => t.message && t.message.includes('?')).length;
+  const hasSummary = userTurns.some(t => t.message && /\b(conclude|summary|summarize|overall|final)\b/i.test(t.message));
+
+  const items = [
+    {
+      metric: 'Content Quality', icon: '💡', weight: '15%', weight_num: 0.15,
+      score: contentQ, weighted_points: Number((contentQ * 0.15).toFixed(2)),
+      rationale: totalWords < 25 ? 'Very low word count limits arguments and topic depth.' : totalWords >= 150 ? 'Strong volume of meaningful arguments provided.' : 'Moderate topic depth provided.'
+    },
+    {
+      metric: 'Communication', icon: '🗣️', weight: '15%', weight_num: 0.15,
+      score: comm, weighted_points: Number((comm * 0.15).toFixed(2)),
+      rationale: comm >= 75 ? 'Fluent vocabulary and clear sentence structure.' : 'Work on more structured sentence formation.'
+    },
+    {
+      metric: 'Participation', icon: '🙋', weight: '10%', weight_num: 0.10,
+      score: partic, weighted_points: Number((partic * 0.10).toFixed(2)),
+      rationale: `Projected directly from your ${turnsCount} active speaking turn(s) in discussion.`
+    },
+    {
+      metric: 'Relevance', icon: '🎯', weight: '10%', weight_num: 0.10,
+      score: relev, weighted_points: Number((relev * 0.10).toFixed(2)),
+      rationale: relev >= 75 ? 'Remained focused on topic without off-topic tangents.' : 'Minor topic drift detected in turns.'
+    },
+    {
+      metric: 'Listening & Response', icon: '👂', weight: '10%', weight_num: 0.10,
+      score: listening, weighted_points: Number((listening * 0.10).toFixed(2)),
+      rationale: responsesToOthers > 0 ? `Responded directly to peer points in ${responsesToOthers} turn(s).` : 'No direct references or responses to peer points detected.'
+    },
+    {
+      metric: 'Teamwork', icon: '🤝', weight: '10%', weight_num: 0.10,
+      score: teamwork, weighted_points: Number((teamwork * 0.10).toFixed(2)),
+      rationale: teamwork >= 75 ? 'Collaborative tone, encouraging group discussion flow.' : 'Acknowledge peer ideas more explicitly before adding yours.'
+    },
+    {
+      metric: 'Leadership', icon: '👑', weight: '10%', weight_num: 0.10,
+      score: leadership, weighted_points: Number((leadership * 0.10).toFixed(2)),
+      rationale: turnsCount <= 1 ? 'Single turn limits leadership opportunities.' : leadership >= 75 ? 'Initiated or guided conversation direction effectively.' : 'Helped maintain discussion flow.'
+    },
+    {
+      metric: 'Critical Thinking', icon: '🧠', weight: '10%', weight_num: 0.10,
+      score: critThink, weighted_points: Number((critThink * 0.10).toFixed(2)),
+      rationale: critThink >= 75 ? 'Logical reasoning and analytical points provided.' : 'Support claims with more real-world examples or data.'
+    },
+    {
+      metric: 'Confidence', icon: '💪', weight: '5%', weight_num: 0.05,
+      score: confProf, weighted_points: Number((confProf * 0.05).toFixed(2)),
+      rationale: 'Maintained professional tone and confident delivery.'
+    },
+    {
+      metric: 'Conclusion', icon: '📌', weight: '5%', weight_num: 0.05,
+      score: conclusion, weighted_points: Number((conclusion * 0.05).toFixed(2)),
+      rationale: hasSummary ? 'Included concluding summary in discussion.' : 'No explicit concluding summary contributed at end of GD.'
+    }
+  ];
+
+  const totalWeighted = Number(items.reduce((sum, item) => sum + item.weighted_points, 0).toFixed(1));
+
+  const activityLevel =
+    turnsCount >= 4 && totalWords >= 120 ? '🔥 High Active Engagement' :
+    turnsCount >= 2 && totalWords >= 35 ? '⚡ Moderate Active Engagement' :
+    '⚠️ Low Active Engagement';
+
+  return {
+    formula: 'Overall Score = (Content × 0.15) + (Communication × 0.15) + (Participation × 0.10) + (Relevance × 0.10) + (Listening × 0.10) + (Teamwork × 0.10) + (Leadership × 0.10) + (Critical Thinking × 0.10) + (Confidence × 0.05) + (Conclusion × 0.05)',
+    activity_level: activityLevel,
+    activity_metrics_summary: `${turnsCount} speaking turn(s), ${totalWords} total word(s) (${Math.round(totalWords / Math.max(1, turnsCount))} words/turn), ${responsesToOthers} peer response(s), ${questionsAsked} question(s) asked.`,
+    items,
+    total_projected_score: Math.round(totalWeighted)
+  };
+}
+
+/**
  * Normalize API response to ensure all required fields are present
  * and map nested metrics back to flat DB fields.
  */
-function normalizeEvaluation(parsed, turnsCount, totalWords) {
+function normalizeEvaluation(parsed, turnsCount, totalWords, userTurns = []) {
   const m = parsed.metrics || {};
   const bm = parsed.behavioral_metrics || {};
   const impSug = parsed.improvement_suggestions || {};
 
-  return {
-    // ── 10 metric scores ───────────────────────────────────────
+  const metricsObj = {
     content_score:          Number(m.content_quality          || m.content_score || 70),
     communication_score:    Number(m.communication            || 70),
     participation_score:    Number(m.participation            || 70),
@@ -326,13 +413,18 @@ function normalizeEvaluation(parsed, turnsCount, totalWords) {
     leadership_score:       Number(m.leadership               || 70),
     critical_thinking:      Number(m.critical_thinking        || 70),
     confidence_score:       Number(m.confidence_professionalism || m.confidence_score || 70),
-    conclusion_score:       Number(m.conclusion               || 70),
-    // Legacy aliases (kept for backward compat with results.html)
-    fluency_score:          Number(m.communication            || 70),
-    vocabulary_score:       Number(m.content_quality          || 70),
-    // ── Overall ────────────────────────────────────────────────
+    conclusion_score:       Number(m.conclusion               || 70)
+  };
+
+  const scoreProj = parsed.score_projection && parsed.score_projection.items
+    ? parsed.score_projection
+    : buildScoreProjection(metricsObj, turnsCount, totalWords, userTurns);
+
+  return {
+    ...metricsObj,
+    fluency_score:          metricsObj.communication_score,
+    vocabulary_score:       metricsObj.content_score,
     overall_score: Number(parsed.overall_score || computeWeightedScore(m)),
-    // ── Behavioral metrics ─────────────────────────────────────
     speaking_time_seconds:    Number(bm.speaking_time_seconds    || Math.round((totalWords / 130) * 60)),
     speaking_turns:           Number(bm.speaking_turns           || turnsCount),
     meaningful_contributions: Number(bm.meaningful_contributions || Math.max(1, turnsCount - 1)),
@@ -342,7 +434,6 @@ function normalizeEvaluation(parsed, turnsCount, totalWords) {
     questions_asked:          Number(bm.questions_asked         || 0),
     topic_deviations:         Number(bm.topic_deviations        || 0),
     total_words:              totalWords,
-    // ── Feedback arrays ────────────────────────────────────────
     strengths:    Array.isArray(parsed.strengths)  ? parsed.strengths  : [],
     improvements: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
     recommendations: Array.isArray(parsed.practice_plan) ? parsed.practice_plan : [],
@@ -355,6 +446,7 @@ function normalizeEvaluation(parsed, turnsCount, totalWords) {
     ].filter(Boolean),
     full_feedback:       parsed.full_feedback       || '',
     placement_readiness: parsed.placement_readiness || '',
+    score_projection:    scoreProj
   };
 }
 
@@ -378,59 +470,62 @@ function computeWeightedScore(m) {
 
 /**
  * Algorithmic 10-metric evaluation engine (offline fallback).
- * Mirrors exact same output schema as the Gemini path.
+ * Evaluates performance strictly based on active user turns & quotes.
  */
 function generateSmartOfflineEvaluation(userTurns, totalWords, turnsCount, userName, topic) {
-  // ── Base scores per metric ─────────────────────────────────
-  let contentQ  = 72; // Content Quality
-  let comm      = 74; // Communication
-  let partic    = 68; // Participation
-  let relev     = 75; // Relevance
-  let listening = 70; // Listening & Response
-  let teamwork  = 72; // Teamwork
-  let leadership= 68; // Leadership
-  let critThink = 73; // Critical Thinking
-  let confProf  = 75; // Confidence & Professionalism
-  let conclusion= 65; // Conclusion
+  // Extract user text samples for evidence & quotes
+  const userMessages = userTurns.map(t => t.message || '').filter(Boolean);
+  const sample1 = userMessages[0] ? `"${userMessages[0].substring(0, 90)}${userMessages[0].length > 90 ? '...' : ''}"` : '';
+  const sample2 = userMessages[1] ? `"${userMessages[1].substring(0, 90)}${userMessages[1].length > 90 ? '...' : ''}"` : '';
 
-  // ── Adjust for participation depth ─────────────────────────
-  if (turnsCount >= 5) {
-    partic += 18; leadership += 12; comm += 8; confProf += 6;
-  } else if (turnsCount >= 3) {
-    partic += 10; leadership += 6; comm += 4;
-  } else if (turnsCount === 2) {
-    partic += 3;
-  } else if (turnsCount <= 1) {
-    partic -= 18; leadership -= 14; confProf -= 8; conclusion -= 10;
-  }
-
-  // ── Adjust for content volume ──────────────────────────────
-  if (totalWords >= 250) {
-    contentQ += 10; critThink += 8; comm += 6; relev += 5;
-  } else if (totalWords >= 120) {
-    contentQ += 5; critThink += 4;
-  } else if (totalWords < 60) {
-    contentQ -= 14; critThink -= 10; comm -= 8; relev -= 6;
-  }
-
-  // ── Check for questions in transcript ─────────────────────
-  const questionsAsked = userTurns.filter(t => t.message && t.message.includes('?')).length;
-  if (questionsAsked >= 2) { listening += 8; teamwork += 6; }
-  else if (questionsAsked === 1) { listening += 3; teamwork += 3; }
-
-  // ── Response indicators ────────────────────────────────────
+  // Calculate peer interaction & questions
   const responseKeywords = /\b(agree|disagree|build|add|point|mentioned|said|think|respond|reply)\b/i;
   const responsesToOthers = userTurns.filter(t => t.message && responseKeywords.test(t.message)).length;
-  if (responsesToOthers >= 3) { listening += 8; teamwork += 6; }
-  else if (responsesToOthers >= 1) { listening += 3; teamwork += 3; }
-
-  // ── Summary/conclusion indicators ─────────────────────────
+  const questionsAsked = userTurns.filter(t => t.message && t.message.includes('?')).length;
   const summaryKeywords = /\b(conclude|summary|summarize|overall|final|wrap|end)\b/i;
   const hasSummary = userTurns.some(t => t.message && summaryKeywords.test(t.message));
-  if (hasSummary) { conclusion += 15; leadership += 8; }
 
-  // ── Clamp all scores to 48–94 ─────────────────────────────
-  const clamp = v => Math.max(48, Math.min(94, Math.round(v)));
+  let contentQ, comm, partic, relev, listening, teamwork, leadership, critThink, confProf, conclusion;
+
+  if (turnsCount <= 1 || totalWords < 25) {
+    // Low participation branch
+    partic     = Math.max(25, Math.min(45, turnsCount * 25 + totalWords));
+    leadership = Math.max(25, Math.min(40, 20 + turnsCount * 10));
+    contentQ   = Math.max(30, Math.min(50, 20 + totalWords * 1.2));
+    comm       = Math.max(40, Math.min(60, 35 + totalWords * 0.8));
+    relev      = 55;
+    listening  = 35;
+    teamwork   = 40;
+    critThink  = 35;
+    confProf   = 50;
+    conclusion = hasSummary ? 65 : 25;
+  } else if (turnsCount <= 3 || totalWords < 90) {
+    // Moderate participation branch
+    partic     = 65 + (turnsCount - 2) * 5;
+    leadership = 60 + (turnsCount - 2) * 5;
+    contentQ   = 65 + Math.min(15, Math.round(totalWords / 10));
+    comm       = 70;
+    relev      = 75;
+    listening  = 65 + responsesToOthers * 5;
+    teamwork   = 68 + responsesToOthers * 4;
+    critThink  = 68;
+    confProf   = 72;
+    conclusion = hasSummary ? 80 : 55;
+  } else {
+    // High active participation branch
+    partic     = Math.min(95, 80 + (turnsCount - 4) * 3);
+    leadership = Math.min(92, 78 + (turnsCount - 4) * 3);
+    contentQ   = Math.min(92, 75 + Math.round(totalWords / 20));
+    comm       = Math.min(90, 78 + Math.round(totalWords / 30));
+    relev      = 85;
+    listening  = Math.min(90, 75 + responsesToOthers * 5);
+    teamwork   = Math.min(90, 76 + responsesToOthers * 4);
+    critThink  = Math.min(90, 75 + questionsAsked * 4);
+    confProf   = 85;
+    conclusion = hasSummary ? 90 : 65;
+  }
+
+  const clamp = v => Math.max(25, Math.min(98, Math.round(v)));
   contentQ   = clamp(contentQ);
   comm       = clamp(comm);
   partic     = clamp(partic);
@@ -442,113 +537,110 @@ function generateSmartOfflineEvaluation(userTurns, totalWords, turnsCount, userN
   confProf   = clamp(confProf);
   conclusion = clamp(conclusion);
 
-  // ── Weighted overall ───────────────────────────────────────
   const overall = Math.round(
     contentQ * 0.15 + comm * 0.15 + partic * 0.10 + relev * 0.10 +
     listening * 0.10 + teamwork * 0.10 + leadership * 0.10 + critThink * 0.10 +
     confProf * 0.05 + conclusion * 0.05
   );
 
-  // ── Behavioral estimates ───────────────────────────────────
-  const estTime   = Math.round((totalWords / 130) * 60);
-  const meanContr = Math.max(1, turnsCount - (turnsCount > 3 ? 1 : 0));
+  const metricsObj = {
+    content_score: contentQ, communication_score: comm, participation_score: partic,
+    relevance_score: relev, listening_score: listening, teamwork_score: teamwork,
+    leadership_score: leadership, critical_thinking: critThink, confidence_score: confProf,
+    conclusion_score: conclusion
+  };
 
-  // ── Strengths / weaknesses based on scores ─────────────────
+  const scoreProjection = buildScoreProjection(metricsObj, turnsCount, totalWords, userTurns);
+
+  // Evidence array with exact user quotes
+  const evidence = [];
+  if (sample1) {
+    evidence.push(`Turn 1 Quote: ${sample1} — ${totalWords < 25 ? 'Brief response with limited supporting detail.' : 'Good opening contribution establishing active participation.'}`);
+  } else {
+    evidence.push(`No active turns recorded for ${userName}. Zero verbal contribution detected.`);
+  }
+
+  if (sample2) {
+    evidence.push(`Turn 2 Quote: ${sample2} — ${responsesToOthers > 0 ? 'Direct interaction with other speakers.' : 'Continued individual viewpoint.'}`);
+  } else if (turnsCount === 1) {
+    evidence.push(`Only 1 speaking turn contributed (${totalWords} words total). Aim for 3–5 turns in competitive GDs.`);
+  } else {
+    evidence.push(`Contributed ${turnsCount} turn(s) with ${totalWords} total words.`);
+  }
+
+  if (hasSummary) {
+    evidence.push('Contributed concluding remarks near discussion wrap-up, boosting Leadership and Conclusion scores.');
+  } else {
+    evidence.push('Did not contribute a concluding summary — adding a 2-sentence summary at discussion end adds up to +15 pts.');
+  }
+
+  // Strengths & Weaknesses based strictly on activity
   const strengths = [];
   const weaknesses = [];
 
-  if (partic >= 75)    strengths.push(`Active participation across ${turnsCount} turns — contributed consistently without dominating`);
-  else                 weaknesses.push(`Limited participation (${turnsCount} turn${turnsCount !== 1 ? 's' : ''}) — aim for at least 4–5 meaningful turns per session`);
+  if (partic >= 75) strengths.push(`Active participation across ${turnsCount} turns (${totalWords} words total) showing consistent presence.`);
+  else weaknesses.push(`Low participation (${turnsCount} turn${turnsCount !== 1 ? 's' : ''}, ${totalWords} words) — target at least 4 turns and 100+ words per session.`);
 
-  if (contentQ >= 75)  strengths.push('Content quality was strong — points were relevant and showed topic awareness');
-  else                 weaknesses.push('Strengthen content depth — support each point with a specific example or statistic');
+  if (contentQ >= 75) strengths.push('Strong content depth with relevant topic points and arguments.');
+  else weaknesses.push('Strengthen content quality by backing up each point with a real-world example or statistic.');
 
-  if (listening >= 75) strengths.push('Good responsiveness to other speakers — showed active listening and built on contributions');
-  else                 weaknesses.push('Improve active listening — directly acknowledge and respond to at least 2–3 other participants per session');
+  if (listening >= 75) strengths.push('High active listening — acknowledged and built upon other participants\' points.');
+  else weaknesses.push('Improve active listening — explicitly reference peer contributions ("I agree with Meera\'s point...").');
 
-  if (conclusion >= 70) strengths.push('Contributed to summarizing the discussion — showed ability to connect multiple viewpoints');
-  else                  weaknesses.push('Work on conclusion skills — practice summarizing 3 key points in 2 clear sentences at discussion end');
+  if (conclusion >= 75) strengths.push('Effectively summarized key points during the discussion wrap-up.');
+  else weaknesses.push('Practice concluding skills — summarize 2 key points in 2 clear sentences at the end.');
 
-  if (leadership >= 75) strengths.push('Demonstrated leadership — helped guide the conversation and connect different perspectives');
-
-  // Pick top 3 of each
-  const top3S = strengths.slice(0, 3);
-  const top3W = weaknesses.slice(0, 3);
-  while (top3S.length < 3) top3S.push('Maintained respectful and professional tone throughout the discussion');
-  while (top3W.length < 3) top3W.push('Practice structuring each point as: Claim → Evidence → Impact for maximum clarity');
+  while (strengths.length < 3) strengths.push('Maintained a polite, constructive, and professional communication tone throughout.');
+  while (weaknesses.length < 3) weaknesses.push('Structure contributions as: Claim → Evidence → Impact for maximum clarity.');
 
   const placementScore =
-    overall >= 90 ? 'Excellent — ready for top-tier placement GDs' :
-    overall >= 80 ? 'Very Good — strong candidate with minor refinements needed' :
-    overall >= 70 ? 'Good — solid foundation, needs consistent practice on weak areas' :
-    overall >= 60 ? 'Needs Improvement — targeted practice on content depth and participation required' :
-                    'Requires Significant Practice — focus on participation, content quality, and active listening';
+    overall >= 88 ? 'Excellent — ready for top-tier company placement GDs' :
+    overall >= 78 ? 'Very Good — strong active candidate with minor refinements needed' :
+    overall >= 65 ? 'Good — solid foundation, requires more consistent active turns' :
+    overall >= 50 ? 'Needs Improvement — low speaking volume; practice active contribution' :
+                    'Requires Significant Practice — very low participation detected; active speaking is essential';
+
+  const fullFeedback = `Evaluation for ${userName} on GD Topic: "${topic}"
+
+Activity Summary: You contributed ${turnsCount} turn(s) with a total of ${totalWords} word(s) (${Math.round((totalWords/130)*60)} seconds estimated speaking time).
+
+${turnsCount <= 1 || totalWords < 30 ? 
+  '⚠️ CRITICAL PARTICIPATION FEEDBACK: Your active participation in this discussion was very low. In competitive Group Discussions, silence or minimal participation (1 brief turn) heavily penalizes your score across Participation (10%), Leadership (10%), and Content Quality (15%). To improve your score projection, you must speak at least 3-4 times per session.' :
+  '✅ ACTIVE PARTICIPATION FEEDBACK: You demonstrated active engagement in the discussion. Your contributions showed clear alignment with the topic and maintained discussion momentum.'
+}
+
+Score Projection Analysis: Your projected overall score of ${overall}/100 is calculated using a 10-metric weighted formula. Your active turn count (${turnsCount}) and content volume directly influenced your Participation (${partic}/100) and Content Quality (${contentQ}/100) scores. ${responsesToOthers > 0 ? 'Your peer responses positively impacted your Listening score.' : 'Adding direct responses to peer points will boost your Listening score.'}`;
 
   return {
-    // 10 metric scores
-    content_score:          contentQ,
-    communication_score:    comm,
-    participation_score:    partic,
-    relevance_score:        relev,
-    listening_score:        listening,
-    teamwork_score:         teamwork,
-    leadership_score:       leadership,
-    critical_thinking:      critThink,
-    confidence_score:       confProf,
-    conclusion_score:       conclusion,
-    // Legacy aliases
-    fluency_score:          comm,
-    vocabulary_score:       contentQ,
-    overall_score:          overall,
-    // Behavioral metrics
-    speaking_time_seconds:    estTime,
-    speaking_turns:           turnsCount,
-    meaningful_contributions: meanContr,
-    interruptions:            0,
-    repeated_points:          Math.max(0, turnsCount - meanContr),
-    responses_to_others:      responsesToOthers,
-    questions_asked:          questionsAsked,
-    topic_deviations:         0,
-    total_words:              totalWords,
-    // Feedback
-    strengths: top3S,
-    improvements: top3W,
-    recommendations: [
-      'Practice the 3-part structure for each point: Claim → Evidence → Impact.',
-      'Aim for 4–5 speaking turns per session — quality over quantity.',
-      `Use transition phrases like "Building on that..." or "To add to ${userName}'s point..." to show active listening.`,
-      'Practice 60-second summaries at the end of each GD to strengthen conclusion skills.',
-      'Record yourself in mock GDs weekly and review for filler words and topic deviations.',
+    content_score: contentQ, communication_score: comm, participation_score: partic,
+    relevance_score: relev, listening_score: listening, teamwork_score: teamwork,
+    leadership_score: leadership, critical_thinking: critThink, confidence_score: confProf,
+    conclusion_score: conclusion, fluency_score: comm, vocabulary_score: contentQ,
+    overall_score: overall,
+    speaking_time_seconds: Math.round((totalWords / 130) * 60),
+    speaking_turns: turnsCount, meaningful_contributions: Math.max(1, turnsCount - 1),
+    interruptions: 0, repeated_points: 0, responses_to_others: responsesToOthers,
+    questions_asked: questionsAsked, topic_deviations: 0, total_words: totalWords,
+    strengths, improvements: weaknesses, recommendations: [
+      'Aim for 4–5 active speaking turns in every 10-minute GD session.',
+      'Use transition phrases like "Building on that point..." to demonstrate active listening.',
+      'Structure every turn: Claim → Real-world Example → Impact on topic.',
+      'Always offer a 2-sentence summary at the end of the discussion to claim Leadership points.'
     ],
-    evidence: [
-      totalWords > 0
-        ? `${userName} spoke approximately ${totalWords} words across ${turnsCount} turn${turnsCount !== 1 ? 's' : ''}, suggesting ${totalWords >= 150 ? 'good' : 'limited'} engagement.`
-        : `No transcript data available for evidence-based scoring — scores reflect structural defaults.`,
-      questionsAsked > 0
-        ? `Asked ${questionsAsked} question${questionsAsked > 1 ? 's' : ''} during the discussion, indicating interactive participation.`
-        : 'Did not ask questions during the session — asking 1–2 clarifying questions significantly improves listening scores.',
-      hasSummary
-        ? 'Used concluding language, demonstrating awareness of discussion structure and leadership.'
-        : 'Did not contribute a conclusion — ending with a brief summary boosts both Leadership and Conclusion scores.',
+    evidence, practice_plan: [
+      'Week 1: Focus on active initiation — speak within the first 90 seconds of the GD.',
+      'Week 2: Practice peer acknowledgment — reference what another speaker said before adding your point.',
+      'Week 3: Structure arguments — practice speaking for 45 seconds using Claim-Evidence-Impact format.',
+      'Week 4: Master conclusions — summarize the main viewpoints of the group in 2 concise sentences.'
     ],
     improvement_suggestions: [
-      'Communication: Present each idea in 2–3 concise sentences. Avoid run-on explanations — clarity scores higher than length.',
-      'Content: Research 2–3 data points (statistics, real-world examples) before each GD to strengthen content depth.',
-      'Teamwork: Explicitly acknowledge another participant\'s point before building on it ("I agree with what was said about X, and I\'d add...").',
+      `Communication: Your current volume is ${totalWords} words across ${turnsCount} turn(s). Increase turn frequency for better communication flow.`,
+      'Content: Provide specific data points or real-life examples rather than general statements.',
+      'Teamwork: Actively encourage quieter participants or respond to points made by peers.'
     ],
-    practice_plan: [
-      'Week 1: Practice speaking on any topic for 60 seconds — record and count filler words (um, uh, like). Target: under 5 per minute.',
-      'Week 2: Do 3 mock GDs focused on active listening — summarize the previous speaker\'s point before adding your own.',
-      'Week 3: Practice conclusion writing — after each GD, write a 3-sentence summary connecting all viewpoints raised.',
-      'Week 4: Focus on leadership — initiate discussion in at least 2 GDs and guide the group toward a consensus.',
-      'Ongoing: Join 2–3 online GD practice groups weekly. Review recordings for topic adherence and response quality.',
-    ],
-    full_feedback: `${userName} participated in this Group Discussion on "${topic}" with ${turnsCount > 3 ? 'commendable frequency' : turnsCount > 1 ? 'moderate engagement' : 'limited engagement'}. ${totalWords >= 150 ? 'The volume of contribution was adequate, though depth and structured argumentation can be strengthened further.' : 'The contribution volume was below optimal — increasing speaking turns while maintaining quality is the priority.'}
-
-Key areas of strength include ${top3S[0].toLowerCase()}. The discussion also showed ${listening >= 70 ? 'reasonable awareness of other participants\' contributions' : 'room for improvement in active listening and responsiveness to peers'}.
-
-To advance to placement-readiness, focus on: (1) structuring each point with a clear claim, supporting evidence, and strategic impact; (2) contributing a meaningful summary near the end of each session; and (3) directly acknowledging and building on at least 2 other participants\' points per discussion.`,
+    full_feedback: fullFeedback,
     placement_readiness: placementScore,
+    score_projection: scoreProjection
   };
 }
 
