@@ -384,11 +384,12 @@
 
     <div style="font-size:2.8rem; margin-bottom:12px; animation:float 3s ease infinite">🔑</div>
     <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:6px">Join Human GD Room</h2>
-    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:22px">
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px">
       Enter or paste the Room Code (or full invite link) shared by your host
     </p>
 
-    <div style="margin-bottom:6px">
+    <!-- Code Input with integrated Paste button -->
+    <div style="position:relative; margin-bottom:6px">
       <input
         id="room-code-input"
         class="room-code-input-big"
@@ -397,18 +398,40 @@
         maxlength="120"
         autocomplete="off"
         spellcheck="false"
+        style="padding-right:90px"
       />
+      <button
+        id="btn-modal-paste"
+        type="button"
+        onclick="pasteCodeFromClipboard()"
+        title="Paste room code from clipboard"
+        style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(16,185,129,0.18); border:1px solid rgba(52,211,153,0.45); color:#34d399; font-weight:700; font-size:0.8rem; padding:8px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s"
+      >
+        📋 Paste
+      </button>
     </div>
     <div id="join-code-hint" class="join-hint dim">Accepts a code like GD2341 or a full invite URL</div>
 
-    <button
-      class="btn btn-success btn-full btn-lg"
-      id="join-code-submit"
-      onclick="submitJoinCode()"
-      style="margin-top:20px; font-size:1rem; font-weight:700; padding:14px"
-    >
-      Join Discussion Now →
-    </button>
+    <!-- Dual Actions: Join Now or Quick Paste & Join -->
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px">
+      <button
+        class="btn btn-success btn-full btn-lg"
+        id="join-code-submit"
+        onclick="submitJoinCode()"
+        style="font-size:1rem; font-weight:700; padding:14px"
+      >
+        Join Discussion Now →
+      </button>
+
+      <button
+        type="button"
+        id="btn-quick-paste-join"
+        onclick="quickPasteAndJoin()"
+        style="width:100%; padding:12px; font-size:0.88rem; font-weight:700; border-radius:12px; cursor:pointer; background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.3); color:#a78bfa; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s"
+      >
+        ⚡ Paste from Clipboard &amp; Join Instantly
+      </button>
+    </div>
 
   </div>
 </div>
@@ -544,6 +567,96 @@
     }
     window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}`;
   }
+
+  /* ── Clipboard Paste Functions ────────────────────────────── */
+  async function pasteCodeFromClipboard() {
+    const inp = document.getElementById('room-code-input');
+    const pasteBtn = document.getElementById('btn-modal-paste');
+    try {
+      let text = '';
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        text = await navigator.clipboard.readText();
+      }
+      if (!text) {
+        inp?.focus();
+        if (window.AppUtils && AppUtils.showToast) {
+          AppUtils.showToast('Clipboard is empty. Press Ctrl+V in the box to paste.', 'info');
+        }
+        return;
+      }
+      if (inp) {
+        inp.value = text.trim();
+        validateRoomInput(inp);
+        if (pasteBtn) {
+          pasteBtn.innerHTML = '✓ Pasted!';
+          pasteBtn.style.background = 'rgba(16,185,129,0.35)';
+          setTimeout(() => {
+            pasteBtn.innerHTML = '📋 Paste';
+            pasteBtn.style.background = 'rgba(16,185,129,0.18)';
+          }, 1800);
+        }
+        if (window.AppUtils && AppUtils.showToast) {
+          AppUtils.showToast(`📋 Pasted code: ${inp.value}`, 'success');
+        }
+      }
+    } catch (err) {
+      console.warn('Clipboard read error:', err);
+      inp?.focus();
+      if (window.AppUtils && AppUtils.showToast) {
+        AppUtils.showToast('Please press Ctrl+V inside the box to paste.', 'info');
+      }
+    }
+  }
+
+  async function quickPasteAndJoin() {
+    const inp = document.getElementById('room-code-input');
+    try {
+      let text = '';
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        text = await navigator.clipboard.readText();
+      }
+      if (!text) {
+        if (window.AppUtils && AppUtils.showToast) {
+          AppUtils.showToast('Clipboard is empty! Copy your room code or invite link first.', 'error');
+        }
+        inp?.focus();
+        return;
+      }
+      if (inp) {
+        inp.value = text.trim();
+        validateRoomInput(inp);
+        if (window.AppUtils && AppUtils.showToast) {
+          AppUtils.showToast(`⚡ Joining room ${inp.value}...`, 'info');
+        }
+        setTimeout(() => submitJoinCode(), 250);
+      }
+    } catch (err) {
+      console.warn('Quick paste error:', err);
+      inp?.focus();
+      if (window.AppUtils && AppUtils.showToast) {
+        AppUtils.showToast('Please paste your code manually and click Join.', 'info');
+      }
+    }
+  }
+
+  /* Listen for global Ctrl+V when join modal is open */
+  document.addEventListener('paste', (e) => {
+    const modal = document.getElementById('join-code-modal');
+    if (modal && modal.style.display === 'flex') {
+      const inp = document.getElementById('room-code-input');
+      if (inp && document.activeElement !== inp) {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (text) {
+          e.preventDefault();
+          inp.value = text.trim();
+          validateRoomInput(inp);
+          if (window.AppUtils && AppUtils.showToast) {
+            AppUtils.showToast(`📋 Pasted: ${inp.value}`, 'success');
+          }
+        }
+      }
+    }
+  });
 
   /* ── Auto-open join modal if page URL has ?roomId=... or ?action=join&roomId=... ── */
   (function checkUrlAutoJoin() {

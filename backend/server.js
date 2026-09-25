@@ -57,17 +57,28 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
     if (!cleanRoomId) return;
 
-    rooms[cleanRoomId] = {
-      topic: topic || 'The Role of Artificial Intelligence in Modern Education',
-      participants: [],
-      timerDuration: 10 * 60, // 10 minutes
-      timerRemaining: 10 * 60,
-      timerInterval: null,
-      status: 'waiting'
-    };
+    if (!rooms[cleanRoomId]) {
+      rooms[cleanRoomId] = {
+        topic: topic || 'The Role of Artificial Intelligence in Modern Education',
+        participants: [],
+        timerDuration: 10 * 60, // 10 minutes
+        timerRemaining: 10 * 60,
+        timerInterval: null,
+        status: 'waiting'
+      };
+    } else if (topic) {
+      rooms[cleanRoomId].topic = topic;
+    }
 
     const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
-    rooms[cleanRoomId].participants.push(participant);
+    const existingIndex = rooms[cleanRoomId].participants.findIndex(
+      p => (userId && p.userId === userId) || p.socketId === socket.id || p.name === userName
+    );
+    if (existingIndex >= 0) {
+      rooms[cleanRoomId].participants[existingIndex] = participant;
+    } else {
+      rooms[cleanRoomId].participants.push(participant);
+    }
     socket.join(cleanRoomId);
 
     socket.emit('room:joined', {
@@ -76,15 +87,34 @@ io.on('connection', (socket) => {
       participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`🏠 Room created: ${cleanRoomId} by ${userName}`);
+    // Notify any other existing participants
+    socket.to(cleanRoomId).emit('room:participant_joined', {
+      participant,
+      participants: rooms[cleanRoomId].participants
+    });
+
+    console.log(`🏠 Room created/hosted: ${cleanRoomId} by ${userName} (${rooms[cleanRoomId].participants.length} participants)`);
   });
 
   // Join an existing room
   socket.on('room:join', ({ roomId, userName, userId }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
-    if (!rooms[cleanRoomId]) {
-      socket.emit('room:error', { message: `Room "${cleanRoomId || roomId}" does not exist. Please check the Room ID.` });
+    if (!cleanRoomId) {
+      socket.emit('room:error', { message: 'Invalid Room ID provided.' });
       return;
+    }
+
+    // Auto-create room if not yet created so users can join with any shared code seamlessly
+    if (!rooms[cleanRoomId]) {
+      rooms[cleanRoomId] = {
+        topic: 'General Group Discussion',
+        participants: [],
+        timerDuration: 10 * 60,
+        timerRemaining: 10 * 60,
+        timerInterval: null,
+        status: 'waiting'
+      };
+      console.log(`🏠 Room auto-initialized on join: ${cleanRoomId}`);
     }
 
     if (rooms[cleanRoomId].status === 'ended') {
@@ -93,7 +123,14 @@ io.on('connection', (socket) => {
     }
 
     const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
-    rooms[cleanRoomId].participants.push(participant);
+    const existingIndex = rooms[cleanRoomId].participants.findIndex(
+      p => (userId && p.userId === userId) || p.socketId === socket.id || p.name === userName
+    );
+    if (existingIndex >= 0) {
+      rooms[cleanRoomId].participants[existingIndex] = participant;
+    } else {
+      rooms[cleanRoomId].participants.push(participant);
+    }
     socket.join(cleanRoomId);
 
     // Notify the joiner
@@ -109,7 +146,7 @@ io.on('connection', (socket) => {
       participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`👤 ${userName} joined room: ${cleanRoomId}`);
+    console.log(`👤 ${userName} joined room: ${cleanRoomId} (Total: ${rooms[cleanRoomId].participants.length})`);
   });
 
   // Send a chat message

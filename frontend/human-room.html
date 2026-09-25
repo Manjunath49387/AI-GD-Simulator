@@ -273,26 +273,73 @@
 </head>
 <body id="human-room-page">
 
-<!-- JOIN / HOST MODAL -->
-<div id="join-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(8px)">
-  <div class="glass-card-flat animate-scale-in" style="padding:36px; max-width:440px; width:90%; border-radius:var(--radius-xl); text-align:center">
-    <div style="font-size:2.5rem; margin-bottom:12px">🚪</div>
-    <h2 style="margin-bottom:8px">Join GD Room</h2>
-    <p style="font-size:0.9rem; margin-bottom:20px">Enter the Room ID shared by the host</p>
-    <div class="form-group" style="margin-bottom:16px">
-      <input id="room-id-input" class="form-input" type="text" placeholder="e.g. GD2026"
-        style="text-align:center; font-size:1.35rem; letter-spacing:0.18em; text-transform:uppercase; font-weight:700"
-        maxlength="10" />
+<!-- JOIN / HOST MODAL (Enhanced with Paste Support) -->
+<div id="join-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(12px)">
+  <div class="animate-scale-in" style="padding:0; max-width:480px; width:93%; border-radius:24px; text-align:center; background:linear-gradient(160deg,rgba(16,24,40,0.99) 0%,rgba(10,14,28,0.99) 100%); border:1.5px solid rgba(255,255,255,0.1); box-shadow:0 0 80px rgba(108,99,255,0.15), 0 30px 80px rgba(0,0,0,0.7); overflow:hidden">
+
+    <!-- Modal Tabs -->
+    <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.08)">
+      <button id="tab-join" onclick="switchJoinTab('join')" style="flex:1; padding:16px 12px; font-size:0.85rem; font-weight:700; cursor:pointer; border:none; border-bottom:2px solid var(--accent-secondary); color:var(--accent-secondary); background:rgba(108,99,255,0.08); transition:all 0.2s">🚪 Join Room</button>
+      <button id="tab-host" onclick="switchJoinTab('host')" style="flex:1; padding:16px 12px; font-size:0.85rem; font-weight:700; cursor:pointer; border:none; border-bottom:2px solid transparent; color:var(--text-muted); background:transparent; transition:all 0.2s">✨ Host New Room</button>
     </div>
-    <button class="btn btn-primary btn-full btn-lg" id="join-submit">
-      Join Room →
-    </button>
-    <div style="margin:20px 0 16px; border-top:1px solid rgba(255,255,255,0.08); position:relative; text-align:center">
-      <span style="position:relative; top:-10px; background:#111827; padding:0 12px; font-size:0.75rem; color:var(--text-muted)">OR START A NEW ROOM</span>
+
+    <!-- Join Tab Content -->
+    <div id="tab-content-join" style="padding:32px 28px 28px">
+      <div style="font-size:2.8rem; margin-bottom:8px">🔑</div>
+      <h2 style="font-size:1.4rem; margin-bottom:6px">Join a GD Room</h2>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:24px">Paste or type the Room Code shared by the host</p>
+
+      <!-- Segmented Room Code Input -->
+      <div style="position:relative; margin-bottom:12px">
+        <input id="room-id-input" class="form-input" type="text" placeholder="e.g. GD2345"
+          style="text-align:center; font-size:1.8rem; letter-spacing:0.25em; text-transform:uppercase; font-weight:900; padding:18px 60px 18px 16px; border:2px solid rgba(108,99,255,0.3); background:rgba(108,99,255,0.06); border-radius:14px; width:100%; box-sizing:border-box; font-family:var(--font-display); transition:border-color 0.2s"
+          maxlength="10" autocomplete="off" spellcheck="false" />
+        <!-- Paste button inside input -->
+        <button id="paste-btn" onclick="pasteRoomCode()" title="Paste from clipboard"
+          style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(108,99,255,0.2); border:1px solid rgba(108,99,255,0.4); color:#a78bfa; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.75rem; font-weight:700; display:flex; align-items:center; gap:4px; transition:all 0.2s; white-space:nowrap">
+          📋 Paste
+        </button>
+      </div>
+
+      <!-- Auto-paste hint -->
+      <div id="paste-hint" style="font-size:0.73rem; color:var(--text-muted); margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:6px">
+        <span style="opacity:0.6">💡</span>
+        <span>Copied a room code? Click <strong style="color:#a78bfa">Paste</strong> or press Ctrl+V anywhere</span>
+      </div>
+
+      <!-- Join Button -->
+      <button class="btn btn-primary btn-full" id="join-submit" style="padding:14px; font-size:1rem; font-weight:700; border-radius:12px; margin-bottom:10px">
+        🚀 Join Room
+      </button>
+
+      <!-- Quick paste & join -->
+      <button onclick="pasteAndJoin()" id="paste-join-btn" style="width:100%; padding:12px; font-size:0.88rem; font-weight:700; border-radius:12px; cursor:pointer; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#34d399; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s">
+        ⚡ Paste &amp; Join Instantly
+      </button>
     </div>
-    <button class="btn btn-success btn-full" id="btn-modal-create-room" onclick="createNewRoomNow()">
-      ✨ Host New Room (Generate Code)
-    </button>
+
+    <!-- Host Tab Content -->
+    <div id="tab-content-host" style="display:none; padding:32px 28px 28px">
+      <div style="font-size:2.8rem; margin-bottom:8px">🏠</div>
+      <h2 style="font-size:1.4rem; margin-bottom:6px">Host a GD Room</h2>
+      <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:20px">Create a room and share the code with participants</p>
+
+      <div style="background:rgba(16,185,129,0.07); border:1px dashed rgba(16,185,129,0.3); border-radius:14px; padding:20px; margin-bottom:20px">
+        <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:8px">Your Room Code</div>
+        <div id="preview-room-code" style="font-family:var(--font-display); font-size:2.4rem; font-weight:900; letter-spacing:0.25em; background:linear-gradient(90deg,#34d399,#6ee7b7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px">——</div>
+        <div style="font-size:0.75rem; color:var(--text-muted)">Share this code with participants</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <button class="btn btn-success btn-full" id="btn-modal-create-room" onclick="createNewRoomNow()" style="padding:14px; font-size:1rem; font-weight:700; border-radius:12px">
+          ✨ Create Room &amp; Get Code
+        </button>
+        <button onclick="refreshPreviewCode()" style="width:100%; padding:10px; font-size:0.83rem; font-weight:600; border-radius:10px; cursor:pointer; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); transition:all 0.2s">
+          🔄 Generate Different Code
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -341,6 +388,29 @@
       <button class="share-social-btn native" id="native-share-btn" onclick="shareViaNative()">
         📤 Share…
       </button>
+    </div>
+
+    <!-- How to Join Instructions -->
+    <div style="margin-top:18px; background:rgba(108,99,255,0.06); border:1px solid rgba(108,99,255,0.15); border-radius:12px; padding:14px; text-align:left">
+      <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:#a78bfa; font-weight:700; margin-bottom:10px">📋 How Participants Join</div>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="display:flex; align-items:flex-start; gap:10px; font-size:0.78rem; color:var(--text-secondary)">
+          <span style="background:rgba(108,99,255,0.2); color:#a78bfa; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.68rem; flex-shrink:0">1</span>
+          <span>Open <strong style="color:var(--text-primary)">GD Simulator</strong> → Select <strong style="color:var(--text-primary)">Human Mode</strong></span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px; font-size:0.78rem; color:var(--text-secondary)">
+          <span style="background:rgba(108,99,255,0.2); color:#a78bfa; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.68rem; flex-shrink:0">2</span>
+          <span>Copy the Room Code: <strong style="color:#34d399; font-family:var(--font-display); letter-spacing:0.1em" id="how-to-code">——</strong></span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px; font-size:0.78rem; color:var(--text-secondary)">
+          <span style="background:rgba(108,99,255,0.2); color:#a78bfa; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.68rem; flex-shrink:0">3</span>
+          <span>Click <strong style="color:var(--text-primary)">⚡ Paste & Join</strong> or paste code in the input and click <strong style="color:var(--text-primary)">Join Room</strong></span>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px; font-size:0.78rem; color:var(--text-secondary)">
+          <span style="background:rgba(16,185,129,0.2); color:#34d399; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.68rem; flex-shrink:0">✓</span>
+          <span>Or just share the <strong style="color:var(--text-primary)">Direct Invite Link</strong> above — it opens the room automatically!</span>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -498,6 +568,116 @@
 <script src="/js/api.js"></script>
 <script src="/js/speech.js"></script>
 <script>
+  // ── Modal tab switching ──────────────────────────────────
+  function switchJoinTab(tab) {
+    const joinContent = document.getElementById('tab-content-join');
+    const hostContent = document.getElementById('tab-content-host');
+    const joinTab = document.getElementById('tab-join');
+    const hostTab = document.getElementById('tab-host');
+    if (tab === 'join') {
+      joinContent.style.display = 'block';
+      hostContent.style.display = 'none';
+      joinTab.style.borderBottomColor = 'var(--accent-secondary)';
+      joinTab.style.color = 'var(--accent-secondary)';
+      joinTab.style.background = 'rgba(108,99,255,0.08)';
+      hostTab.style.borderBottomColor = 'transparent';
+      hostTab.style.color = 'var(--text-muted)';
+      hostTab.style.background = 'transparent';
+      setTimeout(() => document.getElementById('room-id-input')?.focus(), 100);
+    } else {
+      joinContent.style.display = 'none';
+      hostContent.style.display = 'block';
+      joinTab.style.borderBottomColor = 'transparent';
+      joinTab.style.color = 'var(--text-muted)';
+      joinTab.style.background = 'transparent';
+      hostTab.style.borderBottomColor = '#34d399';
+      hostTab.style.color = '#34d399';
+      hostTab.style.background = 'rgba(16,185,129,0.08)';
+      refreshPreviewCode();
+    }
+  }
+
+  let _previewCode = '';
+  function refreshPreviewCode() {
+    _previewCode = 'GD' + Math.floor(1000 + Math.random() * 9000);
+    const el = document.getElementById('preview-room-code');
+    if (el) el.textContent = _previewCode;
+  }
+
+  // Helper: extract clean room code from plain code OR full invite URL
+  function extractRoomCode(raw) {
+    if (!raw) return '';
+    let str = String(raw).trim();
+    if (str.includes('roomId=') || str.includes('room=')) {
+      try {
+        const u = new URL(str, window.location.origin);
+        str = u.searchParams.get('roomId') || u.searchParams.get('room') || str;
+      } catch (e) {
+        const match = str.match(/room(?:Id)?=([A-Za-z0-9]+)/i);
+        if (match) str = match[1];
+      }
+    }
+    return str.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 10);
+  }
+
+  // ── Paste button: reads clipboard, cleans code/URL, and fills room-id-input ────────
+  async function pasteRoomCode() {
+    const input = document.getElementById('room-id-input');
+    if (!input) return;
+    try {
+      let text = '';
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        text = await navigator.clipboard.readText();
+      }
+      const cleaned = extractRoomCode(text);
+      if (cleaned) {
+        input.value = cleaned;
+        input.style.borderColor = 'rgba(16,185,129,0.6)';
+        input.style.background = 'rgba(16,185,129,0.06)';
+        const btn = document.getElementById('paste-btn');
+        if (btn) { btn.innerHTML = '✓ Pasted!'; btn.style.color = '#34d399'; }
+        AppUtils.showToast(`📋 Pasted Code: ${cleaned} — Click Join!`, 'success');
+        setTimeout(() => {
+          input.style.borderColor = 'rgba(108,99,255,0.3)';
+          input.style.background = 'rgba(108,99,255,0.06)';
+          if (btn) { btn.innerHTML = '📋 Paste'; btn.style.color = ''; }
+        }, 2000);
+      } else {
+        input.focus();
+        AppUtils.showToast('Clipboard is empty — press Ctrl+V in the box to paste', 'info');
+      }
+    } catch (e) {
+      console.warn('Paste failed:', e);
+      input.focus();
+      AppUtils.showToast('Click inside the box and press Ctrl+V to paste', 'info');
+    }
+  }
+
+  // ── Paste clipboard and immediately join ─────────────────
+  async function pasteAndJoin() {
+    const input = document.getElementById('room-id-input');
+    if (!input) return;
+    try {
+      let text = '';
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        text = await navigator.clipboard.readText();
+      }
+      const cleaned = extractRoomCode(text);
+      if (cleaned) {
+        input.value = cleaned;
+        AppUtils.showToast(`⚡ Joining room ${cleaned}...`, 'info');
+        setTimeout(() => document.getElementById('join-submit')?.click(), 250);
+      } else {
+        AppUtils.showToast('Copy a room code or invite link first, then click this button!', 'error');
+        input.focus();
+      }
+    } catch (e) {
+      console.warn('Quick paste & join failed:', e);
+      AppUtils.showToast('Paste the code manually and click Join Room', 'info');
+      input.focus();
+    }
+  }
+
   // Patch HumanRoom to expose controls
   const _hrModule = {};
 
@@ -513,8 +693,7 @@
     }
     const sessionId = params.get('session');
     // Accept ?roomId=... OR ?room=...
-    let roomId = params.get('roomId') || params.get('room');
-    if (roomId) roomId = roomId.trim().toUpperCase();
+    let roomId = extractRoomCode(params.get('roomId') || params.get('room'));
 
     // Helper: generate a short room code
     function generateRoomCode() {
@@ -531,6 +710,27 @@
     if (isHost && !currentRoomId) {
       currentRoomId = generateRoomCode();
     }
+
+    // Auto-detect Ctrl+V paste anywhere on the page when the join modal is open
+    document.addEventListener('paste', (e) => {
+      const modal = document.getElementById('join-modal');
+      if (modal && modal.style.display === 'flex') {
+        const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        const cleaned = extractRoomCode(pasted);
+        const input = document.getElementById('room-id-input');
+        if (cleaned && input && document.activeElement !== input) {
+          e.preventDefault();
+          input.value = cleaned;
+          input.style.borderColor = 'rgba(16,185,129,0.6)';
+          input.style.background = 'rgba(16,185,129,0.06)';
+          AppUtils.showToast(`📋 Pasted Code: ${cleaned} — Click Join!`, 'success');
+          setTimeout(() => {
+            input.style.borderColor = 'rgba(108,99,255,0.3)';
+            input.style.background = 'rgba(108,99,255,0.06)';
+          }, 2000);
+        }
+      }
+    });
 
     // ── Update all Room ID displays ────────────────────────────
     const updateRoomDisplay = (id) => {
@@ -549,7 +749,8 @@
     // ── Host creates a new room on-the-fly ────────────────────
     window.createNewRoomNow = function() {
       isHost = true;
-      currentRoomId = generateRoomCode();
+      // Use the previewed code if the host tab was open, else generate fresh
+      currentRoomId = _previewCode || generateRoomCode();
       updateRoomDisplay(currentRoomId);
       document.getElementById('join-modal').style.display = 'none';
       document.getElementById('host-controls')?.classList.remove('hidden');
@@ -833,6 +1034,8 @@
     const id = getEffectiveRoomId();
     const codeEl = document.getElementById('modal-share-code');
     if (codeEl) codeEl.textContent = id;
+    const howToEl = document.getElementById('how-to-code');
+    if (howToEl) howToEl.textContent = id;
     const linkInput = document.getElementById('modal-share-link');
     if (linkInput) linkInput.value = `${window.location.origin}/human-room.html?roomId=${id}`;
     document.getElementById('share-modal').style.display = 'flex';
