@@ -548,12 +548,12 @@
   function onTypeAiCount(val) {
     const parsed = parseInt(val, 10);
     if (isNaN(parsed)) return;
-    const clamped = Math.max(2, Math.min(6, parsed));
+    const clamped = Math.max(2, Math.min(10, parsed));
     setAiCount(clamped);
   }
 
   function stepAiCount(delta) {
-    const next = Math.max(2, Math.min(6, selectedAiCount + delta));
+    const next = Math.max(2, Math.min(10, selectedAiCount + delta));
     setAiCount(next);
   }
 

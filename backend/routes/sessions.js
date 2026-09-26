@@ -16,16 +16,31 @@ router.post('/', authMiddleware, (req, res) => {
 
   const generatedRoomId = room_id || (mode === 'human' ? uuidv4().slice(0, 8).toUpperCase() : null);
 
-  const result = db.prepare(`
-    INSERT INTO gd_sessions (user_id, mode, topic, category, room_id, start_time, status)
-    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'active')
-  `).run(req.user.user_id, mode, topic, category || 'General', generatedRoomId);
+  try {
+    const result = db.prepare(`
+      INSERT INTO gd_sessions (user_id, mode, topic, category, room_id, start_time, status)
+      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'active')
+    `).run(req.user.user_id, mode, topic, category || 'General', generatedRoomId);
 
-  const session = db.prepare('SELECT * FROM gd_sessions WHERE session_id = ?')
-    .get(result.lastInsertRowid);
+    const session = db.prepare('SELECT * FROM gd_sessions WHERE session_id = ?')
+      .get(result.lastInsertRowid);
 
-  res.status(201).json({ session });
+    return res.status(201).json({ session });
+  } catch (err) {
+    // If UNIQUE constraint on room_id fails, find and return an existing active session for this room
+    if (err.message && err.message.includes('UNIQUE') && generatedRoomId) {
+      const existing = db.prepare(
+        "SELECT * FROM gd_sessions WHERE room_id = ? AND status = 'active' ORDER BY session_id DESC LIMIT 1"
+      ).get(generatedRoomId);
+      if (existing) {
+        return res.status(200).json({ session: existing });
+      }
+    }
+    console.error('Session create error:', err.message);
+    return res.status(500).json({ error: 'Failed to create session: ' + err.message });
+  }
 });
+
 
 // ─── GET /api/sessions/:id ───────────────────────────────────────────────────
 router.get('/:id', authMiddleware, (req, res) => {

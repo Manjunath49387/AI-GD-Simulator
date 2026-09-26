@@ -752,13 +752,13 @@
     if (event) event.stopPropagation();
     const parsed = parseInt(val, 10);
     if (isNaN(parsed)) return;
-    const clamped = Math.max(2, Math.min(6, parsed));
+    const clamped = Math.max(2, Math.min(10, parsed));
     setAiParticipantCount(clamped);
   }
 
   function stepAiParticipantCount(delta, event) {
     if (event) event.stopPropagation();
-    const next = Math.max(2, Math.min(6, selectedAiCount + delta));
+    const next = Math.max(2, Math.min(10, selectedAiCount + delta));
     setAiParticipantCount(next);
   }
 
@@ -794,7 +794,8 @@
         return;
       }
     } catch (err) {
-      console.warn('Session creation fallback:', err);
+      console.warn('Session creation error (navigating without session ID):', err.message || err);
+      // Gracefully fall through — still navigate to room without a session ID
     }
     window.location.href = `/human-room.html?action=create&roomId=${roomId}&topic=${encodeURIComponent(defaultTopic)}`;
   }
@@ -879,16 +880,7 @@
       btn.disabled = true;
     }
 
-    try {
-      if (window.API && window.API.Sessions) {
-        const res = await window.API.Sessions.create('human', 'Group Discussion Room ' + code, 'General', code);
-        const sid = res?.session?.session_id || '';
-        window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}` + (sid ? `&session=${sid}` : '');
-        return;
-      }
-    } catch (err) {
-      console.warn('Session join fallback:', err);
-    }
+    // Navigate directly to human-room as a joiner (no session creation needed for join)
     window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}`;
   }
 
