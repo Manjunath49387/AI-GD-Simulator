@@ -18,6 +18,12 @@ const Speech = (() => {
     meera: { lang: 'en-IN', pitch: 1.15, rate: 1.00, preferMale: false, preferredNames: ['meera', 'heera', 'hazel', 'susan', 'katherine'] },
     ravi:  { lang: 'en-IN', pitch: 0.82, rate: 0.90, preferMale: true, preferredNames: ['ravi', 'mark', 'david', 'guy', 'daniel'] },
     priya: { lang: 'en-IN', pitch: 1.10, rate: 1.02, preferMale: false, preferredNames: ['priya', 'neerja', 'zira', 'samantha', 'jenny'] },
+    vikram: { lang: 'en-IN', pitch: 0.85, rate: 0.92, preferMale: true, preferredNames: ['vikram', 'neel', 'george', 'james', 'david', 'alex'] },
+    ananya: { lang: 'en-IN', pitch: 1.06, rate: 1.00, preferMale: false, preferredNames: ['ananya', 'swara', 'aria', 'samantha', 'zira', 'katherine'] },
+    neha:   { lang: 'en-IN', pitch: 1.12, rate: 1.05, preferMale: false, preferredNames: ['neha', 'pooja', 'aditi', 'kavya', 'susan'] },
+    karthik:{ lang: 'en-IN', pitch: 0.84, rate: 0.94, preferMale: true,  preferredNames: ['karthik', 'amit', 'rohan', 'brian', 'steven'] },
+    sneha:  { lang: 'en-IN', pitch: 1.08, rate: 0.98, preferMale: false, preferredNames: ['sneha', 'sita', 'sarah', 'emma', 'hazel'] },
+    rahul:  { lang: 'en-IN', pitch: 0.86, rate: 1.02, preferMale: true,  preferredNames: ['rahul', 'deepak', 'john', 'paul', 'edward'] },
     default: { lang: 'en-US', pitch: 1.00, rate: 1.00, preferMale: false, preferredNames: [] }
   };
 

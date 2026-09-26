@@ -245,6 +245,106 @@
       border-color: rgba(16,185,129,0.35);
       color: #34d399;
     }
+
+    /* AI Participant Count Selector */
+    .ai-count-container {
+      margin-bottom: 20px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(108,99,255,0.2);
+      border-radius: var(--radius-lg);
+    }
+    .ai-count-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-secondary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .ai-count-selector {
+      display: flex;
+      justify-content: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: var(--radius-full);
+      padding: 3px;
+      gap: 4px;
+    }
+    .ai-count-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .ai-count-btn:hover {
+      color: #fff;
+      background: rgba(108,99,255,0.15);
+    }
+    .ai-count-btn.active {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(108,99,255,0.45);
+    }
+
+    .btn-step {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(108,99,255,0.35);
+      background: rgba(108,99,255,0.12);
+      color: var(--accent-secondary);
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      line-height: 1;
+      user-select: none;
+    }
+    .btn-step:hover {
+      background: rgba(108,99,255,0.3);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .ai-number-input {
+      width: 52px;
+      height: 28px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(108,99,255,0.4);
+      border-radius: 8px;
+      outline: none;
+      transition: all var(--transition-fast);
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .ai-number-input::-webkit-outer-spin-button,
+    .ai-number-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .ai-number-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(108,99,255,0.35);
+      background: rgba(108,99,255,0.1);
+    }
   </style>
 </head>
 <body>
@@ -304,20 +404,60 @@
         <div class="mode-card ai-card animate-fade-in" onclick="selectMode('ai')">
           <span class="mode-icon">🤖</span>
 
-          <div class="ai-agents-preview">
+          <div class="ai-agents-preview" id="ai-agents-preview">
+            <div class="agent-mini" style="background:rgba(156,39,176,0.15); color:#c084fc" title="Priya - Moderator">👩‍🏫</div>
             <div class="agent-mini" style="background:rgba(16,185,129,0.15); color:#34d399" title="Arjun - Supporter">🧑‍💼</div>
             <div class="agent-mini" style="background:rgba(239,68,68,0.15); color:#f87171" title="Meera - Opponent">👩‍💼</div>
             <div class="agent-mini" style="background:rgba(59,130,246,0.15); color:#60a5fa" title="Ravi - Analyst">👨‍🔬</div>
-            <div class="agent-mini" style="background:rgba(156,39,176,0.15); color:#c084fc" title="Priya - Moderator">👩‍🏫</div>
           </div>
 
           <div class="mode-title">AI Mode</div>
-          <div class="mode-desc">
+
+          <!-- AI Participants Count Selector -->
+          <div class="ai-count-container" onclick="event.stopPropagation()">
+            <div class="ai-count-label">
+              <span>👥</span> AI Participants: <span id="ai-count-display-badge" style="color:#fff; font-weight:800">4 AI</span>
+            </div>
+            <div class="ai-count-selector" id="ai-count-selector">
+              <button type="button" class="ai-count-btn" data-count="2" onclick="setAiParticipantCount(2, event)" title="2 AI: Supporter & Opponent (Intense debate)">2 AI</button>
+              <button type="button" class="ai-count-btn" data-count="3" onclick="setAiParticipantCount(3, event)" title="3 AI: Moderator, Supporter, Opponent">3 AI</button>
+              <button type="button" class="ai-count-btn active" data-count="4" onclick="setAiParticipantCount(4, event)" title="4 AI: Moderator, Supporter, Opponent, Analyst (Standard)">4 AI</button>
+              <button type="button" class="ai-count-btn" data-count="5" onclick="setAiParticipantCount(5, event)" title="5 AI: + Vikram (Realist)">5 AI</button>
+              <button type="button" class="ai-count-btn" data-count="6" onclick="setAiParticipantCount(6, event)" title="6 AI: + Ananya (Synthesizer)">6 AI</button>
+              <button type="button" class="ai-count-btn" data-count="7" onclick="setAiParticipantCount(7, event)" title="7 AI: + Neha (Questioner)">7 AI</button>
+              <button type="button" class="ai-count-btn" data-count="8" onclick="setAiParticipantCount(8, event)" title="8 AI: + Karthik (Devil's Advocate)">8 AI</button>
+              <button type="button" class="ai-count-btn" data-count="9" onclick="setAiParticipantCount(9, event)" title="9 AI: + Sneha (Peacemaker)">9 AI</button>
+              <button type="button" class="ai-count-btn" data-count="10" onclick="setAiParticipantCount(10, event)" title="10 AI: + Rahul (Innovator)">10 AI</button>
+            </div>
+
+            <!-- Type the number of AI participation option -->
+            <div class="type-ai-count-wrapper" style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px">
+              <span style="font-size:0.75rem; color:var(--text-muted)">⌨️ Or type number:</span>
+              <div style="display:flex; align-items:center; gap:4px">
+                <button type="button" class="btn-step" onclick="stepAiParticipantCount(-1, event)" title="Decrease">−</button>
+                <input
+                  type="number"
+                  id="ai-count-typed-input"
+                  min="2"
+                  max="10"
+                  value="4"
+                  class="ai-number-input"
+                  oninput="onTypeAiParticipantCount(this.value, event)"
+                  title="Type number of AI participants (2 to 10)"
+                  placeholder="2-10"
+                />
+                <button type="button" class="btn-step" onclick="stepAiParticipantCount(1, event)" title="Increase">+</button>
+              </div>
+              <span style="font-size:0.72rem; color:var(--text-muted)">(2 to 10)</span>
+            </div>
+          </div>
+
+          <div class="mode-desc" id="ai-mode-desc">
             Practice with 4 unique AI participants — each with distinct personalities and debating styles.
           </div>
 
           <ul class="mode-features">
-            <li><span class="check">✅</span> 4 AI participants (Supporter, Opponent, Analyst, Moderator)</li>
+            <li id="ai-feature-participants"><span class="check">✅</span> 4 AI participants (Moderator, Supporter, Opponent, Analyst)</li>
             <li><span class="check">✅</span> Voice input & AI speech output</li>
             <li><span class="check">✅</span> Real-time turn management</li>
             <li><span class="check">✅</span> Full AI performance evaluation</li>
@@ -446,9 +586,193 @@
     document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
   }
 
+  // AI Participant Configurations
+  const AI_PARTICIPANT_PRESETS = {
+    2: {
+      count: 2,
+      desc: 'Duo Debate: 2 AI participants (Arjun & Meera) for high speaking opportunities.',
+      feature: '2 AI participants (Arjun - Supporter & Meera - Opponent)',
+      agents: [
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' }
+      ]
+    },
+    3: {
+      count: 3,
+      desc: 'Trio Discussion: 3 AI participants led by a Moderator with pro and con viewpoints.',
+      feature: '3 AI participants (Priya - Moderator, Arjun - Supporter, Meera - Opponent)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' }
+      ]
+    },
+    4: {
+      count: 4,
+      desc: 'Standard Panel: 4 AI participants with distinct personalities and debating styles.',
+      feature: '4 AI participants (Moderator, Supporter, Opponent, Analyst)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' }
+      ]
+    },
+    5: {
+      count: 5,
+      desc: 'Extended Panel: 5 AI participants adding Vikram the Realist for execution checks.',
+      feature: '5 AI participants (Moderator, Supporter, Opponent, Analyst, Realist)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' }
+      ]
+    },
+    6: {
+      count: 6,
+      desc: 'Full Board GD: 6 AI participants covering moderation, critical points, and synthesis.',
+      feature: '6 AI participants (Full panel including Ananya the Synthesizer)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
+        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' }
+      ]
+    },
+    7: {
+      count: 7,
+      desc: 'Extended GD: 7 AI participants with Neha the Questioner.',
+      feature: '7 AI participants (+ Neha - Questioner)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
+        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
+        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' }
+      ]
+    },
+    8: {
+      count: 8,
+      desc: 'Large Panel: 8 AI participants adding Karthik as Devil\'s Advocate.',
+      feature: '8 AI participants (+ Karthik - Devil\'s Advocate)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
+        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
+        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
+        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' }
+      ]
+    },
+    9: {
+      count: 9,
+      desc: 'Massive GD: 9 AI participants adding Sneha the Peacemaker.',
+      feature: '9 AI participants (+ Sneha - Peacemaker)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
+        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
+        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
+        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' },
+        { emoji: '🕊️', bg: 'rgba(244,63,94,0.15)', color: '#f43f5e', title: 'Sneha - Peacemaker' }
+      ]
+    },
+    10: {
+      count: 10,
+      desc: 'Maximum GD: 10 AI participants covering every possible viewpoint.',
+      feature: '10 AI participants (+ Rahul - Innovator)',
+      agents: [
+        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
+        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
+        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
+        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
+        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
+        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
+        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
+        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' },
+        { emoji: '🕊️', bg: 'rgba(244,63,94,0.15)', color: '#f43f5e', title: 'Sneha - Peacemaker' },
+        { emoji: '💡', bg: 'rgba(234,179,8,0.15)', color: '#eab308', title: 'Rahul - Innovator' }
+      ]
+    }
+  };
+
+  let selectedAiCount = parseInt(localStorage.getItem('gd_ai_participants') || '4', 10);
+  if (isNaN(selectedAiCount) || selectedAiCount < 2 || selectedAiCount > 10) selectedAiCount = 4;
+
+  function setAiParticipantCount(count, event) {
+    if (event) event.stopPropagation();
+    selectedAiCount = count;
+    localStorage.setItem('gd_ai_participants', count);
+
+    // Update active button
+    document.querySelectorAll('.ai-count-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.count, 10) === count);
+    });
+
+    const preset = AI_PARTICIPANT_PRESETS[count] || AI_PARTICIPANT_PRESETS[4];
+
+    // Update badge display
+    const badge = document.getElementById('ai-count-display-badge');
+    if (badge) badge.textContent = `${count} AI`;
+
+    // Update description & feature list
+    const descEl = document.getElementById('ai-mode-desc');
+    if (descEl) descEl.textContent = preset.desc;
+
+    const featEl = document.getElementById('ai-feature-participants');
+    if (featEl) featEl.innerHTML = `<span class="check">✅</span> ${preset.feature}`;
+
+    // Update preview avatars
+    const previewEl = document.getElementById('ai-agents-preview');
+    if (previewEl) {
+      previewEl.innerHTML = preset.agents.map(a =>
+        `<div class="agent-mini" style="background:${a.bg}; color:${a.color}" title="${a.title}">${a.emoji}</div>`
+      ).join('');
+    }
+
+    // Keep the typed input in sync
+    const typedInput = document.getElementById('ai-count-typed-input');
+    if (typedInput && parseInt(typedInput.value, 10) !== count) {
+      typedInput.value = count;
+    }
+  }
+
+  function onTypeAiParticipantCount(val, event) {
+    if (event) event.stopPropagation();
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed)) return;
+    const clamped = Math.max(2, Math.min(6, parsed));
+    setAiParticipantCount(clamped);
+  }
+
+  function stepAiParticipantCount(delta, event) {
+    if (event) event.stopPropagation();
+    const next = Math.max(2, Math.min(6, selectedAiCount + delta));
+    setAiParticipantCount(next);
+  }
+
+  // Initialize selected count on page load
+  setTimeout(() => setAiParticipantCount(selectedAiCount), 0);
+
   function selectMode(mode) {
     localStorage.setItem('gd_selected_mode', mode);
-    window.location.href = `/select-topic.html?mode=${mode}`;
+    if (mode === 'ai') {
+      localStorage.setItem('gd_ai_participants', selectedAiCount);
+      window.location.href = `/select-topic.html?mode=ai&aiCount=${selectedAiCount}`;
+    } else {
+      window.location.href = `/select-topic.html?mode=${mode}`;
+    }
   }
 
   async function hostHumanRoom(e) {

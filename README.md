@@ -122,4 +122,6 @@ Final_demo_GD/
 
 cd d:\Final_demo_GD\backend
 npm start
+npx vercel --prod
+
 

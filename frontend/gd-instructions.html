@@ -252,41 +252,70 @@
             </ul>
           </div>
 
-          <!-- AI Participants -->
+          <!-- AI Participants Preview -->
           <div class="agents-preview animate-fade-in" style="animation-delay:0.2s" id="agents-preview">
-            <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:4px; display:flex; align-items:center; gap:8px">
-              🤖 AI Participants
+            <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:4px; display:flex; align-items:center; justify-content:space-between">
+              <span style="display:flex; align-items:center; gap:8px">🤖 AI Participants</span>
+              <span id="agents-preview-count-pill" style="font-size:0.75rem; color:var(--accent-secondary); font-weight:700">4 Active</span>
             </div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px">You'll be discussing with these AI participants</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px" id="agents-preview-subtitle">
+              You'll be discussing with these AI participants
+            </div>
 
-            <div class="agent-row">
-              <div class="agent-emoji" style="background:rgba(16,185,129,0.15)">🧑‍💼</div>
-              <div class="agent-details">
-                <div class="name">Arjun <span class="badge badge-green" style="font-size:0.65rem">Supporter</span></div>
-                <div class="desc">Enthusiastic, uses stats, pro-topic</div>
-              </div>
+            <div id="agents-preview-list">
+              <!-- Dynamically populated based on chosen participant count -->
             </div>
-            <div class="agent-row">
-              <div class="agent-emoji" style="background:rgba(239,68,68,0.15)">👩‍💼</div>
-              <div class="agent-details">
-                <div class="name">Meera <span class="badge badge-red" style="font-size:0.65rem">Opponent</span></div>
-                <div class="desc">Critical, devil's advocate, counterarguments</div>
-              </div>
+          </div>
+        </div>
+
+        <!-- AI Participant Count Selection (AI Mode only) -->
+        <div class="glass-card-flat animate-fade-in" id="ai-participants-selection-card" style="padding:24px; margin-bottom:24px">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px">
+            <div style="font-weight:700; font-size:1rem; display:flex; align-items:center; gap:8px">
+              👥 Number of AI Participants
             </div>
-            <div class="agent-row">
-              <div class="agent-emoji" style="background:rgba(59,130,246,0.15)">👨‍🔬</div>
-              <div class="agent-details">
-                <div class="name">Ravi <span class="badge badge-blue" style="font-size:0.65rem">Analyst</span></div>
-                <div class="desc">Balanced, data-driven, asks probing questions</div>
-              </div>
+            <div id="ai-participants-status-badge" style="font-size:0.76rem; font-weight:700; color:#34d399; background:rgba(16,185,129,0.12); padding:4px 12px; border-radius:12px; border:1px solid rgba(52,211,153,0.3)">
+              Standard Panel (4 AI)
             </div>
-            <div class="agent-row">
-              <div class="agent-emoji" style="background:rgba(156,39,176,0.15)">👩‍🏫</div>
-              <div class="agent-details">
-                <div class="name">Priya <span class="badge badge-primary" style="font-size:0.65rem">Moderator</span></div>
-                <div class="desc">Facilitates, challenges weak points</div>
-              </div>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px">
+            Choose or type how many autonomous AI participants you want in the discussion (2 to 6 participants):
+          </div>
+
+          <!-- Presets -->
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px" id="ai-count-options">
+            <button type="button" class="category-chip" data-count="2" onclick="setAiCount(2, this)">2 AI (Duo Debate)</button>
+            <button type="button" class="category-chip" data-count="3" onclick="setAiCount(3, this)">3 AI (Trio Discussion)</button>
+            <button type="button" class="category-chip active" data-count="4" onclick="setAiCount(4, this)">4 AI (Standard Panel)</button>
+            <button type="button" class="category-chip" data-count="5" onclick="setAiCount(5, this)">5 AI (Extended Panel)</button>
+            <button type="button" class="category-chip" data-count="6" onclick="setAiCount(6, this)">6 AI (Full Board GD)</button>
+            <button type="button" class="category-chip" data-count="7" onclick="setAiCount(7, this)">7 AI (Extended GD)</button>
+            <button type="button" class="category-chip" data-count="8" onclick="setAiCount(8, this)">8 AI (Large Panel)</button>
+            <button type="button" class="category-chip" data-count="9" onclick="setAiCount(9, this)">9 AI (Massive GD)</button>
+            <button type="button" class="category-chip" data-count="10" onclick="setAiCount(10, this)">10 AI (Maximum GD)</button>
+          </div>
+
+          <!-- Type the number of AI participation option -->
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 18px; background:rgba(255,255,255,0.03); border:1px solid rgba(108,99,255,0.25); border-radius:12px; width:fit-content; flex-wrap:wrap">
+            <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:6px">
+              ⌨️ Type number of AI participants:
+            </span>
+            <div style="display:flex; align-items:center; gap:6px">
+              <button type="button" class="btn-step" onclick="stepAiCount(-1)" title="Decrease">−</button>
+              <input
+                type="number"
+                id="type-ai-count-input"
+                min="2"
+                max="10"
+                value="4"
+                class="ai-number-input"
+                oninput="onTypeAiCount(this.value)"
+                placeholder="2-10"
+                title="Enter number of AI participants (2 to 10)"
+              />
+              <button type="button" class="btn-step" onclick="stepAiCount(1)" title="Increase">+</button>
             </div>
+            <span style="font-size:0.75rem; color:var(--text-muted)">(Enter between 2 and 10)</span>
           </div>
         </div>
 
@@ -332,12 +361,207 @@
   const topic = decodeURIComponent(params.get('topic') || 'Group Discussion Topic');
   const category = decodeURIComponent(params.get('category') || 'General');
 
+  // AI Persona Database
+  const PERSONAS = {
+    priya: {
+      name: 'Priya',
+      role: 'Moderator',
+      badgeClass: 'badge-primary',
+      emoji: '👩‍🏫',
+      bg: 'rgba(156,39,176,0.15)',
+      desc: 'Facilitates discussion, guides the flow, challenges weak points'
+    },
+    arjun: {
+      name: 'Arjun',
+      role: 'Supporter',
+      badgeClass: 'badge-green',
+      emoji: '🧑‍💼',
+      bg: 'rgba(16,185,129,0.15)',
+      desc: 'Enthusiastic, optimistic, highlights practical benefits'
+    },
+    meera: {
+      name: 'Meera',
+      role: 'Opponent',
+      badgeClass: 'badge-red',
+      emoji: '👩‍💼',
+      bg: 'rgba(239,68,68,0.15)',
+      desc: 'Critical challenger, devil\'s advocate, counterarguments'
+    },
+    ravi: {
+      name: 'Ravi',
+      role: 'Analyst',
+      badgeClass: 'badge-blue',
+      emoji: '👨‍🔬',
+      bg: 'rgba(59,130,246,0.15)',
+      desc: 'Balanced, data-driven, asks probing questions'
+    },
+    vikram: {
+      name: 'Vikram',
+      role: 'Realist',
+      badgeClass: 'badge-yellow',
+      emoji: '👨‍💼',
+      bg: 'rgba(245,158,11,0.15)',
+      desc: 'Pragmatist, focuses on ground reality, regulations & execution'
+    },
+    ananya: {
+      name: 'Ananya',
+      role: 'Synthesizer',
+      badgeClass: 'badge-purple',
+      emoji: '👩‍💻',
+      bg: 'rgba(236,72,153,0.15)',
+      desc: 'Collaborative, bridges viewpoints, proposes constructive solutions'
+    },
+    neha: {
+      name: 'Neha',
+      role: 'Questioner',
+      badgeClass: 'badge-teal',
+      emoji: '🙋‍♀️',
+      bg: 'rgba(20,184,166,0.15)',
+      desc: 'Inquisitive, asks clarifying questions, challenges assumptions'
+    },
+    karthik: {
+      name: 'Karthik',
+      role: "Devil's Advocate",
+      badgeClass: 'badge-indigo',
+      emoji: '🕵️‍♂️',
+      bg: 'rgba(99,102,241,0.15)',
+      desc: 'Tests arguments by exploring alternative perspectives'
+    },
+    sneha: {
+      name: 'Sneha',
+      role: 'Peacemaker',
+      badgeClass: 'badge-red',
+      emoji: '🕊️',
+      bg: 'rgba(244,63,94,0.15)',
+      desc: 'Calm, empathetic, seeks middle ground and harmony'
+    },
+    rahul: {
+      name: 'Rahul',
+      role: 'Innovator',
+      badgeClass: 'badge-yellow',
+      emoji: '💡',
+      bg: 'rgba(234,179,8,0.15)',
+      desc: 'Creative, proposes fresh ideas and outside-the-box solutions'
+    }
+  };
+
+  const PARTICIPANT_TIERS = {
+    2: {
+      name: 'Duo Debate (2 AI)',
+      agents: ['arjun', 'meera'],
+      badge: 'Duo Debate (2 AI)'
+    },
+    3: {
+      name: 'Trio Discussion (3 AI)',
+      agents: ['priya', 'arjun', 'meera'],
+      badge: 'Trio Discussion (3 AI)'
+    },
+    4: {
+      name: 'Standard Panel (4 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi'],
+      badge: 'Standard Panel (4 AI)'
+    },
+    5: {
+      name: 'Extended Panel (5 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram'],
+      badge: 'Extended Panel (5 AI)'
+    },
+    6: {
+      name: 'Full Board GD (6 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya'],
+      badge: 'Full Board GD (6 AI)'
+    },
+    7: {
+      name: 'Extended GD (7 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha'],
+      badge: 'Extended GD (7 AI)'
+    },
+    8: {
+      name: 'Large Panel (8 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik'],
+      badge: 'Large Panel (8 AI)'
+    },
+    9: {
+      name: 'Massive GD (9 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik', 'sneha'],
+      badge: 'Massive GD (9 AI)'
+    },
+    10: {
+      name: 'Maximum GD (10 AI)',
+      agents: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik', 'sneha', 'rahul'],
+      badge: 'Maximum GD (10 AI)'
+    }
+  };
+
+  let selectedAiCount = parseInt(params.get('aiCount') || localStorage.getItem('gd_ai_participants') || '4', 10);
+  if (isNaN(selectedAiCount) || selectedAiCount < 2 || selectedAiCount > 10) selectedAiCount = 4;
+
   document.getElementById('topic-display').textContent = `"${topic}"`;
-  document.getElementById('mode-display').textContent = mode === 'ai' ? '🤖 AI Mode' : '👥 Human Mode';
+  document.getElementById('mode-display').textContent = mode === 'ai' ? `🤖 AI Mode • ${selectedAiCount} AI` : '👥 Human Mode';
   document.getElementById('category-display').textContent = category;
 
-  // Show/hide agents preview for human mode
+  function renderAiPersonas(count) {
+    const listEl = document.getElementById('agents-preview-list');
+    if (!listEl) return;
+    const tier = PARTICIPANT_TIERS[count] || PARTICIPANT_TIERS[4];
+    listEl.innerHTML = tier.agents.map(id => {
+      const p = PERSONAS[id];
+      return `
+        <div class="agent-row" style="animation:fadeIn 0.25s ease">
+          <div class="agent-emoji" style="background:${p.bg}">${p.emoji}</div>
+          <div class="agent-details">
+            <div class="name">${p.name} <span class="badge ${p.badgeClass}" style="font-size:0.65rem">${p.role}</span></div>
+            <div class="desc">${p.desc}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const pill = document.getElementById('agents-preview-count-pill');
+    if (pill) pill.textContent = `${count} Active`;
+
+    const statusBadge = document.getElementById('ai-participants-status-badge');
+    if (statusBadge) statusBadge.textContent = tier.badge;
+
+    // Keep typed number input in sync
+    const typedInput = document.getElementById('type-ai-count-input');
+    if (typedInput && parseInt(typedInput.value, 10) !== count) {
+      typedInput.value = count;
+    }
+
+    if (mode === 'ai') {
+      document.getElementById('mode-display').textContent = `🤖 AI Mode • ${count} AI`;
+    }
+  }
+
+  function setAiCount(count, el) {
+    selectedAiCount = count;
+    localStorage.setItem('gd_ai_participants', count);
+
+    document.querySelectorAll('#ai-count-options .category-chip').forEach(c => {
+      c.classList.toggle('active', parseInt(c.dataset.count, 10) === count);
+    });
+
+    renderAiPersonas(count);
+  }
+
+  function onTypeAiCount(val) {
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed)) return;
+    const clamped = Math.max(2, Math.min(6, parsed));
+    setAiCount(clamped);
+  }
+
+  function stepAiCount(delta) {
+    const next = Math.max(2, Math.min(6, selectedAiCount + delta));
+    setAiCount(next);
+  }
+
+  // Show/hide agents preview & participant selector for human mode vs AI mode
   if (mode === 'human') {
+    const aiCard = document.getElementById('ai-participants-selection-card');
+    if (aiCard) aiCard.style.display = 'none';
+
     document.getElementById('agents-preview').innerHTML = `
       <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:4px">👥 Human Participants</div>
       <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6">
@@ -347,6 +571,9 @@
         • Up to 8 participants per room
       </div>
     `;
+  } else {
+    // Initial render for AI mode
+    setAiCount(selectedAiCount, document.querySelector(`#ai-count-options [data-count="${selectedAiCount}"]`));
   }
 
   let selectedDuration = 600; // seconds
@@ -374,7 +601,7 @@
     clearInterval(prepInterval);
 
     if (mode === 'ai') {
-      window.location.href = `/ai-room.html?session=${sessionId}&topic=${encodeURIComponent(topic)}&duration=${selectedDuration}`;
+      window.location.href = `/ai-room.html?session=${sessionId}&topic=${encodeURIComponent(topic)}&duration=${selectedDuration}&aiCount=${selectedAiCount}`;
     } else {
       // For human mode, create a room ID
       const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
@@ -383,12 +610,60 @@
   }
 
   function goBackToTopic() {
-    window.location.href = `/select-topic.html?mode=${mode}`;
+    window.location.href = `/select-topic.html?mode=${mode}&aiCount=${selectedAiCount}`;
   }
 </script>
 <style>
   .category-chip { padding:8px 16px; border-radius:var(--radius-full); border:1px solid var(--glass-border); background:rgba(255,255,255,0.04); color:var(--text-secondary); font-size:0.82rem; font-weight:600; cursor:pointer; transition:all var(--transition-fast); }
   .category-chip.active { background:rgba(108,99,255,0.15); border-color:rgba(108,99,255,0.4); color:var(--accent-secondary); }
+
+  .btn-step {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(108,99,255,0.35);
+    background: rgba(108,99,255,0.15);
+    color: var(--accent-secondary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    line-height: 1;
+    user-select: none;
+  }
+  .btn-step:hover {
+    background: rgba(108,99,255,0.35);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .ai-number-input {
+    width: 52px;
+    height: 30px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(108,99,255,0.4);
+    border-radius: 8px;
+    outline: none;
+    transition: all var(--transition-fast);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .ai-number-input::-webkit-outer-spin-button,
+  .ai-number-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .ai-number-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 12px rgba(108,99,255,0.4);
+    background: rgba(108,99,255,0.12);
+  }
 </style>
 </body>
 </html>

@@ -18,15 +18,35 @@ const AIRoom = (() => {
   let wordCount = 0;
   let speakingTurns = 0;
 
-  // AI agents in rotation order
-  const AGENTS = ['arjun', 'meera', 'ravi', 'priya'];
-  const AGENT_INFO = {
-    arjun: { name: 'Arjun', role: 'Supporter', avatar: '🧑‍💼', color: '#10b981' },
-    meera: { name: 'Meera', role: 'Opponent', avatar: '👩‍💼', color: '#ef4444' },
-    ravi:  { name: 'Ravi',  role: 'Analyst',  avatar: '👨‍🔬', color: '#3b82f6' },
-    priya: { name: 'Priya', role: 'Moderator', avatar: '👩‍🏫', color: '#9c27b0' }
+  // All distinct AI personas
+  const ALL_AGENTS = {
+    priya:  { id: 'priya',  name: 'Priya',  role: 'Moderator',   avatar: '👩‍🏫', color: '#9c27b0' },
+    arjun:  { id: 'arjun',  name: 'Arjun',  role: 'Supporter',   avatar: '🧑‍💼', color: '#10b981' },
+    meera:  { id: 'meera',  name: 'Meera',  role: 'Opponent',    avatar: '👩‍💼', color: '#ef4444' },
+    ravi:   { id: 'ravi',   name: 'Ravi',   role: 'Analyst',     avatar: '👨‍🔬', color: '#3b82f6' },
+    vikram: { id: 'vikram', name: 'Vikram', role: 'Realist',     avatar: '👨‍💼', color: '#f59e0b' },
+    ananya: { id: 'ananya', name: 'Ananya', role: 'Synthesizer', avatar: '👩‍💻', color: '#ec4899' },
+    neha:   { id: 'neha',   name: 'Neha',   role: 'Questioner',  avatar: '🙋‍♀️', color: '#14b8a6' },
+    karthik:{ id: 'karthik',name: 'Karthik',role: "Devil's Advocate", avatar: '🕵️‍♂️', color: '#6366f1' },
+    sneha:  { id: 'sneha',  name: 'Sneha',  role: 'Peacemaker',  avatar: '🕊️', color: '#f43f5e' },
+    rahul:  { id: 'rahul',  name: 'Rahul',  role: 'Innovator',   avatar: '💡', color: '#eab308' }
   };
 
+  // Participant tiers for 2 to 10 participants
+  const PARTICIPANT_TIERS = {
+    2: ['arjun', 'meera'],
+    3: ['priya', 'arjun', 'meera'],
+    4: ['priya', 'arjun', 'meera', 'ravi'],
+    5: ['priya', 'arjun', 'meera', 'ravi', 'vikram'],
+    6: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya'],
+    7: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha'],
+    8: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik'],
+    9: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik', 'sneha'],
+    10: ['priya', 'arjun', 'meera', 'ravi', 'vikram', 'ananya', 'neha', 'karthik', 'sneha', 'rahul']
+  };
+
+  let aiCount = 4;
+  let activeAgents = ['priya', 'arjun', 'meera', 'ravi'];
   let currentAgentIdx = 0;
 
   // ─── INITIALIZE ─────────────────────────────────────────
@@ -36,9 +56,14 @@ const AIRoom = (() => {
     const params = new URLSearchParams(window.location.search);
     sessionId = params.get('session');
     topic = decodeURIComponent(params.get('topic') || '');
-    gdDuration = parseInt(params.get('duration') || '600');
+    gdDuration = parseInt(params.get('duration') || '600', 10);
     timerRemaining = gdDuration;
     userName = AppUtils.getUser()?.name || 'You';
+
+    // Parse chosen number of AI participants
+    aiCount = parseInt(params.get('aiCount') || localStorage.getItem('gd_ai_participants') || '4', 10);
+    if (isNaN(aiCount) || aiCount < 2 || aiCount > 10) aiCount = 4;
+    activeAgents = PARTICIPANT_TIERS[aiCount] || PARTICIPANT_TIERS[4];
 
     if (!sessionId || !topic) {
       window.location.href = '/select-topic.html';
@@ -50,8 +75,42 @@ const AIRoom = (() => {
     document.getElementById('user-name-label').textContent = userName;
     updateTimer();
 
+    // Dynamically render active participant cards in sidebar
+    renderParticipantCards();
+
     // Show prep overlay
     showPrepOverlay();
+  }
+
+  function renderParticipantCards() {
+    const container = document.getElementById('ai-participants-container');
+    if (!container) return;
+
+    container.innerHTML = activeAgents.map(id => {
+      const a = ALL_AGENTS[id];
+      return `
+        <div class="participant-card" id="agent-${id}">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px">
+            <div class="participant-avatar-large" style="background:${a.color}20; color:${a.color}; width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem">
+              ${a.avatar}
+            </div>
+            <div>
+              <div class="participant-name">${a.name}</div>
+              <div class="participant-role">${a.role}</div>
+            </div>
+          </div>
+          <div class="speaking-indicator hidden" style="display:flex;align-items:center;gap:3px;height:16px">
+            <div class="speaking-bar" style="width:3px;background:${a.color};border-radius:2px;animation:soundWave 0.6s ease infinite alternate"></div>
+            <div class="speaking-bar" style="width:3px;background:${a.color};border-radius:2px;animation:soundWave 0.6s 0.1s ease infinite alternate;height:10px"></div>
+            <div class="speaking-bar" style="width:3px;background:${a.color};border-radius:2px;animation:soundWave 0.6s 0.2s ease infinite alternate"></div>
+            <div class="speaking-bar" style="width:3px;background:${a.color};border-radius:2px;animation:soundWave 0.6s 0.15s ease infinite alternate;height:8px"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const modeBadge = document.getElementById('room-mode-badge');
+    if (modeBadge) modeBadge.textContent = `🤖 AI Mode • ${aiCount} AI Participants`;
   }
 
   // ─── PREP COUNTDOWN ─────────────────────────────────────
@@ -88,8 +147,14 @@ const AIRoom = (() => {
   async function startDiscussion() {
     startTimer();
 
-    // Opening message from Priya (moderator) using simple, warm language
-    await triggerAgentResponse('priya', `Welcome everyone! Let's begin our group discussion on the topic: "${topic}". Please feel free to share your thoughts, and anyone can speak up. Let us start!`);
+    // If Priya (moderator) is in discussion, she introduces; otherwise use first active agent
+    const starterId = activeAgents.includes('priya') ? 'priya' : activeAgents[0];
+    const starter = ALL_AGENTS[starterId];
+
+    await triggerAgentResponse(
+      starterId,
+      `Welcome everyone! Let's begin our group discussion on the topic: "${topic}". Please feel free to share your thoughts, and anyone can speak up. Let us start!`
+    );
   }
 
   // ─── TIMER ──────────────────────────────────────────────
@@ -123,7 +188,7 @@ const AIRoom = (() => {
     if (isProcessing) return;
     isProcessing = true;
 
-    const agent = AGENT_INFO[agentId];
+    const agent = ALL_AGENTS[agentId] || { name: 'AI Participant', avatar: '🤖', color: '#6c63ff' };
     setParticipantSpeaking(agentId, true);
     setTurnIndicator(`${agent.name} is speaking...`);
     showTypingIndicator(agentId);
@@ -186,17 +251,18 @@ const AIRoom = (() => {
   }
 
   function pickNextAgent(lastAgentId) {
-    const idx = AGENTS.indexOf(lastAgentId);
-    return AGENTS[(idx + 1) % AGENTS.length];
+    const idx = activeAgents.indexOf(lastAgentId);
+    return activeAgents[(idx + 1) % activeAgents.length];
   }
 
   function shouldUserSpeak() {
-    // Give user a turn every 2 AI turns, or randomly
+    // Give user a turn dynamically: higher frequency for small groups
     const userMessages = conversationHistory.filter(m => m.speaker === 'You').length;
     const totalMessages = conversationHistory.length;
     if (totalMessages === 0) return false;
-    if (userMessages === 0 && totalMessages >= 3) return true; // Force first turn
-    return Math.random() < 0.45; // ~45% chance
+    if (userMessages === 0 && totalMessages >= 2) return true; // Force early first turn
+    const chance = activeAgents.length <= 2 ? 0.55 : (activeAgents.length <= 4 ? 0.45 : 0.38);
+    return Math.random() < chance;
   }
 
   // ─── USER TURN ───────────────────────────────────────────
@@ -260,18 +326,30 @@ const AIRoom = (() => {
   }
 
   function pickRespondingAgent(userMessage) {
-    // Meera responds to positive statements, Arjun to negative ones
     const lower = userMessage.toLowerCase();
-    if (lower.includes('not') || lower.includes('against') || lower.includes('problem') || lower.includes('issue')) {
-      return 'arjun';
-    }
-    if (lower.includes('agree') || lower.includes('yes') || lower.includes('good')) {
+
+    // Challenger responds to pro/affirmative statements
+    if (activeAgents.includes('meera') && (lower.includes('agree') || lower.includes('yes') || lower.includes('good') || lower.includes('support') || lower.includes('positive') || lower.includes('benefit'))) {
       return 'meera';
     }
-    if (lower.includes('?') || lower.includes('think') || lower.includes('what')) {
+    // Supporter responds to critical/negative statements
+    if (activeAgents.includes('arjun') && (lower.includes('not') || lower.includes('against') || lower.includes('problem') || lower.includes('issue') || lower.includes('risk') || lower.includes('challenge') || lower.includes('bad'))) {
+      return 'arjun';
+    }
+    // Realist responds to operational / cost / feasibility questions
+    if (activeAgents.includes('vikram') && (lower.includes('how') || lower.includes('cost') || lower.includes('money') || lower.includes('rule') || lower.includes('law') || lower.includes('practical') || lower.includes('real') || lower.includes('implement'))) {
+      return 'vikram';
+    }
+    // Synthesizer responds to summary or collaborative prompts
+    if (activeAgents.includes('ananya') && (lower.includes('solution') || lower.includes('middle') || lower.includes('together') || lower.includes('future') || lower.includes('both') || lower.includes('conclude'))) {
+      return 'ananya';
+    }
+    // Analyst responds to exploratory or question-based prompts
+    if (activeAgents.includes('ravi') && (lower.includes('?') || lower.includes('think') || lower.includes('what') || lower.includes('why') || lower.includes('data') || lower.includes('fact'))) {
       return 'ravi';
     }
-    return AGENTS[Math.floor(Math.random() * AGENTS.length)];
+
+    return activeAgents[Math.floor(Math.random() * activeAgents.length)];
   }
 
   // ─── DOM HELPERS ─────────────────────────────────────────
@@ -306,7 +384,7 @@ const AIRoom = (() => {
     const container = document.getElementById('chat-messages');
     if (!container) return;
 
-    const agent = AGENT_INFO[agentId];
+    const agent = ALL_AGENTS[agentId] || { name: 'AI Participant', avatar: '🤖', color: '#6c63ff' };
     const indicator = document.createElement('div');
     indicator.id = 'typing-indicator';
     indicator.className = 'typing-indicator';

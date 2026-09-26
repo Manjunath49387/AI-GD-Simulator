@@ -250,7 +250,9 @@
 
   const params = new URLSearchParams(window.location.search);
   const mode = params.get('mode') || localStorage.getItem('gd_selected_mode') || 'ai';
-  document.getElementById('mode-label').textContent = `Mode: ${mode === 'ai' ? '🤖 AI Mode' : '👥 Human Mode'}`;
+  const aiCount = params.get('aiCount') || localStorage.getItem('gd_ai_participants') || '4';
+  if (mode === 'ai') localStorage.setItem('gd_ai_participants', aiCount);
+  document.getElementById('mode-label').textContent = mode === 'ai' ? `🤖 AI Mode • ${aiCount} AI Participants` : '👥 Human Mode';
 
   let selectedTopic = '';
   let currentCategory = 'Technology';
@@ -434,7 +436,7 @@
       // Create session
       const { session } = await API.Sessions.create(mode, selectedTopic, currentCategory);
       localStorage.setItem('gd_current_session', JSON.stringify(session));
-      window.location.href = `/gd-instructions.html?session=${session.session_id}&mode=${mode}&topic=${encodeURIComponent(selectedTopic)}&category=${encodeURIComponent(currentCategory)}`;
+      window.location.href = `/gd-instructions.html?session=${session.session_id}&mode=${mode}&topic=${encodeURIComponent(selectedTopic)}&category=${encodeURIComponent(currentCategory)}&aiCount=${aiCount}`;
     } catch (err) {
       AppUtils.showToast(err.message, 'error');
       btns.forEach(b => { b.innerHTML = 'Continue to Instructions →'; b.disabled = false; });

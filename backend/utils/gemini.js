@@ -72,6 +72,31 @@ const FALLBACK_PERSONA_RESPONSES = {
     "To summarize where we stand so far: we all agree that change is happening, but we need to manage it step-by-step.",
     "Both sides have raised valid everyday points. Finding a middle ground will give us the most practical solution.",
     "As we wrap up this point, our main takeaway is that balance and clear guidelines are key."
+  ],
+  Ananya: [
+    "To bring these points together simply, we can combine the best ideas from both sides to find a realistic solution.",
+    "I think we can take a balanced step forward: use the positive benefits while setting clear safety boundaries.",
+    "Looking at what everyone has said, the best way is to start with a pilot approach and learn as we grow."
+  ],
+  Neha: [
+    "But what if we consider how this actually plays out in a real-world scenario?",
+    "That is interesting, but are we sure that assumption holds true for everyone?",
+    "Could you explain how that would work practically if things do not go as planned?"
+  ],
+  Karthik: [
+    "Just to play devil's advocate, what happens if this backfires completely?",
+    "Isn't it possible that the opposite is true and we're missing the real issue?",
+    "Let's look at the flip side for a moment. This might actually cause more problems than it solves."
+  ],
+  Sneha: [
+    "I understand where everyone is coming from. Maybe we can find a balance that helps everyone.",
+    "Let's remember the human impact here. We need a solution that considers people's feelings.",
+    "There might be a middle ground where both sides can actually agree on a few core principles."
+  ],
+  Rahul: [
+    "What if we thought completely outside the box and tried something brand new?",
+    "Instead of the usual approaches, we could leverage technology to solve this creatively.",
+    "Imagine a future where this isn't even a problem anymore because of a totally fresh idea."
   ]
 };
 
