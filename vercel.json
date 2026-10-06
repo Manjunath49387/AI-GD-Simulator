@@ -1,5 +1,15 @@
 {
   "version": 2,
+  "build": {
+    "env": {
+      "NODE_VERSION": "22.x"
+    }
+  },
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
