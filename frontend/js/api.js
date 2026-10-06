@@ -2,7 +2,8 @@
  * api.js — Centralized API client for GD Simulator backend
  */
 
-const API_BASE = window.location.origin + '/api';
+// Uses window.API_BASE_URL set by config.js (Render URL in prod, same-origin locally)
+const API_BASE = window.API_BASE_URL || (window.location.origin + '/api');
 
 /**
  * Get stored JWT token
@@ -60,7 +61,27 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 // ─── AUTH ───────────────────────────────────────────────────
+let _supabaseClient = null;
+
 const Auth = {
+  async getSupabaseConfig() {
+    try {
+      return await apiFetch('/auth/supabase-config');
+    } catch {
+      return { enabled: false };
+    }
+  },
+
+  async getSupabaseClient() {
+    if (_supabaseClient) return _supabaseClient;
+    const config = await this.getSupabaseConfig();
+    if (config?.enabled && window.supabase?.createClient) {
+      _supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+      return _supabaseClient;
+    }
+    return null;
+  },
+
   async register(name, email, password) {
     const data = await apiFetch('/auth/register', {
       method: 'POST',
@@ -85,6 +106,34 @@ const Auth = {
     return data;
   },
 
+  async loginWithOAuth(provider) {
+    const client = await this.getSupabaseClient();
+    if (!client) {
+      throw new Error('Supabase authentication is not configured yet. Please check your .env settings.');
+    }
+    const redirectUrl = window.location.origin + '/login.html?auth_callback=1';
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: redirectUrl
+      }
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async syncSupabaseSession(accessToken) {
+    const res = await apiFetch('/auth/supabase-callback', {
+      method: 'POST',
+      body: JSON.stringify({ access_token: accessToken })
+    });
+    if (res.token) {
+      localStorage.setItem('gd_token', res.token);
+      localStorage.setItem('gd_user', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
   async getProfile() {
     return apiFetch('/auth/profile');
   },
@@ -107,7 +156,10 @@ const Auth = {
     localStorage.removeItem('gd_token');
     localStorage.removeItem('gd_user');
     localStorage.removeItem('gd_current_session');
-    window.location.href = '/index.html';
+    if (_supabaseClient) {
+      try { _supabaseClient.auth.signOut(); } catch {}
+    }
+    window.location.href = '/login.html';
   },
 
   isLoggedIn() {

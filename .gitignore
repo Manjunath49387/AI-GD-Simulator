@@ -34,3 +34,11 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# Agent tool & IDE scratch directories
+.*
+!.gitignore
+!.env.example
+skills/
+skills-lock.json
+data/

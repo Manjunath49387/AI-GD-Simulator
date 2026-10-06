@@ -53,10 +53,12 @@ db.exec(`
     name       TEXT NOT NULL,
     email      TEXT UNIQUE NOT NULL,
     password   TEXT NOT NULL,
-    avatar     TEXT DEFAULT 'default',
-    bio        TEXT DEFAULT '',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    avatar       TEXT DEFAULT 'default',
+    bio          TEXT DEFAULT '',
+    supabase_uid TEXT UNIQUE,
+    auth_provider TEXT DEFAULT 'local',
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
 
@@ -153,6 +155,8 @@ db.exec(`
 // (try/catch: silently skip if column already exists)
 // ============================================================
 const MIGRATIONS = [
+  `ALTER TABLE users ADD COLUMN supabase_uid TEXT UNIQUE`,
+  `ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'local'`,
   `ALTER TABLE performance ADD COLUMN participation_score      REAL DEFAULT 0`,
   `ALTER TABLE performance ADD COLUMN relevance_score          REAL DEFAULT 0`,
   `ALTER TABLE performance ADD COLUMN listening_score          REAL DEFAULT 0`,
