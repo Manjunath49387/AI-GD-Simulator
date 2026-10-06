@@ -6,6 +6,7 @@ An end-to-end web platform designed to empower students and job aspirants to pra
 ![Real-time](https://img.shields.io/badge/Real--Time-Socket.IO-10b981)
 ![AI Engine](https://img.shields.io/badge/AI-Google%20Gemini-f59e0b)
 ![Database](https://img.shields.io/badge/Database-SQLite3%20WAL-3b82f6)
+![Human Mode](https://img.shields.io/badge/Human%20Mode-Waiting%20Hall-ec4899)
 
 ---
 
@@ -17,10 +18,14 @@ An end-to-end web platform designed to empower students and job aspirants to pra
   * System moderator dynamically facilitates turns, enforces time limits, and ensures natural conversational flow.
   * Live voice-to-text via Web Speech API and text-to-speech AI voice playback.
   * Real-time conversational insights and keyword extraction.
-* **👥 Human Group Discussion Mode**:
-  * Real-time peer-to-peer discussions powered by WebSockets (`Socket.IO`).
-  * Instant room creation with 6-character room codes and one-click invite links.
-  * Participant roster with mute/unmute status, live speaking indicator, and host controls.
+
+* **👥 Human Group Discussion Mode** *(Enhanced)*:
+  * **Waiting Hall** — all participants gather in a lobby before the host starts the session.
+  * Real-time participant roster with join/leave notifications and live presence grid.
+  * Instant room creation with 6-character room codes and one-click invite/share links.
+  * Host controls: start discussion, set timer duration (5 / 10 / 15 / 20 min), end session.
+  * Late-join support: joining an in-progress room restores current timer state.
+  * **Separate AI evaluation per participant** — every user gets their own independent performance report after the session ends.
 
 ### 2. Comprehensive AI Performance Evaluation
 Evaluates your performance across **8 core competencies**:
@@ -33,11 +38,34 @@ Evaluates your performance across **8 core competencies**:
 7. **Teamwork & Collaboration**: Active listening, acknowledging peers, turn-taking.
 8. **Critical Thinking**: Multi-perspective reasoning and handling counter-arguments.
 
+> **Silent participant handling**: if a participant did not speak, the AI returns a structured *"Passive/Silent"* diagnostic report instead of an error.
+
 ### 3. Analytics & Feedback Reports
 * Animated score ring and performance grading (A+, A, B, C, Needs Work).
 * Interactive **Chart.js** Radar competency charts and bar score distributions.
 * Categorized feedback (Key Strengths, Areas for Improvement, Actionable Recommendations).
 * Full searchable and exportable transcript viewer.
+
+---
+
+## 🏗️ Architecture Highlights (Human Mode)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    WAITING HALL FLOW                    │
+├─────────────────────────────────────────────────────────┤
+│  Host creates room  →  Waiting Hall (lobby)             │
+│  Participants join  →  Added to room roster             │
+│  Host clicks Start  →  All users enter Live Discussion  │
+│  Host clicks End    →  server maps userId → sessionId   │
+│  Each user          →  Redirected to own results page   │
+└─────────────────────────────────────────────────────────┘
+
+Server-side transcript replication:
+  Every room:message is written to ALL participant sessions
+  simultaneously, so each user's AI evaluation sees the
+  full conversation context (not just their own messages).
+```
 
 ---
 
@@ -47,7 +75,7 @@ Evaluates your performance across **8 core competencies**:
 Final_demo_GD/
 ├── backend/
 │   ├── db.js                     # SQLite DB initialization & schema creation
-│   ├── server.js                 # Express + Socket.IO server entry point
+│   ├── server.js                 # Express + Socket.IO server (room/session mgmt)
 │   ├── package.json              # Backend dependencies
 │   ├── .env.example              # Environment variables template
 │   ├── middleware/
@@ -55,7 +83,7 @@ Final_demo_GD/
 │   ├── routes/
 │   │   ├── auth.js               # Register, login, profile routes
 │   │   ├── sessions.js           # Session creation, transcript & evaluation
-│   │   ├── ai.js                 # Gemini topic generation & agent responses
+│   │   ├── ai.js                 # Gemini topic generation, agent responses & evaluation
 │   │   └── performance.js        # User metrics, stats & skill aggregates
 │   └── utils/
 │       └── gemini.js             # Google Gemini API helper with resilient offline fallbacks
@@ -66,7 +94,7 @@ Final_demo_GD/
 │   ├── select-topic.html         # Topic library + AI topic generator
 │   ├── gd-instructions.html      # Prep timer, GD rules & persona preview
 │   ├── ai-room.html              # 3-Panel interactive AI GD Room
-│   ├── human-room.html           # Real-time WebSockets Human GD Room
+│   ├── human-room.html           # Human GD Room with Waiting Hall + live discussion
 │   ├── results.html              # Detailed session evaluation & charts
 │   ├── performance.html          # Performance analytics & radar charts
 │   ├── history.html              # Session history, search & transcript logs
@@ -78,8 +106,7 @@ Final_demo_GD/
 │   └── js/
 │       ├── api.js                # Frontend API client & authentication store
 │       ├── speech.js             # Web Speech recognition & synthesis engine
-│       ├── ai-room.js            # AI discussion state machine & agent turns
-│       └── human-room.js         # Socket.IO client room management
+│       └── ai-room.js            # AI discussion state machine & agent turns
 ├── sample_data/
 │   └── seed.js                   # Pre-populates demo data & past sessions
 └── docs/
@@ -104,9 +131,9 @@ Final_demo_GD/
    ```bash
    cp .env.example .env
    ```
-   Add your `GEMINI_API_KEY` (optional; system includes smart offline response engines).
+   Add your `GEMINI_API_KEY` (optional — system includes smart offline response engines).
 
-3. **Seed demo data**:
+3. **Seed demo data** *(optional)*:
    ```bash
    node sample_data/seed.js
    ```
@@ -116,12 +143,40 @@ Final_demo_GD/
    npm start
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
+
    * **Demo Account**: `demo@gd.com` / `demo123`
 
+---
 
+## 👥 Testing Human Mode (Multi-User)
 
-cd d:\Final_demo_GD\backend
-npm start
-npx vercel --prod
+1. Open **http://localhost:3000/human-room.html** in **Window 1** → Create a room as host.
+2. Copy the Room ID and open it in **Window 2** (or share the invite link) → Join as a participant.
+3. Host clicks **▶ Start Discussion** → Both users enter the live GD.
+4. Chat freely during the timed session.
+5. Host clicks **⏹ End Discussion** → Each user is automatically redirected to their **own** AI evaluation results page.
 
+---
 
+## 🔑 Environment Variables
+
+| Variable | Description | Required |
+|---|---|---|
+| `GEMINI_API_KEY` | Google Gemini API key for AI evaluation & topic generation | Optional |
+| `JWT_SECRET` | Secret key for signing JWT tokens | Required |
+| `PORT` | Server port (default: `3000`) | Optional |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js v18+ |
+| Server | Express.js + Socket.IO |
+| Database | SQLite3 (WAL mode) via `node:sqlite` |
+| AI Engine | Google Gemini 1.5 Flash |
+| Frontend | Vanilla HTML / CSS / JavaScript |
+| Auth | JWT (JSON Web Tokens) |
+| Speech | Web Speech API (SpeechRecognition + SpeechSynthesis) |
+| Charts | Chart.js |
