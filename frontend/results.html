@@ -344,8 +344,25 @@
     }
 
     try {
-      const data = await API.Performance.getSession(sessionId);
-      const { performance: perf, transcript } = data;
+      let data = await API.Performance.getSession(sessionId);
+      let perf = data?.performance;
+
+      if (!perf) {
+        // Automatically trigger AI evaluation if not already evaluated!
+        try {
+          await API.AI.evaluate(sessionId);
+          data = await API.Performance.getSession(sessionId);
+          perf = data?.performance;
+        } catch (evalErr) {
+          console.warn('Evaluation attempt on results page:', evalErr);
+        }
+      }
+
+      if (!perf) {
+        throw new Error('Performance evaluation could not be generated. Please ensure you contributed speaking turns to the discussion.');
+      }
+
+      const { transcript } = data;
 
       // Parse JSON strings if needed
       const parseJsonField = (val) => {

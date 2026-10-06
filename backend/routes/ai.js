@@ -230,13 +230,83 @@ router.post('/evaluate', authMiddleware, async (req, res) => {
   }
 
   // Check if user has any messages
-  const userMessages = transcript.filter(t => t.speaker_type === 'user');
-  if (userMessages.length === 0) {
-    return res.status(400).json({ error: 'No user messages found in transcript.' });
-  }
+  const userMessages = transcript.filter(t =>
+    t.speaker_type === 'user' ||
+    (t.speaker && (t.speaker.toLowerCase() === 'you' || t.speaker.toLowerCase() === (user?.name || '').toLowerCase()))
+  );
 
   try {
-    const evaluation = await evaluatePerformance(transcript, user.name, session.topic, apiKey);
+    let evaluation;
+    if (userMessages.length === 0) {
+      evaluation = {
+        overall_score: 22,
+        communication_score: 15,
+        fluency_score: 15,
+        vocabulary_score: 15,
+        content_score: 15,
+        confidence_score: 20,
+        leadership_score: 10,
+        teamwork_score: 35,
+        critical_thinking: 20,
+        participation_score: 10,
+        relevance_score: 30,
+        listening_score: 45,
+        conclusion_score: 10,
+        strengths: [
+          'Attended and remained present in the discussion room throughout the session',
+          'Demonstrated patience and allowed other participants to express their views'
+        ],
+        improvements: [
+          'Zero speaking turns recorded — you must speak up to be evaluated in GD rounds',
+          'Hesitation to initiate or contribute viewpoints on the topic',
+          'Did not present factual arguments or personal analysis'
+        ],
+        recommendations: [
+          'Aim to speak within the first 90 seconds of the discussion starting',
+          'Prepare 2-3 quick bullet points on the topic before joining the group',
+          'Practice acknowledging a peer with "I agree with [Name] and would like to add..."'
+        ],
+        evidence: [
+          'Candidate was present in the room but did not make any spoken contributions.',
+          'Total turns: 0, Total words: 0.'
+        ],
+        practice_plan: [
+          'Day 1: Practice speaking aloud for 1 minute on common GD topics',
+          'Day 2: Join AI Mode and take at least 3 active speaking turns',
+          'Day 3: Focus on initiating the discussion as the opening speaker',
+          'Day 4: Practice building upon previous speakers arguments',
+          'Day 5: Practice summarizing the conclusion of a group discussion'
+        ],
+        placement_readiness: 'Requires Significant Practice — Active verbal participation is mandatory in recruitment GDs',
+        improvement_suggestions: [
+          'Break your initial hesitation by preparing an introductory sentence beforehand',
+          'Focus on short, structured 2-sentence points rather than long speeches',
+          'Use transition phrases like "Adding to that perspective..." to easily enter the flow'
+        ],
+        full_feedback: `${user?.name || 'Candidate'} attended the Group Discussion on "${session.topic}", but did not take any speaking turns. In placement group discussions, assessors evaluate vocal clarity, analytical reasoning, and collaboration through speech. Active participation is the first gatekeeper. We recommend practicing in AI Mode to build initial speaking confidence before joining human group discussions.`,
+        score_projection: {
+          activity_level: 'Passive / Silent Participant',
+          activity_metrics_summary: '0 speaking turns recorded during this session.',
+          formula: 'Overall Score = (Content×15%) + (Comm×15%) + (Participation×10%) + ...',
+          total_projected_score: 22,
+          items: [
+            { metric: 'Content Quality', weight: '15%', score: 15, weighted_points: '2.25', rationale: 'No content presented' },
+            { metric: 'Communication', weight: '15%', score: 15, weighted_points: '2.25', rationale: 'No speech turns recorded' },
+            { metric: 'Participation', weight: '10%', score: 10, weighted_points: '1.00', rationale: 'Silent presence in lobby and room' },
+            { metric: 'Listening & Response', weight: '10%', score: 45, weighted_points: '4.50', rationale: 'Observed discussion without disruption' }
+          ]
+        },
+        speaking_time_seconds: 0,
+        meaningful_contributions: 0,
+        interruptions: 0,
+        repeated_points: 0,
+        responses_to_others: 0,
+        questions_asked: 0,
+        topic_deviations: 0
+      };
+    } else {
+      evaluation = await evaluatePerformance(transcript, user.name, session.topic, apiKey);
+    }
 
     // ── Aggregate stats ───────────────────────────────────────────────────────
     const totalWords    = userMessages.reduce((sum, t) => sum + (t.word_count || 0), 0);

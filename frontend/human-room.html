@@ -269,6 +269,210 @@
       color: var(--text-secondary);
     }
     .sidebar-share-btn.open-modal:hover { background: rgba(255,255,255,0.1); }
+
+    /* ═══════════════════════════════════════════════════════════
+       WAITING HALL & EVALUATION MODAL STYLES
+    ═══════════════════════════════════════════════════════════ */
+    .waiting-hall-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 15%, rgba(108,99,255,0.15) 0%, rgba(10,14,28,0.96) 65%, rgba(5,8,16,0.99) 100%);
+      backdrop-filter: blur(16px);
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    .waiting-hall-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .waiting-hall-card {
+      max-width: 680px;
+      width: 100%;
+      background: linear-gradient(160deg, rgba(20,27,45,0.97) 0%, rgba(12,16,30,0.99) 100%);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      box-shadow: 0 0 80px rgba(108,99,255,0.18), 0 30px 80px rgba(0,0,0,0.8);
+      border-radius: 24px;
+      padding: 34px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: scaleIn 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .waiting-hall-header {
+      text-align: center;
+    }
+    .waiting-hall-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.35);
+      color: #a78bfa;
+      margin-bottom: 10px;
+    }
+    .waiting-hall-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.35;
+      margin-bottom: 6px;
+    }
+    .waiting-hall-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .waiting-hall-code-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+    }
+    .wh-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .wh-code {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: #34d399;
+    }
+    .wh-code-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .waiting-hall-members-section {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .wh-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+    }
+    .wh-member-count {
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #34d399;
+      background: rgba(52,211,153,0.12);
+      border: 1px solid rgba(52,211,153,0.25);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .wh-members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .wh-member-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .wh-member-pill.is-me {
+      border-color: rgba(52,211,153,0.4);
+      background: rgba(52,211,153,0.06);
+    }
+    .wh-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.2);
+      border: 2px solid rgba(108,99,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: var(--accent-secondary);
+      flex-shrink: 0;
+    }
+    .wh-avatar.host {
+      background: rgba(245,158,11,0.2);
+      border-color: rgba(245,158,11,0.5);
+      color: #fbbf24;
+    }
+    .wh-member-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wh-member-role {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+    .wh-host-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.25);
+      border-radius: 12px;
+    }
+    .wh-pulse-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      color: #c4b5fd;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .wh-pulsing-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a78bfa;
+      box-shadow: 0 0 10px #a78bfa;
+      animation: whPulse 1.5s infinite;
+    }
+    @keyframes whPulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 16px #a78bfa; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
   </style>
 </head>
 <body id="human-room-page">
@@ -413,6 +617,114 @@
       </div>
     </div>
 
+  </div> <!-- Close share-modal-box -->
+</div>   <!-- Close share-modal -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     WAITING HALL OVERLAY (Single Shared Session Lobby)
+═══════════════════════════════════════════════════════════ -->
+<div id="waiting-hall" class="waiting-hall-overlay" style="display:none">
+  <div class="waiting-hall-card">
+    <div class="waiting-hall-header">
+      <div class="waiting-hall-badge">🛋️ GD WAITING HALL · LOBBY</div>
+      <h2 class="waiting-hall-title" id="wh-topic-title">Loading topic...</h2>
+      <p class="waiting-hall-subtitle">All participants connect to this single session before the group discussion begins.</p>
+    </div>
+
+    <!-- Room Code & Quick Invite Bar -->
+    <div class="waiting-hall-code-box">
+      <div>
+        <div class="wh-label">Room Code</div>
+        <div class="wh-code" id="wh-room-code">——</div>
+      </div>
+      <div class="wh-code-actions">
+        <button class="btn btn-secondary btn-sm" onclick="copyRoomId()" id="wh-copy-code-btn">📋 Copy Code</button>
+        <button class="btn btn-secondary btn-sm" onclick="copyInviteLinkModal()" id="wh-copy-link-btn">🔗 Copy Link</button>
+        <button class="btn btn-primary btn-sm" onclick="openShareModal()">📢 Invite Friends</button>
+      </div>
+    </div>
+
+    <!-- Participants Grid in Waiting Hall -->
+    <div class="waiting-hall-members-section">
+      <div class="wh-section-header">
+        <span style="font-weight:700; color:var(--text-primary)">👥 Connected in Waiting Hall</span>
+        <span class="wh-member-count" id="wh-participant-count">1 Connected</span>
+      </div>
+      <div class="wh-members-grid" id="wh-members-grid">
+        <!-- Dynamic participant pills inserted by JS -->
+      </div>
+    </div>
+
+    <!-- Pro Tips banner -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px 16px; font-size:0.78rem; color:var(--text-muted); line-height:1.6">
+      <div style="color:#a78bfa; font-weight:700; margin-bottom:4px">💡 Preparation Tips:</div>
+      <div>• Speak clearly and keep turns focused (30–60 seconds).</div>
+      <div>• Actively build on ideas or offer constructive counter-points.</div>
+      <div>• Everyone in this session will receive their separate AI performance evaluation at the end.</div>
+    </div>
+
+    <!-- Waiting Hall Footer: Host Controls vs Guest Waiting Status -->
+    <div class="waiting-hall-footer">
+      <!-- Host Controls -->
+      <div id="wh-host-controls" style="display:none; width:100%">
+        <div class="wh-host-banner">
+          <div style="font-size:1.5rem">👑</div>
+          <div>
+            <div style="font-weight:700; color:#34d399; font-size:0.95rem">You are the Room Host</div>
+            <div style="font-size:0.78rem; color:var(--text-muted)">When all participants have joined the waiting hall, set duration and start the discussion.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:14px; align-items:center; justify-content:center; margin-top:16px; flex-wrap:wrap">
+          <div style="display:flex; align-items:center; gap:8px">
+            <label style="font-size:0.84rem; color:var(--text-secondary); font-weight:600">Duration:</label>
+            <select id="wh-duration-select" class="form-select" style="padding:10px 14px; border-radius:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--text-primary); font-weight:600">
+              <option value="300">5 minutes</option>
+              <option value="600" selected>10 minutes</option>
+              <option value="900">15 minutes</option>
+              <option value="1200">20 minutes</option>
+            </select>
+          </div>
+          <button class="btn btn-success btn-lg" id="wh-start-btn" onclick="startDiscussionFromWaitingHall()" style="padding:12px 28px; font-weight:800; font-size:1rem; border-radius:12px; box-shadow:0 0 24px rgba(16,185,129,0.4)">
+            ▶️ Start Group Discussion
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest / Participant Status -->
+      <div id="wh-guest-status" style="width:100%; text-align:center">
+        <div class="wh-pulse-pill">
+          <span class="wh-pulsing-dot"></span>
+          <span>Waiting for host to start the group discussion...</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:10px">
+          The discussion arena and timer will activate for everyone once the host starts.
+        </p>
+      </div>
+
+      <!-- Exit / Leave Room Link -->
+      <div style="text-align:center; margin-top:10px">
+        <a href="/dashboard.html" style="font-size:0.78rem; color:var(--text-muted); text-decoration:none; transition:color 0.2s" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--text-muted)'">
+          ← Exit Waiting Hall
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     INDIVIDUAL EVALUATION REPORT LOADER OVERLAY
+═══════════════════════════════════════════════════════════ -->
+<div id="eval-loading-overlay" style="display:none; position:fixed; inset:0; background:rgba(5,8,16,0.92); backdrop-filter:blur(14px); z-index:99999; align-items:center; justify-content:center; text-align:center; padding:20px">
+  <div style="background:linear-gradient(160deg,rgba(20,27,45,0.98) 0%,rgba(12,16,30,0.99) 100%); border:1.5px solid rgba(255,255,255,0.1); border-radius:24px; padding:44px 32px; max-width:460px; width:92%; box-shadow:0 0 80px rgba(108,99,255,0.2), 0 30px 80px rgba(0,0,0,0.8)">
+    <div class="spinner" style="width:54px; height:54px; border-width:4px; margin:0 auto 20px; border-color:rgba(108,99,255,0.2); border-top-color:#6c63ff"></div>
+    <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:8px">Discussion Complete!</h3>
+    <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:20px">Generating your personal AI performance evaluation report...</p>
+    <div style="font-size:0.78rem; line-height:1.6; color:#c4b5fd; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.25); border-radius:12px; padding:14px; text-align:left">
+      <div>📊 <strong>Evaluating:</strong> Content Depth &amp; Relevance</div>
+      <div>🗣️ <strong>Analyzing:</strong> Communication &amp; Active Speaking Turns</div>
+      <div>👑 <strong>Scoring:</strong> Leadership, Teamwork &amp; Listening</div>
+    </div>
   </div>
 </div>
 
@@ -733,9 +1045,34 @@
     });
 
     // ── Update all Room ID displays ────────────────────────────
+    let mySessionId = sessionId || null;
+
+    // Helper: Ensure current user has their own database session for separate evaluation
+    async function ensureUserSession() {
+      if (mySessionId) return mySessionId;
+      try {
+        const res = await API.Sessions.create('human', topic || 'Group Discussion', 'General', currentRoomId);
+        if (res && res.session) {
+          mySessionId = res.session.session_id;
+          console.log('✅ Created individual session:', mySessionId);
+          if (socket && socket.connected && currentRoomId) {
+            socket.emit('room:register_session', {
+              roomId: currentRoomId,
+              userId: user.user_id,
+              sessionId: mySessionId
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not auto-create session yet:', err);
+      }
+      return mySessionId;
+    }
+
+    // ── Update all Room ID displays ────────────────────────────
     const updateRoomDisplay = (id) => {
       currentRoomId = id;
-      ['room-id-display', 'share-room-id', 'room-id-stat', 'modal-share-code'].forEach(elId => {
+      ['room-id-display', 'share-room-id', 'room-id-stat', 'modal-share-code', 'wh-room-code'].forEach(elId => {
         const el = document.getElementById(elId);
         if (el) el.textContent = id || '—';
       });
@@ -744,30 +1081,78 @@
         : '';
       const modalLink = document.getElementById('modal-share-link');
       if (modalLink && inviteLink) modalLink.value = inviteLink;
+      const whTopic = document.getElementById('wh-topic-title');
+      if (whTopic && topic) whTopic.textContent = `"${topic}"`;
     };
 
+    // ── Waiting Hall Visibility Helpers ────────────────────────
+    function showWaitingHall(host) {
+      const wh = document.getElementById('waiting-hall');
+      if (!wh) return;
+      wh.style.display = 'flex';
+      wh.classList.remove('hidden');
+      updateRoomDisplay(currentRoomId);
+
+      const hostControls = document.getElementById('wh-host-controls');
+      const guestStatus = document.getElementById('wh-guest-status');
+      if (host) {
+        if (hostControls) hostControls.style.display = 'block';
+        if (guestStatus) guestStatus.style.display = 'none';
+      } else {
+        if (hostControls) hostControls.style.display = 'none';
+        if (guestStatus) guestStatus.style.display = 'block';
+      }
+    }
+
+    function hideWaitingHall() {
+      const wh = document.getElementById('waiting-hall');
+      if (wh) {
+        wh.classList.add('hidden');
+        setTimeout(() => { wh.style.display = 'none'; }, 350);
+      }
+    }
+
     // ── Host creates a new room on-the-fly ────────────────────
-    window.createNewRoomNow = function() {
+    window.createNewRoomNow = async function() {
       isHost = true;
-      // Use the previewed code if the host tab was open, else generate fresh
       currentRoomId = _previewCode || generateRoomCode();
       updateRoomDisplay(currentRoomId);
       document.getElementById('join-modal').style.display = 'none';
       document.getElementById('host-controls')?.classList.remove('hidden');
+      showWaitingHall(true);
+      await ensureUserSession();
       if (socket && socket.connected) {
-        socket.emit('room:create', { roomId: currentRoomId, topic, userName: user.name, userId: user.user_id });
+        socket.emit('room:create', {
+          roomId: currentRoomId,
+          topic,
+          userName: user.name,
+          userId: user.user_id,
+          sessionId: mySessionId
+        });
       }
       setTimeout(() => openShareModal(), 300);
     };
 
-    if (topic) document.getElementById('room-topic-text').textContent = `"${topic}"`;
+    // Global start discussion trigger
+    window.startDiscussionFromWaitingHall = function() {
+      const duration = parseInt(document.getElementById('wh-duration-select')?.value || '600');
+      if (socket && socket.connected && currentRoomId) {
+        socket.emit('room:start', { roomId: currentRoomId, duration });
+      }
+    };
+
+    if (topic) {
+      document.getElementById('room-topic-text').textContent = `"${topic}"`;
+      const whTopic = document.getElementById('wh-topic-title');
+      if (whTopic) whTopic.textContent = `"${topic}"`;
+    }
     if (currentRoomId) {
       updateRoomDisplay(currentRoomId);
       const roomInput = document.getElementById('room-id-input');
       if (roomInput) roomInput.value = currentRoomId;
     }
 
-    // Show host controls
+    // Show host controls in sidebar if host
     if (isHost) {
       document.getElementById('host-controls')?.classList.remove('hidden');
     }
@@ -776,37 +1161,82 @@
     const socket = io(window.location.origin);
     let isMuted = false;
 
-    socket.on('connect', () => {
+    socket.on('connect', async () => {
+      await ensureUserSession();
+
       if (isHost && currentRoomId) {
-        // Host: suppress join modal, create room, open share modal
+        // Host: hide join modal, enter waiting hall as host, emit create
         updateRoomDisplay(currentRoomId);
         document.getElementById('join-modal').style.display = 'none';
-        socket.emit('room:create', { roomId: currentRoomId, topic, userName: user.name, userId: user.user_id });
-        // Auto-open share modal after a brief delay so the host can immediately send invites
-        setTimeout(() => {
-          if (document.getElementById('share-modal').style.display !== 'flex') {
-            openShareModal();
-          }
-        }, 500);
+        showWaitingHall(true);
+        socket.emit('room:create', {
+          roomId: currentRoomId,
+          topic,
+          userName: user.name,
+          userId: user.user_id,
+          sessionId: mySessionId
+        });
       } else if (currentRoomId) {
-        // Guest joining via URL or manual entry — suppress join modal, go straight in
+        // Guest joining: hide join modal, enter waiting hall as guest, emit join
         updateRoomDisplay(currentRoomId);
         document.getElementById('join-modal').style.display = 'none';
-        socket.emit('room:join', { roomId: currentRoomId, userName: user.name, userId: user.user_id });
-        AppUtils.showToast(`Joining room ${currentRoomId}…`, 'info');
+        showWaitingHall(false);
+        socket.emit('room:join', {
+          roomId: currentRoomId,
+          userName: user.name,
+          userId: user.user_id,
+          sessionId: mySessionId
+        });
+        AppUtils.showToast(`Connected to Waiting Hall for room ${currentRoomId}`, 'info');
       } else {
-        // No room ID at all — show the join/create modal
+        // No room ID provided: prompt with join/create modal
         document.getElementById('join-modal').style.display = 'flex';
       }
     });
 
-    socket.on('room:joined', (data) => {
+    socket.on('room:joined', async (data) => {
       currentRoomId = data.roomId;
       updateRoomDisplay(data.roomId);
-      if (data.topic) document.getElementById('room-topic-text').textContent = `"${data.topic}"`;
-      updateParticipants(data.participants);
-      appendSystem(`Welcome! You joined room: ${data.roomId}`);
+      if (data.topic) {
+        topic = data.topic;
+        document.getElementById('room-topic-text').textContent = `"${data.topic}"`;
+        const whTopic = document.getElementById('wh-topic-title');
+        if (whTopic) whTopic.textContent = `"${data.topic}"`;
+      }
+      if (data.isHost !== undefined) isHost = !!data.isHost;
+
+      // Make sure our local DB session exists and is registered
+      await ensureUserSession();
+
+      updateParticipants(data.participants || []);
+
+      if (data.status === 'active') {
+        // Discussion is already in progress, enter directly (late join)
+        hideWaitingHall();
+        document.getElementById('status-badge').textContent = '🔴 LIVE';
+        document.getElementById('status-badge').className = 'badge badge-green';
+        // Restore timer display from server's current remaining time
+        if (data.timerRemaining != null) {
+          const m = Math.floor(data.timerRemaining / 60);
+          const s = data.timerRemaining % 60;
+          const el = document.getElementById('timer-display');
+          if (el) {
+            el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            el.className = 'timer-display';
+            if (data.timerRemaining <= 60) el.classList.add('danger');
+            else if (data.timerRemaining <= 120) el.classList.add('warning');
+          }
+        }
+        appendSystem('You joined a live discussion already in progress. Speak up!');
+      } else {
+        // Still in lobby/waiting hall
+        showWaitingHall(isHost);
+        document.getElementById('status-badge').textContent = '🟡 Waiting Hall';
+        document.getElementById('status-badge').className = 'badge badge-yellow';
+      }
+
       if (isHost) document.getElementById('host-controls')?.classList.remove('hidden');
+      appendSystem(`Welcome! You are connected to room ${data.roomId}`);
     });
 
     socket.on('room:error', (data) => {
@@ -817,25 +1247,35 @@
     });
 
     socket.on('room:participant_joined', (data) => {
-      updateParticipants(data.participants);
-      appendSystem(`${data.participant.name} joined`);
+      updateParticipants(data.participants || []);
+      appendSystem(`${data.participant.name} entered the waiting hall`);
+      AppUtils.showToast(`👤 ${data.participant.name} joined!`, 'info');
     });
 
     socket.on('room:participant_left', (data) => {
-      updateParticipants(data.participants);
+      updateParticipants(data.participants || []);
       appendSystem(`${data.name} left the room`);
     });
 
-    socket.on('room:participants_update', updateParticipants);
+    socket.on('room:participants_update', (participants) => {
+      updateParticipants(participants || []);
+    });
 
     socket.on('room:message', (data) => {
-      appendMessage(data.userName, data.message, data.userName === user.name);
+      const isOwn = data.userName === user.name;
+      appendMessage(data.userName, data.message, isOwn);
+      // NOTE: Transcripts are now written SERVER-SIDE for all participants simultaneously.
+      // No frontend addTranscript needed to avoid duplicate DB entries.
     });
 
     socket.on('room:started', () => {
+      hideWaitingHall();
       appendSystem('🚀 Discussion started! Good luck everyone!');
+      AppUtils.showToast('🚀 Host has started the Group Discussion! Speak now.', 'success');
       document.getElementById('status-badge').textContent = '🔴 LIVE';
+      document.getElementById('status-badge').className = 'badge badge-green';
       document.getElementById('start-btn')?.setAttribute('disabled', true);
+      setTimeout(() => document.getElementById('chat-input')?.focus(), 200);
     });
 
     socket.on('room:timer', (data) => {
@@ -850,23 +1290,45 @@
       }
     });
 
-    socket.on('room:ended', (data) => {
-      appendSystem(`⏹️ ${data.message}`);
-      AppUtils.showToast('Discussion ended!', 'info');
-      if (sessionId) {
-        API.Sessions.end(sessionId).finally(() => {
-          setTimeout(() => window.location.href = `/results.html?session=${sessionId}&human=1`, 2000);
-        });
+    // Individual evaluation on room end
+    socket.on('room:ended', async (data) => {
+      appendSystem(`⏹️ ${data.message || 'Discussion ended.'}`);
+      const evalOverlay = document.getElementById('eval-loading-overlay');
+      if (evalOverlay) evalOverlay.style.display = 'flex';
+
+      // Pick out this participant's individual session ID
+      const targetSessionId = (data.sessionMap && (data.sessionMap[user.user_id] || data.sessionMap[socket.id])) || mySessionId;
+      console.log('🏁 Discussion ended. Processing separate evaluation for session:', targetSessionId);
+
+      if (targetSessionId) {
+        try {
+          await API.Sessions.end(targetSessionId);
+        } catch (err) {
+          console.warn('Session end API error:', err);
+        }
+
+        try {
+          await API.AI.evaluate(targetSessionId);
+        } catch (evalErr) {
+          console.warn('AI evaluate API error:', evalErr);
+        }
+
+        setTimeout(() => {
+          window.location.href = `/results.html?session=${targetSessionId}&human=1`;
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          window.location.href = '/history.html';
+        }, 2000);
       }
     });
 
-    // Send message
+    // Send message — transcript is saved SERVER-SIDE for all participant sessions
     function sendMsg() {
       const input = document.getElementById('chat-input');
       const msg = input?.value.trim();
       if (!msg || !socket) return;
       socket.emit('room:message', { roomId: currentRoomId, userName: user.name, message: msg });
-      if (sessionId) API.Sessions.addTranscript(sessionId, user.name, 'user', msg).catch(console.error);
       input.value = '';
     }
 
@@ -881,7 +1343,7 @@
     });
 
     document.getElementById('end-btn')?.addEventListener('click', () => {
-      if (confirm('End the discussion for all participants?')) {
+      if (confirm('End the discussion for all participants? Everyone will receive their evaluation report.')) {
         socket.emit('room:end', { roomId: currentRoomId });
       }
     });
@@ -911,35 +1373,73 @@
       if (voiceBtn) { voiceBtn.innerHTML = '⏹️'; voiceBtn.classList.add('recording'); }
     });
 
-    document.getElementById('join-submit')?.addEventListener('click', () => {
+    document.getElementById('join-submit')?.addEventListener('click', async () => {
       const inputId = document.getElementById('room-id-input')?.value.trim().toUpperCase();
       if (!inputId) { AppUtils.showToast('Enter a Room ID', 'error'); return; }
       currentRoomId = inputId;
       document.getElementById('join-modal').style.display = 'none';
-      socket.emit('room:join', { roomId: inputId, userName: user.name, userId: user.user_id });
+      showWaitingHall(false);
+      await ensureUserSession();
+      socket.emit('room:join', {
+        roomId: inputId,
+        userName: user.name,
+        userId: user.user_id,
+        sessionId: mySessionId
+      });
     });
 
     function updateParticipants(participants) {
       const list = document.getElementById('participants-list');
       const count = document.getElementById('participant-count');
       const statCount = document.getElementById('stat-participants');
-      if (count) count.textContent = participants.length;
-      if (statCount) statCount.textContent = participants.length;
+      const whCount = document.getElementById('wh-participant-count');
+      const whGrid = document.getElementById('wh-members-grid');
 
-      if (!list) return;
-      list.innerHTML = participants.map(p => `
-        <div class="participant-card ${p.name === user.name ? 'user-card-room' : ''}">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(108,99,255,0.2);border:2px solid rgba(108,99,255,0.3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:var(--accent-secondary)">
-              ${p.name.charAt(0).toUpperCase()}
+      const totalCount = participants.length;
+      if (count) count.textContent = totalCount;
+      if (statCount) statCount.textContent = totalCount;
+      if (whCount) whCount.textContent = `${totalCount} Connected`;
+
+      // Update sidebar participants
+      if (list) {
+        list.innerHTML = participants.map(p => {
+          const isMe = p.name === user.name || (user.user_id && p.userId === user.user_id);
+          return `
+            <div class="participant-card ${isMe ? 'user-card-room' : ''}">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(108,99,255,0.2);border:2px solid rgba(108,99,255,0.3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:var(--accent-secondary)">
+                  ${p.isHost ? '👑' : p.name.charAt(0).toUpperCase()}
+                </div>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    ${escapeHtml(p.name)}${isMe ? ' <span style="color:#34d399;font-size:0.68rem">(You)</span>' : ''}
+                  </div>
+                  <div style="font-size:0.7rem;color:var(--text-muted)">${p.isHost ? '👑 Host · ' : ''}${p.isMuted ? '🔇 Muted' : '🟢 Ready'}</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary)">${p.name}${p.name === user.name ? ' <span style="color:#34d399;font-size:0.68rem">(You)</span>' : ''}</div>
-              <div style="font-size:0.7rem;color:var(--text-muted)">${p.isMuted ? '🔇 Muted' : '🟢 Active'}</div>
+          `;
+        }).join('');
+      }
+
+      // Update waiting hall participant grid
+      if (whGrid) {
+        whGrid.innerHTML = participants.map(p => {
+          const isMe = p.name === user.name || (user.user_id && p.userId === user.user_id);
+          const isHostUser = p.isHost;
+          return `
+            <div class="wh-member-pill ${isMe ? 'is-me' : ''}">
+              <div class="wh-avatar ${isHostUser ? 'host' : ''}">
+                ${isHostUser ? '👑' : p.name.charAt(0).toUpperCase()}
+              </div>
+              <div style="min-width:0; flex:1">
+                <div class="wh-member-name">${escapeHtml(p.name)} ${isMe ? '<span style="color:#34d399;font-size:0.7rem">(You)</span>' : ''}</div>
+                <div class="wh-member-role">${isHostUser ? 'Room Host' : 'Participant'} · Connected</div>
+              </div>
             </div>
-          </div>
-        </div>
-      `).join('');
+          `;
+        }).join('');
+      }
     }
 
     function appendMessage(speaker, message, isOwn) {
@@ -977,7 +1477,7 @@
 
     function escapeHtml(t) {
       const d = document.createElement('div');
-      d.appendChild(document.createTextNode(t));
+      d.appendChild(document.createTextNode(t || ''));
       return d.innerHTML;
     }
   });

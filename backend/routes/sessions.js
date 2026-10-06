@@ -14,7 +14,17 @@ router.post('/', authMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Mode and topic are required.' });
   }
 
-  const generatedRoomId = room_id || (mode === 'human' ? uuidv4().slice(0, 8).toUpperCase() : null);
+  const generatedRoomId = room_id ? String(room_id).trim().toUpperCase() : (mode === 'human' ? uuidv4().slice(0, 8).toUpperCase() : null);
+
+  // If this user already has an active session for this room_id, return their existing session
+  if (mode === 'human' && generatedRoomId) {
+    const existingUserSession = db.prepare(
+      "SELECT * FROM gd_sessions WHERE user_id = ? AND room_id = ? AND status = 'active' ORDER BY session_id DESC LIMIT 1"
+    ).get(req.user.user_id, generatedRoomId);
+    if (existingUserSession) {
+      return res.status(200).json({ session: existingUserSession });
+    }
+  }
 
   try {
     const result = db.prepare(`
@@ -27,15 +37,6 @@ router.post('/', authMiddleware, (req, res) => {
 
     return res.status(201).json({ session });
   } catch (err) {
-    // If UNIQUE constraint on room_id fails, find and return an existing active session for this room
-    if (err.message && err.message.includes('UNIQUE') && generatedRoomId) {
-      const existing = db.prepare(
-        "SELECT * FROM gd_sessions WHERE room_id = ? AND status = 'active' ORDER BY session_id DESC LIMIT 1"
-      ).get(generatedRoomId);
-      if (existing) {
-        return res.status(200).json({ session: existing });
-      }
-    }
     console.error('Session create error:', err.message);
     return res.status(500).json({ error: 'Failed to create session: ' + err.message });
   }
@@ -101,6 +102,14 @@ router.post('/:id/transcript', authMiddleware, (req, res) => {
   }
 
   const wordCount = message.trim().split(/\s+/).filter(Boolean).length;
+
+  // Prevent duplicate transcript entries within 10 seconds
+  const existing = db.prepare(
+    "SELECT COUNT(*) as cnt FROM gd_transcripts WHERE session_id = ? AND speaker = ? AND message = ? AND timestamp >= datetime('now', '-10 seconds')"
+  ).get(req.params.id, speaker, message);
+  if (existing && existing.cnt > 0) {
+    return res.status(200).json({ message: 'Transcript already recorded.' });
+  }
 
   db.prepare(`
     INSERT INTO gd_transcripts (session_id, speaker, speaker_type, message, word_count)

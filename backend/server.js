@@ -6,7 +6,7 @@ const cors = require('cors');
 const path = require('path');
 
 // Initialize DB (runs schema creation)
-require('./db');
+const db = require('./db');
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -47,35 +47,103 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── HUMAN MODE - SOCKET.IO ROOMS ────────────────────────────────────────────
-const rooms = {}; // { roomId: { topic, participants: [], timer } }
+// rooms: { roomId: { topic, hostUserId, hostSocketId, hostSessionId, participants, messages, timerDuration, timerRemaining, status } }
+const rooms = {};
+
+// Helper to end a room and emit individual session mappings
+function _endRoom(cleanRoomId, message) {
+  const room = rooms[cleanRoomId];
+  if (!room) return;
+  if (room.timerInterval) {
+    clearInterval(room.timerInterval);
+    room.timerInterval = null;
+  }
+  room.status = 'ended';
+
+  // Ensure all room messages are saved to all registered participant sessions
+  if (room.messages && room.messages.length > 0 && room.participants) {
+    for (const msg of room.messages) {
+      for (const p of room.participants) {
+        if (p.sessionId) {
+          const isSender = (p.socketId === msg.socketId || (p.name && p.name.trim().toLowerCase() === msg.userName.trim().toLowerCase()));
+          const spkType = isSender ? 'user' : 'system';
+          try {
+            // Check if already inserted to prevent duplicates
+            const count = db.prepare(
+              'SELECT COUNT(*) as cnt FROM gd_transcripts WHERE session_id = ? AND speaker = ? AND message = ?'
+            ).get(p.sessionId, msg.userName, msg.message);
+            if (!count || count.cnt === 0) {
+              db.prepare(`
+                INSERT INTO gd_transcripts (session_id, speaker, speaker_type, message, word_count)
+                VALUES (?, ?, ?, ?, ?)
+              `).run(p.sessionId, msg.userName, spkType, msg.message, msg.wordCount || 1);
+            }
+          } catch (e) {
+            console.warn(`[Sync] Transcript sync warn for session ${p.sessionId}:`, e.message);
+          }
+        }
+      }
+    }
+  }
+
+  // Build a map of userId -> sessionId and socketId -> sessionId
+  const sessionMap = {};
+  (room.participants || []).forEach(p => {
+    if (p.userId && p.sessionId) sessionMap[p.userId] = p.sessionId;
+    if (p.socketId && p.sessionId) sessionMap[p.socketId] = p.sessionId;
+  });
+
+  io.to(cleanRoomId).emit('room:ended', {
+    message: message || 'Discussion ended.',
+    sessionMap,
+    participants: room.participants
+  });
+  console.log(`🏁 Room ${cleanRoomId} ended. Individual sessions mapped:`, sessionMap);
+}
 
 io.on('connection', (socket) => {
   console.log(`🔌 Socket connected: ${socket.id}`);
 
-  // Create a new human GD room
-  socket.on('room:create', ({ roomId, topic, userName, userId }) => {
+  // Create a new human GD room (as Host)
+  socket.on('room:create', ({ roomId, topic, userName, userId, sessionId }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
     if (!cleanRoomId) return;
 
     if (!rooms[cleanRoomId]) {
       rooms[cleanRoomId] = {
         topic: topic || 'The Role of Artificial Intelligence in Modern Education',
+        hostUserId: userId || null,
+        hostSocketId: socket.id,
+        hostSessionId: sessionId || null,
         participants: [],
-        timerDuration: 10 * 60, // 10 minutes
+        messages: [],
+        timerDuration: 10 * 60, // 10 minutes default
         timerRemaining: 10 * 60,
         timerInterval: null,
-        status: 'waiting'
+        status: 'waiting' // 'waiting' | 'active' | 'ended'
       };
-    } else if (topic) {
-      rooms[cleanRoomId].topic = topic;
+    } else {
+      if (topic) rooms[cleanRoomId].topic = topic;
+      if (userId && !rooms[cleanRoomId].hostUserId) rooms[cleanRoomId].hostUserId = userId;
+      if (sessionId && !rooms[cleanRoomId].hostSessionId) rooms[cleanRoomId].hostSessionId = sessionId;
+      if (!rooms[cleanRoomId].messages) rooms[cleanRoomId].messages = [];
     }
 
-    const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
+    const participant = {
+      socketId: socket.id,
+      userId: userId || null,
+      name: userName || 'Host',
+      sessionId: sessionId || null,
+      isMuted: false,
+      isConnected: true,
+      isHost: true
+    };
+
     const existingIndex = rooms[cleanRoomId].participants.findIndex(
-      p => (userId && p.userId === userId) || p.socketId === socket.id || p.name === userName
+      p => (userId && p.userId === userId) || p.socketId === socket.id
     );
     if (existingIndex >= 0) {
-      rooms[cleanRoomId].participants[existingIndex] = participant;
+      rooms[cleanRoomId].participants[existingIndex] = { ...rooms[cleanRoomId].participants[existingIndex], ...participant };
     } else {
       rooms[cleanRoomId].participants.push(participant);
     }
@@ -84,20 +152,21 @@ io.on('connection', (socket) => {
     socket.emit('room:joined', {
       roomId: cleanRoomId,
       topic: rooms[cleanRoomId].topic,
+      isHost: true,
+      status: rooms[cleanRoomId].status,
       participants: rooms[cleanRoomId].participants
     });
 
-    // Notify any other existing participants
     socket.to(cleanRoomId).emit('room:participant_joined', {
       participant,
       participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`🏠 Room created/hosted: ${cleanRoomId} by ${userName} (${rooms[cleanRoomId].participants.length} participants)`);
+    console.log(`🏠 Room created/hosted: ${cleanRoomId} by ${userName} (Total ${rooms[cleanRoomId].participants.length} in waiting hall)`);
   });
 
-  // Join an existing room
-  socket.on('room:join', ({ roomId, userName, userId }) => {
+  // Join an existing room (as participant)
+  socket.on('room:join', ({ roomId, userName, userId, sessionId }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
     if (!cleanRoomId) {
       socket.emit('room:error', { message: 'Invalid Room ID provided.' });
@@ -108,13 +177,19 @@ io.on('connection', (socket) => {
     if (!rooms[cleanRoomId]) {
       rooms[cleanRoomId] = {
         topic: 'General Group Discussion',
+        hostUserId: userId || null,
+        hostSocketId: socket.id,
+        hostSessionId: sessionId || null,
         participants: [],
+        messages: [],
         timerDuration: 10 * 60,
         timerRemaining: 10 * 60,
         timerInterval: null,
         status: 'waiting'
       };
       console.log(`🏠 Room auto-initialized on join: ${cleanRoomId}`);
+    } else {
+      if (!rooms[cleanRoomId].messages) rooms[cleanRoomId].messages = [];
     }
 
     if (rooms[cleanRoomId].status === 'ended') {
@@ -122,21 +197,42 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const participant = { socketId: socket.id, userId, name: userName, isMuted: false, isConnected: true };
+    const isHost = rooms[cleanRoomId].hostUserId ? (rooms[cleanRoomId].hostUserId === userId) : (rooms[cleanRoomId].participants.length === 0);
+    if (isHost && !rooms[cleanRoomId].hostUserId) {
+      rooms[cleanRoomId].hostUserId = userId;
+      rooms[cleanRoomId].hostSocketId = socket.id;
+    }
+    if (isHost && sessionId && !rooms[cleanRoomId].hostSessionId) {
+      rooms[cleanRoomId].hostSessionId = sessionId;
+    }
+
+    const participant = {
+      socketId: socket.id,
+      userId: userId || null,
+      name: userName || 'Participant',
+      sessionId: sessionId || null,
+      isMuted: false,
+      isConnected: true,
+      isHost
+    };
+
     const existingIndex = rooms[cleanRoomId].participants.findIndex(
-      p => (userId && p.userId === userId) || p.socketId === socket.id || p.name === userName
+      p => (userId && p.userId === userId) || p.socketId === socket.id
     );
     if (existingIndex >= 0) {
-      rooms[cleanRoomId].participants[existingIndex] = participant;
+      rooms[cleanRoomId].participants[existingIndex] = { ...rooms[cleanRoomId].participants[existingIndex], ...participant };
     } else {
       rooms[cleanRoomId].participants.push(participant);
     }
     socket.join(cleanRoomId);
 
-    // Notify the joiner
+    // Notify the joiner with room status & remaining timer if active
     socket.emit('room:joined', {
       roomId: cleanRoomId,
       topic: rooms[cleanRoomId].topic,
+      isHost,
+      status: rooms[cleanRoomId].status,
+      timerRemaining: rooms[cleanRoomId].timerRemaining,
       participants: rooms[cleanRoomId].participants
     });
 
@@ -146,15 +242,85 @@ io.on('connection', (socket) => {
       participants: rooms[cleanRoomId].participants
     });
 
-    console.log(`👤 ${userName} joined room: ${cleanRoomId} (Total: ${rooms[cleanRoomId].participants.length})`);
+    console.log(`👤 ${userName} (${isHost ? 'Host' : 'Member'}) joined room: ${cleanRoomId} (Total: ${rooms[cleanRoomId].participants.length}, status=${rooms[cleanRoomId].status})`);
   });
 
-  // Send a chat message
+  // Client registers or updates their own database sessionId in this room
+  socket.on('room:register_session', ({ roomId, userId, sessionId }) => {
+    const cleanRoomId = String(roomId || '').trim().toUpperCase();
+    if (!rooms[cleanRoomId]) return;
+    const participant = rooms[cleanRoomId].participants.find(p => (userId && p.userId === userId) || p.socketId === socket.id);
+    if (participant) {
+      participant.sessionId = sessionId;
+      if (participant.isHost) {
+        rooms[cleanRoomId].hostSessionId = sessionId;
+      }
+
+      // Backfill any prior messages in this room to this participant's database session
+      if (rooms[cleanRoomId].messages && rooms[cleanRoomId].messages.length > 0) {
+        for (const msg of rooms[cleanRoomId].messages) {
+          const isSender = (participant.socketId === msg.socketId || (participant.name && participant.name.trim().toLowerCase() === msg.userName.trim().toLowerCase()));
+          const spkType = isSender ? 'user' : 'system';
+          try {
+            const count = db.prepare(
+              'SELECT COUNT(*) as cnt FROM gd_transcripts WHERE session_id = ? AND speaker = ? AND message = ?'
+            ).get(sessionId, msg.userName, msg.message);
+            if (!count || count.cnt === 0) {
+              db.prepare(`
+                INSERT INTO gd_transcripts (session_id, speaker, speaker_type, message, word_count)
+                VALUES (?, ?, ?, ?, ?)
+              `).run(sessionId, msg.userName, spkType, msg.message, msg.wordCount || 1);
+            }
+          } catch (e) {
+            console.warn(`[Sync] Backfill warning for session ${sessionId}:`, e.message);
+          }
+        }
+      }
+
+      io.to(cleanRoomId).emit('room:participants_update', rooms[cleanRoomId].participants);
+      console.log(`📝 Registered session ${sessionId} for user ${participant.name} in room ${cleanRoomId}`);
+    }
+  });
+
+  // Send a chat message & record across all connected participant sessions
   socket.on('room:message', ({ roomId, userName, message, timestamp }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
-    if (!cleanRoomId) return;
-    const msgData = { userName, message, timestamp: timestamp || new Date().toISOString() };
-    io.to(cleanRoomId).emit('room:message', msgData);
+    if (!cleanRoomId || !message) return;
+    const wordCount = message.trim().split(/\s+/).filter(Boolean).length;
+    const msgData = {
+      userName,
+      message,
+      wordCount,
+      socketId: socket.id,
+      timestamp: timestamp || new Date().toISOString()
+    };
+
+    if (rooms[cleanRoomId]) {
+      if (!rooms[cleanRoomId].messages) rooms[cleanRoomId].messages = [];
+      rooms[cleanRoomId].messages.push(msgData);
+
+      // Save message to every participant's individual session in this room
+      for (const p of rooms[cleanRoomId].participants) {
+        if (p.sessionId) {
+          const isSender = (p.socketId === socket.id || (p.name && p.name.trim().toLowerCase() === userName.trim().toLowerCase()));
+          const spkType = isSender ? 'user' : 'system';
+          try {
+            db.prepare(`
+              INSERT INTO gd_transcripts (session_id, speaker, speaker_type, message, word_count)
+              VALUES (?, ?, ?, ?, ?)
+            `).run(p.sessionId, userName, spkType, message, wordCount);
+          } catch (e) {
+            console.warn(`[Message] DB save error for session ${p.sessionId}:`, e.message);
+          }
+        }
+      }
+    }
+
+    io.to(cleanRoomId).emit('room:message', {
+      userName: msgData.userName,
+      message: msgData.message,
+      timestamp: msgData.timestamp
+    });
   });
 
   // Mute/unmute toggle
@@ -169,7 +335,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Start the discussion timer
+  // Host starts the discussion (from waiting hall)
   socket.on('room:start', ({ roomId, duration }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
     if (!rooms[cleanRoomId]) return;
@@ -178,32 +344,29 @@ io.on('connection', (socket) => {
     rooms[cleanRoomId].timerDuration = duration || 10 * 60;
     rooms[cleanRoomId].timerRemaining = rooms[cleanRoomId].timerDuration;
 
-    io.to(cleanRoomId).emit('room:started', { topic: rooms[cleanRoomId].topic });
+    io.to(cleanRoomId).emit('room:started', {
+      topic: rooms[cleanRoomId].topic,
+      participants: rooms[cleanRoomId].participants
+    });
+    console.log(`▶️ Room ${cleanRoomId} discussion started by host!`);
 
-    // Start timer
+    // Start countdown timer
     if (rooms[cleanRoomId].timerInterval) clearInterval(rooms[cleanRoomId].timerInterval);
     rooms[cleanRoomId].timerInterval = setInterval(() => {
-      if (!rooms[cleanRoomId]) {
-        return;
-      }
+      if (!rooms[cleanRoomId]) return;
       rooms[cleanRoomId].timerRemaining--;
       io.to(cleanRoomId).emit('room:timer', { remaining: rooms[cleanRoomId].timerRemaining });
 
       if (rooms[cleanRoomId].timerRemaining <= 0) {
-        clearInterval(rooms[cleanRoomId].timerInterval);
-        rooms[cleanRoomId].status = 'ended';
-        io.to(cleanRoomId).emit('room:ended', { message: 'Discussion time is up!' });
+        _endRoom(cleanRoomId, 'Discussion time is up!');
       }
     }, 1000);
   });
 
-  // End discussion manually
+  // End discussion manually (e.g. host clicks End Discussion)
   socket.on('room:end', ({ roomId }) => {
     const cleanRoomId = String(roomId || '').trim().toUpperCase();
-    if (!rooms[cleanRoomId]) return;
-    if (rooms[cleanRoomId].timerInterval) clearInterval(rooms[cleanRoomId].timerInterval);
-    rooms[cleanRoomId].status = 'ended';
-    io.to(cleanRoomId).emit('room:ended', { message: 'Discussion ended by host.' });
+    _endRoom(cleanRoomId, 'Discussion ended by host.');
   });
 
   // Handle disconnect
@@ -215,7 +378,8 @@ io.on('connection', (socket) => {
       if (!rooms[rId] || !rooms[rId].participants) continue;
       const idx = rooms[rId].participants.findIndex(p => p.socketId === socket.id);
       if (idx !== -1) {
-        const name = rooms[rId].participants[idx].name;
+        const leavingParticipant = rooms[rId].participants[idx];
+        const name = leavingParticipant.name;
         rooms[rId].participants.splice(idx, 1);
 
         socket.to(rId).emit('room:participant_left', {
