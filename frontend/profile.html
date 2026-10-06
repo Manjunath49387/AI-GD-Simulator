@@ -3,89 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Profile & Settings — GD Simulator</title>
-  <meta name="description" content="Manage your GD Simulator profile, settings, practice goals, and Gemini API keys." />
+  <title>Candidate Profile & Settings — GD Simulator</title>
+  <meta name="description" content="Manage your candidate profile, target benchmark scores, and Gemini API credentials." />
   <link rel="stylesheet" href="/css/main.css" />
   <style>
     .profile-header-card {
       background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-xl);
-      padding: 32px;
+      padding: 28px 32px;
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 22px;
       margin-bottom: 24px;
-      position: relative;
-      overflow: hidden;
+      box-shadow: var(--shadow-sm);
     }
     .profile-avatar-large {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      background: var(--grad-primary);
+      background: var(--accent-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 1.8rem;
       font-weight: 800;
-      color: white;
-      box-shadow: var(--shadow-glow);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
       flex-shrink: 0;
     }
     .profile-info h2 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--text-primary);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+      letter-spacing: -0.02em;
     }
     .profile-info p {
       color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.84rem;
     }
     .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 20px;
     }
     .profile-box {
       background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-xl);
       padding: 24px;
+      box-shadow: var(--shadow-sm);
     }
     .profile-box h3 {
-      font-size: 1.05rem;
+      font-size: 0.98rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .profile-box p {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .api-key-status {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.8rem;
-      padding: 4px 10px;
-      border-radius: 999px;
+      font-size: 0.74rem;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
       margin-bottom: 14px;
+      font-weight: 600;
     }
     .api-key-status.active {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: var(--accent-green-bg);
+      color: #34d399;
+      border: 1px solid var(--accent-green-border);
     }
     .api-key-status.inactive {
-      background: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: var(--accent-yellow-bg);
+      color: #fbbf24;
+      border: 1px solid var(--accent-yellow-border);
     }
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 900px) {
       .profile-grid { grid-template-columns: 1fr; }
       .profile-header-card { flex-direction: column; text-align: center; }
@@ -94,103 +103,162 @@
 </head>
 <body>
 <div class="app-layout">
-
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
-      <div class="nav-section-label">Account</div>
-      <a href="/profile.html" class="nav-item active"><span class="icon">👤</span> Profile</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-avatar" id="nav-user-avatar">U</div>
-      <div class="user-info">
-        <div class="user-name" id="nav-user-name">User</div>
-        <div class="user-email" id="nav-user-email">user@gd.com</div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
       </div>
-      <button class="btn btn-icon" onclick="API.Auth.logout()" title="Logout">🚪</button>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
+    </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
+        </div>
+      </div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
-    <div class="header-nav">
+    <div class="page-header">
       <div>
-        <h1 style="font-size: 1.6rem; font-weight: 800;">👤 Profile & Settings</h1>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Manage your account details, practice goals, and AI configuration</p>
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="API.Auth.logout()">🚪 Logout</button>
-    </div>
-
-    <!-- PROFILE HEADER CARD -->
-    <div class="profile-header-card">
-      <div class="profile-avatar-large" id="profile-avatar-large">U</div>
-      <div class="profile-info">
-        <h2 id="profile-display-name">Candidate Name</h2>
-        <p id="profile-display-email">candidate@example.com</p>
-        <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
-          <span class="badge badge-success">Candidate Plan</span>
-          <span class="badge" style="background: rgba(108,99,255,0.15); color: #8b5cf6;" id="profile-joined-date">Joined recently</span>
-        </div>
+        <div class="page-title">Candidate Profile & Platform Settings</div>
+        <div class="page-subtitle">Manage personal information, benchmark goals, and Gemini API keys.</div>
       </div>
     </div>
 
-    <!-- 2-COL CONFIG GRID -->
-    <div class="profile-grid">
-      <!-- Account Details -->
-      <div class="profile-box">
-        <h3>✏️ Personal Details</h3>
-        <p>Update your display name and preferences</p>
-        <form id="profile-form" onsubmit="saveProfile(event)">
-          <div class="form-group">
-            <label class="form-label" for="profile-name-input">Full Name</label>
-            <input type="text" id="profile-name-input" class="form-input" required />
+    <div class="page-content">
+      <!-- PROFILE HEADER CARD -->
+      <div class="profile-header-card">
+        <div class="profile-avatar-large" id="profile-avatar-large">A</div>
+        <div class="profile-info">
+          <h2 id="profile-display-name">Alex Morgan</h2>
+          <p id="profile-display-email">demo@gd.com</p>
+          <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+            <span class="badge badge-primary">Campus Placement Cohort</span>
+            <span class="badge badge-green">Verified Aspirant</span>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profile-email-input">Email Address (Read Only)</label>
-            <input type="email" id="profile-email-input" class="form-input" disabled style="opacity: 0.6; cursor: not-allowed;" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="target-score-input">Target GD Score Goal (%)</label>
-            <input type="number" id="target-score-input" class="form-input" min="50" max="100" value="85" />
-          </div>
-          <button type="submit" class="btn btn-primary" id="save-profile-btn">💾 Save Changes</button>
-        </form>
+        </div>
       </div>
 
-      <!-- Gemini AI API Key Configuration -->
-      <div class="profile-box">
-        <h3>🤖 Gemini AI Configuration</h3>
-        <p>Configure your Google Gemini API key to enable live AI multi-agent discussions and evaluation</p>
-
-        <div id="key-status-indicator" class="api-key-status inactive">
-          <span>●</span> No Custom Key Set (Using backend default if configured)
+      <!-- 2-COL CONFIG GRID -->
+      <div class="profile-grid">
+        <!-- Account Details -->
+        <div class="profile-box">
+          <h3>Personal Details</h3>
+          <p>Update your candidate profile credentials</p>
+          <form id="profile-form" onsubmit="saveProfile(event)">
+            <div class="form-group">
+              <label class="form-label" for="profile-name-input">Full Name</label>
+              <input type="text" id="profile-name-input" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="profile-email-input">Email Address (Read Only)</label>
+              <input type="email" id="profile-email-input" class="form-input" disabled style="opacity: 0.6; cursor: not-allowed;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="target-score-input">Target Placement Benchmark Score (%)</label>
+              <input type="number" id="target-score-input" class="form-input" min="50" max="100" value="85" />
+            </div>
+            <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Profile Changes</button>
+          </form>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="gemini-key-input">Google Gemini API Key</label>
-          <input type="password" id="gemini-key-input" class="form-input" placeholder="AIzaSy..." />
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
-            Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-primary); text-decoration: underline;">Google AI Studio</a>. Keys are stored locally in your browser.
+        <!-- Gemini AI API Key Configuration -->
+        <div class="profile-box">
+          <h3>Google Gemini AI Configuration</h3>
+          <p>Configures multi-agent real-time dialogue simulation and 8-factor evaluation reports.</p>
+
+          <div id="key-status-indicator" class="api-key-status inactive">
+            <span>●</span> No Custom Key Set (Using backend offline fallback)
           </div>
-        </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 16px;">
-          <button class="btn btn-primary" onclick="saveGeminiKey()">💾 Save Key</button>
-          <button class="btn btn-outline" onclick="testGeminiKey()" id="test-key-btn">🧪 Test Key</button>
-          <button class="btn btn-outline" onclick="clearGeminiKey()" style="color: #ef4444;">Clear</button>
-        </div>
+          <div class="form-group">
+            <label class="form-label" for="gemini-key-input">Gemini API Key</label>
+            <input type="password" id="gemini-key-input" class="form-input" placeholder="AIzaSy..." />
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">
+              Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-tertiary); text-decoration: underline;">Google AI Studio</a>. Keys are stored locally in your browser sandbox.
+            </div>
+          </div>
 
-        <div id="key-test-result" style="margin-top: 14px; font-size: 0.82rem; display: none;"></div>
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()">Save Key</button>
+            <button class="btn btn-secondary btn-sm" onclick="testGeminiKey()" id="test-key-btn">Test Connection</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearGeminiKey()" style="color: #fb7185;">Remove</button>
+          </div>
+
+          <div id="key-test-result" style="margin-top: 14px; font-size: 0.78rem; display: none;"></div>
+        </div>
       </div>
     </div>
   </main>
@@ -203,25 +271,25 @@
   function initProfile() {
     const user = API.Auth.getUser();
     if (user) {
-      document.getElementById('nav-user-name').textContent = user.name;
-      document.getElementById('nav-user-email').textContent = user.email;
-      document.getElementById('nav-user-avatar').textContent = user.name[0].toUpperCase();
+      document.getElementById('sidebar-name').textContent = user.name;
+      document.getElementById('sidebar-email').textContent = user.email;
+      document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
 
       document.getElementById('profile-display-name').textContent = user.name;
       document.getElementById('profile-display-email').textContent = user.email;
-      document.getElementById('profile-avatar-large').textContent = user.name[0].toUpperCase();
+      document.getElementById('profile-avatar-large').textContent = user.name.charAt(0).toUpperCase();
       document.getElementById('profile-name-input').value = user.name;
       document.getElementById('profile-email-input').value = user.email;
 
       const target = localStorage.getItem('gd_target_score') || '85';
       document.getElementById('target-score-input').value = target;
 
-      const savedKey = localStorage.getItem('gemini_api_key');
+      const savedKey = AppUtils.getGeminiKey();
       if (savedKey) {
         document.getElementById('gemini-key-input').value = savedKey;
         const statusEl = document.getElementById('key-status-indicator');
         statusEl.className = 'api-key-status active';
-        statusEl.innerHTML = '<span>●</span> Custom Gemini Key Configured';
+        statusEl.innerHTML = '<span>●</span> Custom Gemini Key Configured & Active';
       }
     }
   }
@@ -239,80 +307,81 @@
       localStorage.setItem('gd_user', JSON.stringify(user));
       localStorage.setItem('gd_target_score', target);
 
-      document.getElementById('nav-user-name').textContent = user.name;
-      document.getElementById('nav-user-avatar').textContent = user.name[0].toUpperCase();
-      document.getElementById('profile-display-name').textContent = user.name;
-      document.getElementById('profile-avatar-large').textContent = user.name[0].toUpperCase();
+      document.getElementById('sidebar-name').textContent = newName;
+      document.getElementById('sidebar-avatar').textContent = newName.charAt(0).toUpperCase();
+      document.getElementById('profile-display-name').textContent = newName;
+      document.getElementById('profile-avatar-large').textContent = newName.charAt(0).toUpperCase();
 
-      AppUtils.showToast('Profile updated successfully! ✨', 'success');
+      AppUtils.showToast('Profile updated successfully', 'success');
     }
   }
 
   function saveGeminiKey() {
     const key = document.getElementById('gemini-key-input').value.trim();
     if (!key) {
-      clearGeminiKey();
+      AppUtils.showToast('Please enter an API key', 'error');
       return;
     }
     localStorage.setItem('gemini_api_key', key);
     localStorage.setItem('gd_gemini_key', key);
+
     const statusEl = document.getElementById('key-status-indicator');
     statusEl.className = 'api-key-status active';
-    statusEl.innerHTML = '<span>●</span> Custom Gemini Key Configured';
-    AppUtils.showToast('Gemini API key saved! 🤖', 'success');
+    statusEl.innerHTML = '<span>●</span> Custom Gemini Key Configured & Active';
+
+    AppUtils.showToast('Gemini API key saved securely', 'success');
   }
 
   function clearGeminiKey() {
     localStorage.removeItem('gemini_api_key');
     localStorage.removeItem('gd_gemini_key');
     document.getElementById('gemini-key-input').value = '';
+
     const statusEl = document.getElementById('key-status-indicator');
     statusEl.className = 'api-key-status inactive';
-    statusEl.innerHTML = '<span>●</span> No Custom Key Set (Using backend default)';
-    AppUtils.showToast('API Key cleared.', 'info');
+    statusEl.innerHTML = '<span>●</span> No Custom Key Set (Using backend offline fallback)';
+
+    document.getElementById('key-test-result').style.display = 'none';
+    AppUtils.showToast('API key removed from local storage', 'info');
   }
 
   async function testGeminiKey() {
-    const key = document.getElementById('gemini-key-input').value.trim() || localStorage.getItem('gd_gemini_key') || localStorage.getItem('gemini_api_key');
-    const resultEl = document.getElementById('key-test-result');
-    const btn = document.getElementById('test-key-btn');
+    const key = document.getElementById('gemini-key-input').value.trim();
+    const resEl = document.getElementById('key-test-result');
+    const testBtn = document.getElementById('test-key-btn');
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Testing...';
-    resultEl.style.display = 'block';
-    resultEl.style.color = '#94a3b8';
-    resultEl.textContent = 'Connecting to Gemini model...';
+    if (!key) {
+      AppUtils.showToast('Please enter an API key to test', 'error');
+      return;
+    }
+
+    testBtn.innerHTML = '<span class="spinner"></span> Testing...';
+    testBtn.disabled = true;
 
     try {
-      // Test topic generation with current key
-      const res = await fetch('/api/ai/topics', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API.Auth.getToken()}`
-        },
-        body: JSON.stringify({ category: 'Technology', apiKey: key })
-      });
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+      const data = await response.json();
 
-      const data = await res.json();
-      if (res.ok && data.topics && data.topics.length > 0) {
-        resultEl.style.color = '#10b981';
-        resultEl.innerHTML = `✅ <strong>Success!</strong> Successfully contacted Gemini API (generated ${data.topics.length} topics).`;
-        AppUtils.showToast('Gemini API is active and working!', 'success');
+      if (data.models && data.models.length > 0) {
+        resEl.style.display = 'block';
+        resEl.style.color = '#34d399';
+        resEl.textContent = '✓ Verification Successful: Gemini connection operational!';
+        AppUtils.showToast('API Key verified successfully!', 'success');
       } else {
-        throw new Error(data.message || 'Failed to verify key');
+        throw new Error(data.error?.message || 'Invalid API Key response');
       }
     } catch (err) {
-      resultEl.style.color = '#ef4444';
-      resultEl.innerHTML = `❌ <strong>Verification failed:</strong> ${err.message}. Using built-in offline fallbacks.`;
-      AppUtils.showToast('Could not verify Gemini key', 'error');
+      resEl.style.display = 'block';
+      resEl.style.color = '#fb7185';
+      resEl.textContent = `✗ Verification Failed: ${err.message}`;
+      AppUtils.showToast('API Key validation failed', 'error');
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = '🧪 Test Key';
+      testBtn.innerHTML = 'Test Connection';
+      testBtn.disabled = false;
     }
   }
 
-  document.addEventListener('DOMContentLoaded', initProfile);
+  initProfile();
 </script>
 </body>
 </html>

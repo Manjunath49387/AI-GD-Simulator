@@ -3,38 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Select Topic — GD Simulator</title>
+  <title>Select Discussion Topic — GD Simulator</title>
+  <meta name="description" content="Select or generate realistic group discussion topics for simulation practice." />
   <link rel="stylesheet" href="/css/main.css" />
   <style>
     .categories-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .category-chip {
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: var(--radius-full);
       border: 1px solid var(--glass-border);
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-secondary);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-fast);
       white-space: nowrap;
+      user-select: none;
     }
 
-    .category-chip:hover, .category-chip.active {
-      background: rgba(108,99,255,0.15);
-      border-color: rgba(108,99,255,0.4);
-      color: var(--accent-secondary);
+    .category-chip:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.16);
+      color: var(--text-primary);
+    }
+
+    .category-chip.active {
+      background: var(--accent-gradient);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
 
     .topics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 14px;
       margin-bottom: 24px;
     }
@@ -42,161 +51,253 @@
     .topic-card {
       padding: 18px 20px;
       border-radius: var(--radius-lg);
-      background: rgba(255,255,255,0.04);
-      border: 2px solid var(--glass-border);
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
       cursor: pointer;
       transition: all var(--transition-normal);
       display: flex;
-      align-items: flex-start;
-      gap: 14px;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
     }
 
     .topic-card:hover {
-      background: rgba(108,99,255,0.08);
-      border-color: rgba(108,99,255,0.35);
+      background: var(--bg-card-hover);
+      border-color: var(--glass-border-hover);
       transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
     }
 
     .topic-card.selected {
-      background: rgba(108,99,255,0.15);
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 20px rgba(108,99,255,0.2);
+      background: rgba(99, 102, 241, 0.12);
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 18px rgba(99, 102, 241, 0.2);
+    }
+
+    .topic-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .topic-num {
-      width: 28px; height: 28px;
+      width: 22px;
+      height: 22px;
       border-radius: var(--radius-sm);
-      background: rgba(108,99,255,0.15);
-      color: var(--accent-secondary);
-      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      font-size: 0.72rem;
       font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+    .topic-card.selected .topic-num {
+      background: var(--accent-primary);
+      color: #ffffff;
     }
 
     .topic-text {
       font-size: 0.9rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-primary);
-      line-height: 1.4;
+      line-height: 1.45;
+    }
+
+    .topic-bottom-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid var(--glass-border-subtle);
+      font-size: 0.72rem;
+      color: var(--text-muted);
     }
 
     .custom-topic-area {
       padding: 20px;
       border-radius: var(--radius-lg);
-      background: rgba(255,255,255,0.03);
+      background: var(--bg-card);
       border: 1px solid var(--glass-border);
-      margin-bottom: 24px;
+      margin-top: 24px;
     }
 
     .selected-topic-banner {
-      padding: 16px 20px;
+      padding: 14px 20px;
       border-radius: var(--radius-lg);
-      background: rgba(108,99,255,0.12);
-      border: 1px solid rgba(108,99,255,0.3);
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
       display: flex;
       align-items: center;
       gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .action-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      margin-bottom: 22px;
     }
 
     .loading-topics {
       text-align: center;
       padding: 40px;
       color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
 <div class="app-layout">
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
     </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
     <nav class="sidebar-nav">
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
     </nav>
+
     <div class="sidebar-footer">
-      <div class="user-card">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
         <div class="user-info">
-          <div class="name" id="sidebar-name">Loading...</div>
-          <div class="email" id="sidebar-email">--</div>
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
         </div>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
-    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+    <div class="page-header">
       <div>
-        <a href="/select-mode.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:10px">
-          ← Back to Mode Selection
-        </a>
-        <div class="page-title">Select GD Topic</div>
-        <div class="page-subtitle" id="mode-label">Loading...</div>
+        <div class="page-title">Select Discussion Topic</div>
+        <div class="page-subtitle" id="mode-label">Configuring Session...</div>
       </div>
-      <a href="/dashboard.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px">
-        🏠 Dashboard
-      </a>
+      <div>
+        <a href="/select-mode.html" class="btn btn-secondary btn-sm">
+          ← Switch Mode
+        </a>
+      </div>
     </div>
 
-    <div class="page-content" style="padding-bottom: 90px">
+    <div class="page-content" style="padding-bottom: 100px">
       <!-- 4-Step Practice Workflow Indicator -->
       <div class="workflow-stepper">
-        <div class="step-item"><div class="step-number">1</div> Select Mode</div>
+        <div class="step-item"><div class="step-number">1</div> Select Environment</div>
         <div class="step-divider"></div>
-        <div class="step-item active"><div class="step-number">2</div> Choose Topic</div>
+        <div class="step-item active"><div class="step-number">2</div> Topic Selection</div>
         <div class="step-divider"></div>
-        <div class="step-item"><div class="step-number">3</div> GD Room</div>
+        <div class="step-item"><div class="step-number">3</div> Boardroom</div>
         <div class="step-divider"></div>
-        <div class="step-item"><div class="step-number">4</div> Analysis</div>
+        <div class="step-item"><div class="step-number">4</div> Diagnostic Report</div>
       </div>
 
-      <!-- Selected topic banner -->
+      <!-- Selected topic confirmation banner -->
       <div class="selected-topic-banner" id="selected-banner" style="display:none">
-        <span style="font-size:1.4rem">✅</span>
-        <div style="flex:1">
-          <div style="font-size:0.75rem; color:var(--accent-secondary); font-weight:600; text-transform:uppercase;">Selected Topic</div>
-          <div style="font-weight:600; color:var(--text-primary); margin-top:2px" id="selected-topic-text"></div>
+        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:rgba(16,185,129,0.15);color:#34d399;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <button class="btn btn-primary" onclick="proceedToInstructions()" id="proceed-btn">
-          Continue to Instructions →
+        <div style="flex:1">
+          <div style="font-size:0.7rem; color:var(--accent-secondary); font-weight:700; text-transform:uppercase; letter-spacing:0.04em">Selected Topic for Round</div>
+          <div style="font-weight:600; color:var(--text-primary); font-size:0.92rem; margin-top:1px" id="selected-topic-text"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="proceedToInstructions()" id="proceed-btn">
+          Confirm & Proceed →
         </button>
       </div>
 
-      <!-- Category chips -->
+      <!-- Category Filter Chips -->
       <div class="categories-row" id="categories-row">
-        <button class="category-chip active" onclick="loadTopics('Technology', this)">💻 Technology</button>
-        <button class="category-chip" onclick="loadTopics('Artificial Intelligence', this)">🤖 AI & Tech</button>
-        <button class="category-chip" onclick="loadTopics('Education', this)">📚 Education</button>
-        <button class="category-chip" onclick="loadTopics('Business', this)">💼 Business</button>
-        <button class="category-chip" onclick="loadTopics('Current Affairs', this)">📰 Current Affairs</button>
-        <button class="category-chip" onclick="loadTopics('Social Issues', this)">🌍 Social Issues</button>
-        <button class="category-chip" onclick="loadTopics('Environment', this)">🌿 Environment</button>
-        <button class="category-chip" onclick="loadTopics('Career', this)">🎯 Career</button>
-        <button class="category-chip" onclick="loadTopics('General', this)">💬 General</button>
+        <button class="category-chip active" onclick="loadTopics('Technology', this)">Technology & Systems</button>
+        <button class="category-chip" onclick="loadTopics('Artificial Intelligence', this)">Artificial Intelligence</button>
+        <button class="category-chip" onclick="loadTopics('Business', this)">Corporate Strategy</button>
+        <button class="category-chip" onclick="loadTopics('Economics', this)">Macroeconomics</button>
+        <button class="category-chip" onclick="loadTopics('Ethics & Policy', this)">Ethics & Governance</button>
+        <button class="category-chip" onclick="loadTopics('Education', this)">Higher Education</button>
+        <button class="category-chip" onclick="loadTopics('Environment', this)">Climate & Energy</button>
+        <button class="category-chip" onclick="loadTopics('Career', this)">Workplace Dynamics</button>
       </div>
 
-      <!-- Generate AI topics -->
-      <div class="action-row mb-16" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px">
-        <div style="display:flex; align-items:center; gap:12px">
-          <button class="btn btn-secondary" id="generate-btn" onclick="generateAITopics()">
-            🎲 Generate AI Topics
+      <!-- Action Row -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px">
+        <div style="display:flex; align-items:center; gap:10px">
+          <button class="btn btn-secondary btn-sm" id="generate-btn" onclick="generateAITopics()">
+            <svg style="width:14px;height:14px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            Generate Fresh AI Prompts
           </button>
-          <span style="font-size:0.82rem; color:var(--text-muted)">or pick any topic below</span>
+          <span style="font-size:0.78rem; color:var(--text-muted)">Curated for Tier-1 corporate placement rubrics</span>
         </div>
       </div>
 
@@ -204,33 +305,33 @@
       <div class="topics-grid" id="topics-grid">
         <div class="loading-topics">
           <div class="spinner" style="margin:0 auto 12px"></div>
-          Loading topics...
+          Loading curated topic repository...
         </div>
       </div>
 
-      <!-- Custom Topic -->
-      <div class="custom-topic-area" style="margin-top:24px">
+      <!-- Custom Topic Input -->
+      <div class="custom-topic-area">
         <div class="form-group" style="margin:0">
-          <label class="form-label">Or Enter Your Own Custom Topic</label>
+          <label class="form-label">Or Propose a Custom Discussion Problem Statement</label>
           <div style="display:flex; gap:10px">
             <input id="custom-topic" class="form-input" type="text"
-              placeholder="Type your own GD topic and press Enter..." 
+              placeholder="e.g., Should central banks prioritize inflation targeting over industrial growth mandates?" 
               onkeydown="if(event.key==='Enter'){selectCustomTopic();}" />
             <button class="btn btn-secondary" onclick="selectCustomTopic()" style="white-space:nowrap">
-              Use This Topic
+              Apply Custom Topic
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Floating Sticky Action Bar when topic is selected -->
-      <div id="sticky-action-bar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:calc(100% - 320px); max-width:860px; background:rgba(18,24,38,0.95); border:1px solid rgba(108,99,255,0.4); border-radius:16px; padding:14px 24px; box-shadow:0 12px 40px rgba(0,0,0,0.6); backdrop-filter:blur(16px); z-index:100; align-items:center; justify-content:space-between; gap:16px">
+      <!-- Sticky Floating Bottom CTA Bar -->
+      <div id="sticky-action-bar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:calc(100% - 320px); max-width:880px; background:rgba(15,23,42,0.95); border:1px solid rgba(99,102,241,0.35); border-radius:14px; padding:12px 22px; box-shadow:var(--shadow-lg); backdrop-filter:blur(16px); z-index:100; align-items:center; justify-content:space-between; gap:16px">
         <div style="flex:1; min-width:0">
-          <div style="font-size:0.7rem; color:var(--accent-secondary); font-weight:700; text-transform:uppercase; letter-spacing:0.05em">Ready to proceed</div>
-          <div id="sticky-topic-text" style="font-weight:600; color:#fff; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis"></div>
+          <div style="font-size:0.68rem; color:var(--accent-tertiary); font-weight:700; text-transform:uppercase; letter-spacing:0.04em">Selected Discussion Statement</div>
+          <div id="sticky-topic-text" style="font-weight:600; color:#fff; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis"></div>
         </div>
-        <button class="btn btn-primary btn-lg" onclick="proceedToInstructions()" id="sticky-proceed-btn" style="box-shadow:0 0 20px rgba(108,99,255,0.4); flex-shrink:0">
-          Continue to Instructions →
+        <button class="btn btn-primary" onclick="proceedToInstructions()" id="sticky-proceed-btn" style="flex-shrink:0">
+          Proceed to Instructions →
         </button>
       </div>
 
@@ -252,84 +353,67 @@
   const mode = params.get('mode') || localStorage.getItem('gd_selected_mode') || 'ai';
   const aiCount = params.get('aiCount') || localStorage.getItem('gd_ai_participants') || '4';
   if (mode === 'ai') localStorage.setItem('gd_ai_participants', aiCount);
-  document.getElementById('mode-label').textContent = mode === 'ai' ? `🤖 AI Mode • ${aiCount} AI Participants` : '👥 Human Mode';
+  document.getElementById('mode-label').textContent = mode === 'ai' ? `Autonomous AI Mode • ${aiCount} Persona Agents` : 'Collaborative Peer Cohort Mode';
 
   let selectedTopic = '';
   let currentCategory = 'Technology';
 
-  // Static fallback topics per category
   const FALLBACK_TOPICS = {
     'Technology': [
-      'Is social media doing more harm than good?',
-      'Should coding be a mandatory subject in schools?',
-      'Will 5G technology transform India\'s digital economy?',
-      'Are smartphones making us less productive?',
-      'Should tech companies be regulated more strictly?',
-      'Is online education better than traditional classroom learning?'
+      'Should foundational AI models be open-source or proprietary to ensure global security?',
+      'Semiconductor sovereignty: Can domestic subsidies replace international supply chains?',
+      'Are social media algorithms destroying adolescent attention spans and mental health?',
+      'Central Bank Digital Currencies (CBDCs): Financial inclusion vs total surveillance',
+      'Should software developers be held legally accountable for algorithmic failure?'
     ],
     'Artificial Intelligence': [
-      'Will AI replace human jobs in the next decade?',
-      'Is artificial intelligence a threat or an opportunity?',
-      'Should AI be regulated by governments?',
-      'Can AI ever be truly creative?',
-      'Is AI widening the gap between rich and poor nations?',
-      'Should autonomous vehicles be allowed on Indian roads?'
-    ],
-    'Education': [
-      'Should the education system focus more on skills than marks?',
-      'Is online learning as effective as offline learning?',
-      'Should college degrees be mandatory for employment?',
-      'Is the Indian education system outdated?',
-      'Should mental health be part of school curriculum?',
-      'Are private schools better than government schools?'
+      'Is Generative AI devaluing human creativity or democratizing expression?',
+      'Will autonomous AI agents eliminate junior knowledge-work roles within five years?',
+      'Autonomous military drones: The imperative for an international regulatory ban',
+      'Data sovereignty and training sets: Do creators deserve perpetual AI licensing royalties?',
+      'AGI alignment: Technical engineering problem vs political governance crisis'
     ],
     'Business': [
-      'Should startups be given more tax benefits in India?',
-      'Is work from home the future of employment?',
-      'Should India ban Chinese apps and products?',
-      'Are big corporations more harmful than helpful to society?',
-      'Should the minimum wage be significantly increased?',
-      'Is entrepreneurship better than a government job?'
+      'Remote Work vs In-Office Mandates: Long-term corporate culture vs employee autonomy',
+      'Venture capital subsidization: Does blitzscaling build monopolies or generate real value?',
+      'ESG Metrics: Legitimate accountability framework or corporate greenwashing marketing?',
+      'Moonlighting and employee loyalty: Should corporations restrict secondary income?',
+      'Is the traditional 4-year MBA obsolete in the age of specialized micro-credentials?'
     ],
-    'Current Affairs': [
-      'Should India focus more on renewable energy?',
-      'Is the one-nation-one-election policy beneficial?',
-      'Should India have a uniform civil code?',
-      'Is cricket the only sport that gets attention in India?',
-      'Should reservation be based on economic status instead of caste?',
-      'Is India ready for a cashless economy?'
+    'Economics': [
+      'Universal Basic Income vs targeted job guarantee programs in developing nations',
+      'De-dollarization: Can regional trading blocs realistically displace the US Dollar?',
+      'Cryptocurrency regulation: Innovation catalyst vs systemic financial instability threat',
+      'Free market competition vs state industrial policy in accelerating clean energy',
+      'Wealth taxation vs consumption taxation: Balancing equity and capital reinvestment'
     ],
-    'Social Issues': [
-      'Is gender equality still a distant goal in India?',
-      'Should capital punishment be abolished?',
-      'Is caste discrimination still prevalent in modern India?',
-      'Should voting be made mandatory in India?',
-      'Are reality TV shows having a negative impact on youth?',
-      'Is feminism misunderstood in India?'
+    'Ethics & Policy': [
+      'Should facial recognition surveillance in public spaces be universally banned?',
+      'Universal Healthcare: Economic burden vs fundamental human right obligation',
+      'Is meritocracy in higher education an objective metric or a systemic illusion?',
+      'Free speech absolutism vs platform moderation on public digital squares',
+      'Gene editing technology: Unlocking disease cures vs engineering genetic inequality'
+    ],
+    'Education': [
+      'Standardized examination scoring vs holistic portfolio evaluation in university admissions',
+      'Should coding and data literacy replace traditional humanities requirements?',
+      'The student debt crisis: Institutional responsibility vs individual risk',
+      'AI detection in academia: Fostering honesty vs alienating authentic student reasoning',
+      'Vocational apprenticeship models vs white-collar university credentialism'
     ],
     'Environment': [
-      'Should plastic be completely banned in India?',
-      'Is climate change the biggest threat to humanity?',
-      'Should India prioritize economic growth over environmental protection?',
-      'Is electric vehicle adoption the solution to pollution?',
-      'Should there be stricter laws against deforestation?',
-      'Is zero-waste lifestyle achievable for middle-class families?'
+      'Nuclear energy adoption: Non-negotiable base-load clean power vs unacceptable risk',
+      'Carbon border tax adjustments: Climate justice vs trade protectionism against the global south',
+      'Electric vehicle subsidies: Solving emission problems or displacing ecological damage to mining regions?',
+      'Corporate net-zero pledges: Genuine transition roadmaps vs greenwashing rhetoric',
+      'Single-use plastic bans: Consumer responsibility vs corporate packaging reform'
     ],
     'Career': [
-      'Is a government job better than a private sector job in India?',
-      'Should freshers accept lower salaries to gain experience?',
-      'Is an MBA degree worth the investment?',
-      'Are internships more valuable than classroom education?',
-      'Should employees be loyal to one company their entire career?',
-      'Is networking more important than skill in career growth?'
-    ],
-    'General': [
-      'Is money the most important factor for happiness?',
-      'Should junk food be taxed more heavily?',
-      'Is social media causing an increase in mental health issues?',
-      'Should euthanasia be legalized in India?',
-      'Is globalization doing more harm than good?',
-      'Should the voting age be lowered to 16?'
+      'Early career specialization vs broad multidisciplinary skill development',
+      'The gig economy: Flexible entrepreneurial freedom vs eroded labor security',
+      'Is company loyalty rewarded in modern tech or does job hopping yield optimal growth?',
+      'AI copilots in knowledge work: Raising output ceilings or reducing hiring headcount?',
+      'Emotional intelligence (EQ) vs raw analytical aptitude (IQ) in leadership promotion'
     ]
   };
 
@@ -343,29 +427,31 @@
       if (match) match.classList.add('active');
     }
 
-    const topics = FALLBACK_TOPICS[category] || FALLBACK_TOPICS['General'];
+    const topics = FALLBACK_TOPICS[category] || FALLBACK_TOPICS['Technology'];
     renderTopics(topics);
   }
 
   async function generateAITopics() {
     const btn = document.getElementById('generate-btn');
-    btn.innerHTML = '<span class="spinner"></span> Generating...';
+    btn.innerHTML = '<span class="spinner"></span> Synthesizing...';
     btn.disabled = true;
 
     try {
       const data = await API.AI.generateTopics(currentCategory);
       if (data.topics && data.topics.length > 0) {
         renderTopics(data.topics);
-        AppUtils.showToast('AI topics generated! 🎲', 'success');
+        AppUtils.showToast('AI-synthesized problem statements loaded', 'success');
       } else {
         loadTopics(currentCategory);
-        AppUtils.showToast('Using cached topics', 'info');
       }
     } catch (err) {
-      AppUtils.showToast('Using curated topics for ' + currentCategory, 'info');
       loadTopics(currentCategory);
+      AppUtils.showToast('Displaying curated repository topics', 'info');
     } finally {
-      btn.innerHTML = '🎲 Generate AI Topics';
+      btn.innerHTML = `
+        <svg style="width:14px;height:14px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        Generate Fresh AI Prompts
+      `;
       btn.disabled = false;
     }
   }
@@ -376,10 +462,18 @@
       const isSel = selectedTopic === topic;
       return `
         <div class="topic-card ${isSel ? 'selected' : ''}"
-          onclick="selectTopic('${topic.replace(/'/g, "\\'")}', this)" id="topic-${i}" style="cursor:pointer">
-          <div class="topic-num">${i + 1}</div>
+          onclick="selectTopic('${topic.replace(/'/g, "\\'")}', this)" id="topic-${i}">
+          <div class="topic-top-meta">
+            <span class="topic-num">${i + 1}</span>
+            <span class="badge ${isSel ? 'badge-green' : 'badge-primary'}" style="font-size:0.68rem">
+              ${isSel ? 'Selected' : 'Tier-1 Prep'}
+            </span>
+          </div>
           <div class="topic-text">${topic}</div>
-          ${isSel ? '<span style="color:#10b981; font-weight:700; margin-left:auto">✓ Selected</span>' : ''}
+          <div class="topic-bottom-meta">
+            <span>Category: ${currentCategory}</span>
+            <span>Duration: 12-15m</span>
+          </div>
         </div>
       `;
     }).join('');
@@ -387,37 +481,22 @@
 
   function selectTopic(topic, el) {
     selectedTopic = topic;
-    document.querySelectorAll('.topic-card').forEach(c => {
-      c.classList.remove('selected');
-      const selSpan = c.querySelector('span');
-      if (selSpan && selSpan.textContent.includes('Selected')) selSpan.remove();
-    });
+    document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('selected'));
+    if (el) el.classList.add('selected');
 
-    if (el) {
-      el.classList.add('selected');
-      if (!el.querySelector('span')) {
-        const tag = document.createElement('span');
-        tag.style.cssText = 'color:#10b981; font-weight:700; margin-left:auto; font-size:0.8rem';
-        tag.textContent = '✓ Selected';
-        el.appendChild(tag);
-      }
-    }
-
-    // Update Top Banner
     const topBanner = document.getElementById('selected-banner');
     if (topBanner) {
       document.getElementById('selected-topic-text').textContent = topic;
       topBanner.style.display = 'flex';
     }
 
-    // Update Floating Bottom Bar
     const stickyBar = document.getElementById('sticky-action-bar');
     if (stickyBar) {
       document.getElementById('sticky-topic-text').textContent = topic;
       stickyBar.style.display = 'flex';
     }
 
-    AppUtils.showToast('Topic selected: "' + topic.slice(0, 36) + '..."', 'info', 2000);
+    AppUtils.showToast('Selected: ' + topic.slice(0, 32) + '...', 'info', 1800);
   }
 
   function selectCustomTopic() {
@@ -430,20 +509,18 @@
     if (!selectedTopic) { AppUtils.showToast('Please select a topic to continue', 'error'); return; }
     
     const btns = [document.getElementById('proceed-btn'), document.getElementById('sticky-proceed-btn')].filter(Boolean);
-    btns.forEach(b => { b.innerHTML = '<span class="spinner"></span> Creating session...'; b.disabled = true; });
+    btns.forEach(b => { b.innerHTML = '<span class="spinner"></span> Initializing session...'; b.disabled = true; });
 
     try {
-      // Create session
       const { session } = await API.Sessions.create(mode, selectedTopic, currentCategory);
       localStorage.setItem('gd_current_session', JSON.stringify(session));
       window.location.href = `/gd-instructions.html?session=${session.session_id}&mode=${mode}&topic=${encodeURIComponent(selectedTopic)}&category=${encodeURIComponent(currentCategory)}&aiCount=${aiCount}`;
     } catch (err) {
       AppUtils.showToast(err.message, 'error');
-      btns.forEach(b => { b.innerHTML = 'Continue to Instructions →'; b.disabled = false; });
+      btns.forEach(b => { b.innerHTML = 'Confirm & Proceed →'; b.disabled = false; });
     }
   }
 
-  // Load default topics
   loadTopics('Technology');
 </script>
 </body>

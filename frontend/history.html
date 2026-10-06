@@ -3,129 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GD History — GD Simulator</title>
-  <meta name="description" content="View past Group Discussion practice sessions, evaluation reports, and transcripts." />
+  <title>Discussion History — GD Simulator</title>
+  <meta name="description" content="Review completed group discussion practice sessions, evaluation diagnostics, and verbatim transcripts." />
   <link rel="stylesheet" href="/css/main.css" />
   <style>
     .filter-bar {
       background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-xl);
-      padding: 16px 20px;
-      margin-bottom: 24px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
     }
     .filter-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
     .filter-btn {
-      padding: 7px 16px;
-      border-radius: 999px;
-      font-size: 0.82rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
       font-weight: 600;
       border: 1px solid var(--glass-border);
-      background: rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.03);
       color: var(--text-secondary);
       cursor: pointer;
       transition: all var(--transition-fast);
     }
     .filter-btn.active, .filter-btn:hover {
-      background: var(--accent-primary);
-      border-color: var(--accent-primary);
-      color: white;
+      background: var(--accent-gradient);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
     }
     .search-input {
-      background: rgba(255,255,255,0.05);
+      background: var(--bg-input);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-md);
-      padding: 8px 14px;
+      padding: 8px 12px;
       color: var(--text-primary);
-      font-size: 0.85rem;
-      min-width: 220px;
-    }
-    .search-input:focus {
-      border-color: var(--accent-primary);
+      font-size: 0.84rem;
       outline: none;
     }
-    .session-cards-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    .search-input:focus {
+      border-color: var(--accent-secondary);
     }
     .history-card {
       background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 18px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
+      gap: 18px;
       transition: all var(--transition-fast);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-xs);
     }
     .history-card:hover {
-      border-color: rgba(108,99,255,0.4);
-      background: rgba(255,255,255,0.04);
-      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.3);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
     }
     .history-left {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       flex: 1;
       min-width: 0;
     }
     .mode-badge {
-      width: 46px;
-      height: 46px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
       flex-shrink: 0;
     }
     .mode-badge.ai {
-      background: rgba(108,99,255,0.15);
-      border: 1px solid rgba(108,99,255,0.3);
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.25);
     }
     .mode-badge.human {
-      background: rgba(16,185,129,0.15);
-      border: 1px solid rgba(16,185,129,0.3);
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
-    .history-details {
-      flex: 1;
-      min-width: 0;
-    }
+    .history-details { flex: 1; min-width: 0; }
     .history-topic {
-      font-size: 0.98rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: var(--text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .history-meta {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 0.78rem;
+      gap: 10px;
+      font-size: 0.74rem;
       color: var(--text-muted);
       flex-wrap: wrap;
-    }
-    .history-tag {
-      background: rgba(255,255,255,0.06);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.72rem;
     }
     .history-score-box {
       text-align: right;
@@ -134,25 +123,17 @@
     }
     .history-score-val {
       font-family: var(--font-display);
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 800;
+      font-variant-numeric: tabular-nums;
     }
-    .history-actions {
-      display: flex;
-      gap: 8px;
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
     }
-    .empty-history {
-      text-align: center;
-      padding: 60px 20px;
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-xl);
-    }
-    .empty-history-icon {
-      font-size: 3rem;
-      margin-bottom: 14px;
-    }
+
     @media (max-width: 768px) {
       .history-card {
         flex-direction: column;
@@ -166,146 +147,198 @@
 </head>
 <body>
 <div class="app-layout">
-
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item active"><span class="icon">📋</span> GD History</a>
-      <div class="nav-section-label">Account</div>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-avatar" id="nav-user-avatar">U</div>
-      <div class="user-info">
-        <div class="user-name" id="nav-user-name">User</div>
-        <div class="user-email" id="nav-user-email">user@gd.com</div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
       </div>
-      <button class="btn btn-icon" onclick="API.Auth.logout()" title="Logout">🚪</button>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
+    </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
+        </div>
+      </div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
-    <div class="header-nav">
+    <div class="page-header">
       <div>
-        <h1 style="font-size: 1.6rem; font-weight: 800;">📋 GD Practice History</h1>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Review your past Group Discussions, score reports, and transcripts</p>
+        <div class="page-title">Session Archive & Transcripts</div>
+        <div class="page-subtitle">Historical records of simulated and peer discussions with diagnostic reports.</div>
       </div>
-      <a href="/select-mode.html" class="btn btn-primary"><span class="btn-icon">⚡</span> New GD</a>
-    </div>
-
-    <!-- FILTER & SEARCH BAR -->
-    <div class="filter-bar">
-      <div class="filter-group">
-        <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All Modes</button>
-        <button class="filter-btn" data-filter="ai" onclick="setFilter('ai', this)">🤖 AI GD</button>
-        <button class="filter-btn" data-filter="human" onclick="setFilter('human', this)">👥 Human GD</button>
-      </div>
-      <div class="filter-group">
-        <input type="text" id="search-box" class="search-input" placeholder="🔍 Search topic or category..." oninput="handleSearch(this.value)" />
-        <select id="sort-select" class="search-input" style="min-width: 140px;" onchange="handleSort(this.value)">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="highest">Highest Score</option>
-          <option value="lowest">Lowest Score</option>
-        </select>
+      <div>
+        <a href="/select-mode.html" class="btn btn-primary btn-sm">
+          Launch New Discussion
+        </a>
       </div>
     </div>
 
-    <!-- SESSIONS LIST -->
-    <div id="sessions-container" class="session-cards-grid">
-      <div class="spinner-container"><div class="spinner"></div></div>
+    <div class="page-content">
+      <!-- FILTER & SEARCH BAR -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All Discussions</button>
+          <button class="filter-btn" data-filter="ai" onclick="setFilter('ai', this)">AI Multi-Agent</button>
+          <button class="filter-btn" data-filter="human" onclick="setFilter('human', this)">Peer Collaborative</button>
+        </div>
+        <div class="filter-group">
+          <input type="text" id="search-box" class="search-input" placeholder="Filter by topic or category..." oninput="handleSearch(this.value)" />
+          <select id="sort-select" class="search-input" onchange="handleSort(this.value)">
+            <option value="newest">Recent First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="highest">Score (High → Low)</option>
+            <option value="lowest">Score (Low → High)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SESSION LIST -->
+      <div id="history-container">
+        <div style="text-align:center; color:var(--text-muted); padding:40px; font-size:0.85rem">
+          Loading discussion archive...
+        </div>
+      </div>
     </div>
   </main>
 </div>
 
 <script src="/js/api.js"></script>
 <script>
-  if (!API.Auth.isLoggedIn()) window.location.href = '/index.html';
+  AppUtils.requireAuth();
+  const user = AppUtils.getUser();
+  if (user) {
+    document.getElementById('sidebar-name').textContent = user.name;
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  }
 
   let allSessions = [];
   let currentFilter = 'all';
-  let currentSearch = '';
+  let searchTerm = '';
   let currentSort = 'newest';
 
   async function loadHistory() {
-    const user = API.Auth.getUser();
-    if (user) {
-      document.getElementById('nav-user-name').textContent = user.name;
-      document.getElementById('nav-user-email').textContent = user.email;
-      document.getElementById('nav-user-avatar').textContent = user.name[0].toUpperCase();
-    }
-
     try {
-      const res = await API.Sessions.getHistory(100);
+      const res = await API.Sessions.list(50);
       allSessions = res.sessions || [];
-      renderSessions();
+      renderHistory();
     } catch (err) {
-      console.error('Failed to load history:', err);
-      document.getElementById('sessions-container').innerHTML = `
-        <div class="empty-history">
-          <div class="empty-history-icon">⚠️</div>
-          <h3 style="margin-bottom: 8px;">Failed to load history</h3>
-          <p style="color: var(--text-muted);">${err.message}</p>
-        </div>
-      `;
+      console.error('Failed to load sessions:', err);
     }
   }
 
-  function setFilter(filter, btn) {
+  function setFilter(filter, el) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderSessions();
+    if (el) el.classList.add('active');
+    renderHistory();
   }
 
   function handleSearch(val) {
-    currentSearch = val.toLowerCase().trim();
-    renderSessions();
+    searchTerm = val.toLowerCase().trim();
+    renderHistory();
   }
 
   function handleSort(val) {
     currentSort = val;
-    renderSessions();
+    renderHistory();
   }
 
-  function renderSessions() {
-    const container = document.getElementById('sessions-container');
+  function renderHistory() {
     let filtered = allSessions.filter(s => {
-      const matchesFilter = (currentFilter === 'all' || s.mode === currentFilter);
-      const matchesSearch = !currentSearch ||
-        (s.topic && s.topic.toLowerCase().includes(currentSearch)) ||
-        (s.category && s.category.toLowerCase().includes(currentSearch));
-      return matchesFilter && matchesSearch;
+      if (currentFilter !== 'all' && s.mode !== currentFilter) return false;
+      if (searchTerm) {
+        const text = `${s.topic} ${s.category || ''}`.toLowerCase();
+        if (!text.includes(searchTerm)) return false;
+      }
+      return true;
     });
 
-    // Sorting
-    filtered.sort((a, b) => {
-      if (currentSort === 'newest') return new Date(b.created_at) - new Date(a.created_at);
-      if (currentSort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
-      if (currentSort === 'highest') return (b.overall_score || 0) - (a.overall_score || 0);
-      if (currentSort === 'lowest') return (a.overall_score || 0) - (b.overall_score || 0);
-      return 0;
-    });
+    if (currentSort === 'newest') filtered.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    if (currentSort === 'oldest') filtered.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    if (currentSort === 'highest') filtered.sort((a,b) => (b.overall_score || 0) - (a.overall_score || 0));
+    if (currentSort === 'lowest') filtered.sort((a,b) => (a.overall_score || 0) - (b.overall_score || 0));
 
+    const container = document.getElementById('history-container');
     if (filtered.length === 0) {
       container.innerHTML = `
-        <div class="empty-history">
-          <div class="empty-history-icon">💬</div>
-          <h3 style="margin-bottom: 6px;">No discussions found</h3>
-          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
-            ${currentSearch || currentFilter !== 'all' ? 'Try adjusting your filters or search query.' : 'You haven\'t completed any GD sessions yet.'}
-          </p>
-          <a href="/select-mode.html" class="btn btn-primary">Start Your First GD</a>
+        <div style="text-align:center; padding:48px 20px; background:var(--bg-card); border:1px solid var(--glass-border); border-radius:var(--radius-xl)">
+          <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:6px">No Archived Sessions Found</div>
+          <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:18px">Launch a practice discussion or adjust your filter parameters.</div>
+          <a href="/select-mode.html" class="btn btn-primary btn-sm">Launch Discussion</a>
         </div>
       `;
       return;
@@ -313,50 +346,45 @@
 
     container.innerHTML = filtered.map(s => {
       const isAI = s.mode === 'ai';
-      const score = s.overall_score ? Math.round(s.overall_score) : null;
-      const { grade, cls } = score !== null ? AppUtils.getScoreGrade(score) : { grade: 'Pending', cls: 'badge-warning' };
-      const scoreColor = score !== null ? AppUtils.getScoreColor(score) : '#94a3b8';
+      const score = Math.round(s.overall_score || 0);
+      const color = AppUtils.getScoreColor(score);
+      const dur = AppUtils.formatDuration(s.duration || 600);
 
       return `
-        <div class="history-card">
+        <div class="history-card" onclick="window.location.href='/results.html?session=${s.session_id}'">
           <div class="history-left">
-            <div class="mode-badge ${isAI ? 'ai' : 'human'}">
-              ${isAI ? '🤖' : '👥'}
+            <div class="mode-badge ${s.mode}">
+              ${isAI 
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+              }
             </div>
             <div class="history-details">
-              <div class="history-topic">${s.topic || 'Untitled Discussion'}</div>
+              <div class="history-topic">${s.topic}</div>
               <div class="history-meta">
-                <span class="history-tag">${isAI ? 'AI Discussion' : 'Peer Discussion'}</span>
-                ${s.category ? `<span class="history-tag">${s.category}</span>` : ''}
-                <span>📅 ${AppUtils.formatDate(s.created_at)}</span>
-                ${s.speaking_turns ? `<span>🗣️ ${s.speaking_turns} turns</span>` : ''}
-                ${s.duration ? `<span>⏱️ ${Math.round(s.duration / 60)} min</span>` : ''}
+                <span>${AppUtils.formatDate(s.created_at)}</span>
+                <span>•</span>
+                <span>Duration: ${dur}</span>
+                <span>•</span>
+                <span class="badge ${isAI ? 'badge-primary' : 'badge-green'}" style="font-size:0.65rem">${s.category || 'Technology'}</span>
+                <span>•</span>
+                <span>${isAI ? '4 AI Agents' : 'Peer Cohort'}</span>
               </div>
             </div>
           </div>
-
           <div class="history-score-box">
-            ${score !== null ? `
-              <div class="history-score-val" style="color: ${scoreColor};">${score}%</div>
-              <span class="badge ${cls}" style="font-size: 0.72rem; padding: 2px 8px;">Grade: ${grade}</span>
-            ` : `
-              <span class="badge badge-warning">Pending</span>
-            `}
+            <div class="history-score-val" style="color:${color}">${score ? score + '%' : 'Pending'}</div>
+            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em">Composite Rating</div>
           </div>
-
-          <div class="history-actions">
-            ${score !== null ? `
-              <a href="/results.html?session_id=${s.session_id}" class="btn btn-secondary btn-sm">📊 View Report</a>
-            ` : `
-              <a href="/select-mode.html" class="btn btn-outline btn-sm">Start New GD</a>
-            `}
+          <div>
+            <span class="btn btn-secondary btn-sm" style="pointer-events:none">Diagnostic Report →</span>
           </div>
         </div>
       `;
     }).join('');
   }
 
-  document.addEventListener('DOMContentLoaded', loadHistory);
+  loadHistory();
 </script>
 </body>
 </html>

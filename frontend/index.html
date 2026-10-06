@@ -3,243 +3,323 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GD Simulator — Login & Register</title>
-  <meta name="description" content="AI-Based Group Discussion Simulator. Practice GD with AI participants and get personalized feedback to improve your communication skills." />
+  <title>GD Simulator — AI Assessment Platform</title>
+  <meta name="description" content="Commercial-grade AI Group Discussion Simulator and Assessment Platform. Practice with autonomous AI personas and receive multi-metric diagnostic feedback." />
   <link rel="stylesheet" href="/css/main.css" />
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 16px;
+      position: relative;
+    }
 
-    .auth-container {
+    .auth-wrapper {
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       z-index: 1;
     }
 
-    .auth-logo {
+    .auth-brand {
       text-align: center;
-      margin-bottom: 32px;
-      animation: fadeIn 0.5s ease;
+      margin-bottom: 28px;
     }
 
-    .auth-logo-icon {
-      width: 64px; height: 64px;
-      border-radius: 20px;
-      background: var(--grad-primary);
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      background: var(--accent-gradient);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-glow);
-      animation: float 3s ease infinite;
+      margin-bottom: 14px;
+      box-shadow: 0 0 24px rgba(79, 70, 229, 0.4);
+      color: #ffffff;
     }
 
-    .auth-logo h1 {
-      font-size: 1.8rem;
-      font-weight: 900;
-      background: var(--grad-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .brand-mark svg {
+      width: 26px;
+      height: 26px;
     }
 
-    .auth-logo p { font-size: 0.9rem; color: var(--text-muted); margin-top: 6px; }
+    .auth-brand h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-primary);
+    }
+
+    .auth-brand p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
 
     .auth-card {
-      background: rgba(255,255,255,0.04);
+      background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-xl);
-      padding: 36px;
+      padding: 32px;
       backdrop-filter: blur(20px);
-      animation: scaleIn 0.3s ease 0.2s both;
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-lg), var(--shadow-inset-top);
+      position: relative;
     }
 
+    /* Tab Switcher */
     .tab-nav {
       display: flex;
-      gap: 4px;
-      background: rgba(255,255,255,0.04);
+      background: rgba(10, 15, 29, 0.7);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius-md);
-      padding: 4px;
-      margin-bottom: 28px;
+      padding: 3px;
+      margin-bottom: 24px;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px;
+      padding: 8px 12px;
       border: none;
-      border-radius: calc(var(--radius-md) - 2px);
+      border-radius: var(--radius-sm);
       font-family: var(--font-primary);
-      font-size: 0.9rem;
+      font-size: 0.84rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all var(--transition-normal);
+      transition: all var(--transition-fast);
       background: transparent;
       color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .tab-btn.active {
-      background: var(--grad-primary);
-      color: white;
-      box-shadow: 0 4px 16px rgba(108,99,255,0.3);
+      background: var(--accent-gradient);
+      color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
 
-    .tab-panel { display: none; animation: fadeIn 0.3s ease; }
-    .tab-panel.active { display: block; }
-
-    .auth-footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .tab-panel.active {
+      display: block;
     }
 
-    /* Particles */
-    .particle {
-      position: fixed;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.4;
-      animation: float linear infinite;
-    }
-
-    /* API key hint */
-    .api-hint {
-      padding: 12px 16px;
-      background: rgba(108,99,255,0.08);
-      border: 1px solid rgba(108,99,255,0.2);
+    /* Demo Quick Fill Pill */
+    .demo-credential-strip {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
       border-radius: var(--radius-md);
-      font-size: 0.78rem;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .demo-info {
+      font-size: 0.76rem;
       color: var(--text-secondary);
-      margin-top: 20px;
-      line-height: 1.5;
+      line-height: 1.35;
+    }
+    .demo-info strong {
+      color: var(--text-primary);
+      display: block;
+      font-weight: 600;
+    }
+    .btn-quick-demo {
+      background: rgba(99, 102, 241, 0.18);
+      color: var(--accent-tertiary);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .btn-quick-demo:hover {
+      background: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
     }
 
-    .api-hint a { color: var(--accent-secondary); }
-
+    /* Features List */
     .features-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-top: 24px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--glass-border-subtle);
     }
 
     .feature-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       color: var(--text-secondary);
+      font-weight: 500;
     }
 
-    .feature-icon {
-      width: 28px; height: 28px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-card);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
+    .feature-icon-svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-secondary);
       flex-shrink: 0;
+    }
+
+    .auth-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .input-svg-icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
     }
   </style>
 </head>
 <body>
 
-<!-- Background Particles -->
-<canvas id="particles-canvas"></canvas>
-
-<div class="auth-container">
-  <div class="auth-logo">
-    <div class="auth-logo-icon">🎤</div>
+<div class="auth-wrapper">
+  <!-- Brand Header -->
+  <div class="auth-brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" x2="12" y1="19" y2="22"/>
+      </svg>
+    </div>
     <h1>GD Simulator</h1>
-    <p>AI-Powered Group Discussion Practice Platform</p>
+    <p>Enterprise AI Group Discussion Assessment Platform</p>
   </div>
 
   <div class="auth-card">
     <!-- Tab Navigation -->
     <div class="tab-nav" role="tablist">
-      <button class="tab-btn active" id="login-tab" onclick="switchTab('login')" role="tab">Login</button>
-      <button class="tab-btn" id="register-tab" onclick="switchTab('register')" role="tab">Register</button>
+      <button class="tab-btn active" id="login-tab" onclick="switchTab('login')" role="tab">
+        <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+        Sign In
+      </button>
+      <button class="tab-btn" id="register-tab" onclick="switchTab('register')" role="tab">
+        <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 013 19.235z"/></svg>
+        Register Candidate
+      </button>
+    </div>
+
+    <!-- Quick Demo Credential Bar -->
+    <div class="demo-credential-strip">
+      <div class="demo-info">
+        <strong>Demo Candidate Account</strong>
+        <span>demo@gd.com • password: demo123</span>
+      </div>
+      <button class="btn-quick-demo" type="button" onclick="fillDemoCredentials()">Fill Demo</button>
     </div>
 
     <!-- LOGIN PANEL -->
     <div class="tab-panel active" id="login-panel">
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label class="form-label" for="login-email">Email</label>
+          <label class="form-label" for="login-email">Work / Academic Email</label>
           <div class="form-input-icon">
-            <span class="icon">📧</span>
-            <input id="login-email" class="form-input" type="email" placeholder="you@example.com" required autocomplete="email" />
+            <span class="icon">
+              <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </span>
+            <input id="login-email" class="form-input" type="email" placeholder="name@domain.com" required autocomplete="email" />
           </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">Password</label>
           <div class="form-input-icon">
-            <span class="icon">🔒</span>
-            <input id="login-password" class="form-input" type="password" placeholder="Your password" required autocomplete="current-password" />
+            <span class="icon">
+              <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input id="login-password" class="form-input" type="password" placeholder="••••••••••••" required autocomplete="current-password" />
           </div>
         </div>
-        <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg">
-          <span>Login</span>
+        <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg mt-8">
+          <span>Sign In to Platform</span>
         </button>
       </form>
-
-      <div class="api-hint">
-        💡 <strong>Gemini API Key required</strong> for AI features. Get your free key at
-        <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>.
-        You'll configure it after login.
-      </div>
     </div>
 
     <!-- REGISTER PANEL -->
     <div class="tab-panel" id="register-panel">
       <form id="register-form" onsubmit="handleRegister(event)">
         <div class="form-group">
-          <label class="form-label" for="reg-name">Full Name</label>
+          <label class="form-label" for="reg-name">Candidate Full Name</label>
           <div class="form-input-icon">
-            <span class="icon">👤</span>
-            <input id="reg-name" class="form-input" type="text" placeholder="Rahul Kumar" required />
+            <span class="icon">
+              <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input id="reg-name" class="form-input" type="text" placeholder="Alex Morgan" required />
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="reg-email">Email</label>
+          <label class="form-label" for="reg-email">Email Address</label>
           <div class="form-input-icon">
-            <span class="icon">📧</span>
-            <input id="reg-email" class="form-input" type="email" placeholder="you@example.com" required />
+            <span class="icon">
+              <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </span>
+            <input id="reg-email" class="form-input" type="email" placeholder="alex.morgan@campus.edu" required />
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="reg-password">Password</label>
+          <label class="form-label" for="reg-password">Create Password</label>
           <div class="form-input-icon">
-            <span class="icon">🔒</span>
-            <input id="reg-password" class="form-input" type="password" placeholder="Min. 6 characters" required minlength="6" />
+            <span class="icon">
+              <svg class="input-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input id="reg-password" class="form-input" type="password" placeholder="At least 6 characters" required minlength="6" />
           </div>
         </div>
-        <button type="submit" id="register-btn" class="btn btn-primary btn-full btn-lg">
-          <span>Create Account</span>
+        <button type="submit" id="register-btn" class="btn btn-primary btn-full btn-lg mt-8">
+          <span>Create Aspirant Profile</span>
         </button>
       </form>
+    </div>
 
-      <div class="features-list">
-        <div class="feature-item"><div class="feature-icon">🤖</div> AI GD Practice</div>
-        <div class="feature-item"><div class="feature-icon">👥</div> Human Mode</div>
-        <div class="feature-item"><div class="feature-icon">📊</div> Performance Scores</div>
-        <div class="feature-item"><div class="feature-icon">📈</div> Progress Tracking</div>
-        <div class="feature-item"><div class="feature-icon">🎤</div> Voice Input</div>
-        <div class="feature-item"><div class="feature-icon">💬</div> AI Feedback</div>
+    <!-- Feature Grid -->
+    <div class="features-list">
+      <div class="feature-item">
+        <svg class="feature-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        Multi-Agent Personas
+      </div>
+      <div class="feature-item">
+        <svg class="feature-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        8 Core Competencies
+      </div>
+      <div class="feature-item">
+        <svg class="feature-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        Live Audio & Transcript
+      </div>
+      <div class="feature-item">
+        <svg class="feature-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        Placement Diagnostic Report
       </div>
     </div>
 
     <div class="auth-footer">
-      By continuing, you agree to our Terms of Service
+      GD Simulator Engine v2.4 • High Precision Speech & Discourse Assessment
     </div>
   </div>
 </div>
 
 <script src="/js/api.js"></script>
 <script>
-  // Redirect if already logged in
   if (API.Auth.isLoggedIn()) window.location.href = '/dashboard.html';
 
   function switchTab(tab) {
@@ -249,22 +329,29 @@
     });
   }
 
+  function fillDemoCredentials() {
+    switchTab('login');
+    document.getElementById('login-email').value = 'demo@gd.com';
+    document.getElementById('login-password').value = 'demo123';
+    AppUtils.showToast('Demo credentials populated', 'info', 1800);
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('login-btn');
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    btn.innerHTML = '<span class="spinner"></span> Logging in...';
+    btn.innerHTML = '<span class="spinner"></span> Authenticating...';
     btn.disabled = true;
 
     try {
       await API.Auth.login(email, password);
-      AppUtils.showToast('Welcome back! 🎉', 'success');
-      setTimeout(() => window.location.href = '/dashboard.html', 800);
+      AppUtils.showToast('Session verified. Redirecting...', 'success');
+      setTimeout(() => window.location.href = '/dashboard.html', 500);
     } catch (err) {
       AppUtils.showToast(err.message, 'error');
-      btn.innerHTML = '<span>Login</span>';
+      btn.innerHTML = '<span>Sign In to Platform</span>';
       btn.disabled = false;
     }
   }
@@ -276,58 +363,19 @@
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
 
-    btn.innerHTML = '<span class="spinner"></span> Creating account...';
+    btn.innerHTML = '<span class="spinner"></span> Initializing Profile...';
     btn.disabled = true;
 
     try {
       await API.Auth.register(name, email, password);
-      AppUtils.showToast('Account created! Welcome to GD Simulator! 🎉', 'success');
-      setTimeout(() => window.location.href = '/dashboard.html', 800);
+      AppUtils.showToast('Candidate profile registered successfully!', 'success');
+      setTimeout(() => window.location.href = '/dashboard.html', 500);
     } catch (err) {
       AppUtils.showToast(err.message, 'error');
-      btn.innerHTML = '<span>Create Account</span>';
+      btn.innerHTML = '<span>Create Aspirant Profile</span>';
       btn.disabled = false;
     }
   }
-
-  // Particle animation
-  function createParticles() {
-    const canvas = document.getElementById('particles-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 2 + 0.5,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      opacity: Math.random() * 0.4 + 0.1
-    }));
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(108, 99, 255, ${p.opacity})`;
-        ctx.fill();
-      });
-      requestAnimationFrame(animate);
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  }
-
-  createParticles();
 </script>
 </body>
 </html>

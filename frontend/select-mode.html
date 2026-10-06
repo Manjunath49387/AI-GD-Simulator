@@ -3,509 +3,600 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Select GD Mode — GD Simulator</title>
+  <title>Select Mode — GD Simulator</title>
+  <meta name="description" content="Select AI Multi-Agent Simulation or Collaborative Peer Discussion room." />
   <link rel="stylesheet" href="/css/main.css" />
   <style>
     .mode-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      max-width: 900px;
+      gap: 24px;
+      max-width: 960px;
       margin: 0 auto;
     }
 
     .mode-card {
       border-radius: var(--radius-xl);
-      padding: 48px 36px;
-      border: 2px solid var(--glass-border);
+      padding: 36px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
       cursor: pointer;
-      transition: all var(--transition-slow);
+      transition: all var(--transition-normal);
       position: relative;
       overflow: hidden;
-      text-align: center;
-    }
-
-    .mode-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transition: opacity var(--transition-slow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm), var(--shadow-inset-top);
     }
 
     .mode-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-glow);
+      background: var(--bg-card-hover);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), 0 0 24px rgba(99, 102, 241, 0.12);
     }
 
     .mode-card.ai-card {
-      background: linear-gradient(145deg, rgba(108,99,255,0.08) 0%, rgba(236,72,153,0.05) 100%);
-      border-color: rgba(108,99,255,0.25);
-    }
-    .mode-card.ai-card:hover {
-      border-color: rgba(108,99,255,0.6);
-      background: linear-gradient(145deg, rgba(108,99,255,0.15) 0%, rgba(236,72,153,0.08) 100%);
+      border-top: 3px solid #6366f1;
     }
 
     .mode-card.human-card {
-      background: linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.05) 100%);
-      border-color: rgba(16,185,129,0.25);
-    }
-    .mode-card.human-card:hover {
-      border-color: rgba(16,185,129,0.6);
-      background: linear-gradient(145deg, rgba(16,185,129,0.15) 0%, rgba(59,130,246,0.08) 100%);
+      border-top: 3px solid #10b981;
     }
 
-    .mode-icon {
-      font-size: 4rem;
+    .mode-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 20px;
-      display: block;
-      animation: float 3s ease infinite;
+    }
+
+    .mode-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
     .mode-title {
       font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin-bottom: 12px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
     }
-
-    .ai-card .mode-title { background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .human-card .mode-title { background: var(--grad-green); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
     .mode-desc {
       color: var(--text-secondary);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      margin-bottom: 24px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      margin-bottom: 20px;
+      min-height: 40px;
     }
 
+    /* AI Participant Pill Bar */
+    .ai-agents-preview {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .agent-mini {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .agent-mini span.emoji {
+      font-size: 0.85rem;
+    }
+
+    /* Features List */
     .mode-features {
       list-style: none;
-      text-align: left;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
+      padding-top: 14px;
+      border-top: 1px solid var(--glass-border-subtle);
     }
 
     .mode-features li {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 0;
-      font-size: 0.85rem;
+      padding: 6px 0;
+      font-size: 0.82rem;
       color: var(--text-secondary);
-      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    .mode-features li:last-child { border-bottom: none; }
-    .mode-features .check { font-size: 1rem; }
-
-    .ai-agents-preview {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 24px;
+    .mode-features .check-svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-green);
+      flex-shrink: 0;
     }
 
-    .agent-mini {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem;
-      border: 2px solid rgba(255,255,255,0.1);
-    }
-
-    @media (max-width: 700px) {
-      .mode-grid { grid-template-columns: 1fr; }
-      .mode-card { padding: 32px 24px; }
-    }
-
-    /* ── Join Code modal ── */
-    .join-code-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.88);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-    }
-    .join-code-box {
-      padding: 40px 36px 32px;
-      max-width: 450px;
-      width: 92%;
-      border-radius: 20px;
-      position: relative;
-      text-align: center;
-      background: linear-gradient(160deg, rgba(16,24,40,0.98) 0%, rgba(10,14,28,0.98) 100%);
-      border: 1.5px solid rgba(16,185,129,0.25);
-      box-shadow: 0 0 60px rgba(16,185,129,0.1), 0 20px 60px rgba(0,0,0,0.6);
-      animation: jcSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    @keyframes jcSlideUp {
-      from { opacity:0; transform: translateY(24px) scale(0.96); }
-      to   { opacity:1; transform: translateY(0) scale(1); }
-    }
-    .join-code-close {
-      position: absolute;
-      top: 14px; right: 16px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-muted);
-      font-size: 1rem;
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-    .join-code-close:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
-
-    /* Animated code input */
-    .room-code-input-big {
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-      font-size: 1.8rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      font-weight: 800;
-      font-family: var(--font-display);
-      background: rgba(16,185,129,0.06);
-      border: 2px solid rgba(16,185,129,0.3);
-      border-radius: 12px;
-      padding: 16px 14px;
-      color: #34d399;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      caret-color: #34d399;
-    }
-    .room-code-input-big::placeholder { color: rgba(52,211,153,0.3); letter-spacing: 0.15em; font-size: 1.4rem; font-weight: 600; }
-    .room-code-input-big:focus {
-      border-color: rgba(52,211,153,0.7);
-      box-shadow: 0 0 0 3px rgba(52,211,153,0.15), 0 0 20px rgba(52,211,153,0.1);
-    }
-    .room-code-input-big.error {
-      border-color: rgba(239,68,68,0.7);
-      color: #f87171;
-      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
-      animation: shake 0.35s ease;
-    }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25%     { transform: translateX(-6px); }
-      75%     { transform: translateX(6px); }
-    }
-    .join-hint {
-      font-size: 0.78rem;
-      margin-top: 8px;
-      min-height: 18px;
-      transition: color 0.15s;
-    }
-    .join-hint.ok  { color: #34d399; }
-    .join-hint.err { color: #f87171; }
-    .join-hint.dim { color: var(--text-muted); }
-
-    /* Two action buttons in Human Mode card */
-    .human-action-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .btn-host {
-      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(52,211,153,0.15));
-      border: 1.5px solid rgba(52,211,153,0.45);
-      color: #34d399;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 14px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all 0.2s;
-    }
-    .btn-host:hover {
-      background: rgba(52,211,153,0.28);
-      box-shadow: 0 0 20px rgba(52,211,153,0.2);
-      transform: translateY(-1px);
-    }
-    .btn-join-code {
-      background: rgba(255,255,255,0.05);
-      border: 1.5px solid rgba(255,255,255,0.14);
-      color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 0.93rem;
-      padding: 12px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all 0.2s;
-    }
-    .btn-join-code:hover {
-      background: rgba(16,185,129,0.1);
-      border-color: rgba(16,185,129,0.35);
-      color: #34d399;
-    }
-
-    /* AI Participant Count Selector */
+    /* AI Count Controls */
     .ai-count-container {
-      margin-bottom: 20px;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(108,99,255,0.2);
+      margin-bottom: 18px;
+      padding: 14px;
+      background: rgba(10, 15, 29, 0.6);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius-lg);
     }
     .ai-count-label {
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-secondary);
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
       margin-bottom: 8px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
+      justify-content: space-between;
     }
     .ai-count-selector {
       display: flex;
-      justify-content: center;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(108,99,255,0.3);
-      border-radius: var(--radius-full);
-      padding: 3px;
-      gap: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      gap: 2px;
+      overflow-x: auto;
     }
     .ai-count-btn {
       flex: 1;
+      min-width: 38px;
       background: transparent;
       border: none;
       color: var(--text-secondary);
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 7px 10px;
-      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all var(--transition-fast);
+      text-align: center;
       white-space: nowrap;
     }
     .ai-count-btn:hover {
-      color: #fff;
-      background: rgba(108,99,255,0.15);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
     }
     .ai-count-btn.active {
-      background: var(--grad-primary);
-      color: #fff;
-      box-shadow: 0 0 14px rgba(108,99,255,0.45);
+      background: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     }
 
     .btn-step {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      border: 1px solid rgba(108,99,255,0.35);
-      background: rgba(108,99,255,0.12);
-      color: var(--accent-secondary);
-      font-size: 1.1rem;
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      font-size: 1rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all var(--transition-fast);
-      line-height: 1;
-      user-select: none;
     }
     .btn-step:hover {
-      background: rgba(108,99,255,0.3);
-      color: #fff;
-      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
     }
     .ai-number-input {
-      width: 52px;
-      height: 28px;
+      width: 48px;
+      height: 26px;
       text-align: center;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #fff;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(108,99,255,0.4);
-      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      background: var(--bg-input);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Human Action Buttons */
+    .human-action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .btn-host {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      transition: all var(--transition-fast);
+    }
+    .btn-host:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .btn-join-code {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.88rem;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all var(--transition-fast);
+    }
+    .btn-join-code:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Join Code Modal */
+    .join-code-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.88);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+    .join-code-box {
+      padding: 32px 28px;
+      max-width: 440px;
+      width: 92%;
+      border-radius: var(--radius-xl);
+      position: relative;
+      text-align: center;
+      background: var(--bg-card-solid);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-lg);
+      animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .join-code-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .join-code-close:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+    }
+
+    .room-code-input-big {
+      width: 100%;
+      text-align: center;
+      font-size: 1.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      background: var(--bg-input);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      color: var(--text-primary);
       outline: none;
       transition: all var(--transition-fast);
-      -moz-appearance: textfield;
-      appearance: textfield;
     }
-    .ai-number-input::-webkit-outer-spin-button,
-    .ai-number-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    .room-code-input-big:focus {
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
     }
-    .ai-number-input:focus {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 12px rgba(108,99,255,0.35);
-      background: rgba(108,99,255,0.1);
+    .room-code-input-big.error {
+      border-color: var(--accent-red);
+      color: #fb7185;
+    }
+
+    .join-hint {
+      font-size: 0.74rem;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+    .join-hint.ok { color: #34d399; }
+    .join-hint.err { color: #fb7185; }
+    .join-hint.dim { color: var(--text-muted); }
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .mode-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 <div class="app-layout">
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
     </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item active"><span class="icon">▶️</span> Start GD</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
       <div class="nav-section-label">Account</div>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
     </nav>
+
     <div class="sidebar-footer">
       <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-avatar" id="sidebar-avatar">A</div>
         <div class="user-info">
-          <div class="name" id="sidebar-name">Loading...</div>
-          <div class="email" id="sidebar-email">--</div>
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
         </div>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
-    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+    <div class="page-header">
       <div>
-        <a href="/dashboard.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:10px">
-          ← Back to Dashboard
+        <div class="page-title">Select Practice Environment</div>
+        <div class="page-subtitle">Configure autonomous multi-agent simulation or connect with real peers.</div>
+      </div>
+      <div>
+        <a href="/dashboard.html" class="btn btn-secondary btn-sm">
+          ← Return to Dashboard
         </a>
-        <div class="page-title">Select GD Mode</div>
-        <div class="page-subtitle">Choose how you want to practice today</div>
       </div>
     </div>
 
     <div class="page-content">
       <!-- 4-Step Practice Workflow Indicator -->
       <div class="workflow-stepper">
-        <div class="step-item active"><div class="step-number">1</div> Select Mode</div>
+        <div class="step-item active"><div class="step-number">1</div> Select Environment</div>
         <div class="step-divider"></div>
-        <div class="step-item"><div class="step-number">2</div> Choose Topic</div>
+        <div class="step-item"><div class="step-number">2</div> Topic Selection</div>
         <div class="step-divider"></div>
-        <div class="step-item"><div class="step-number">3</div> GD Room</div>
+        <div class="step-item"><div class="step-number">3</div> Boardroom</div>
         <div class="step-divider"></div>
-        <div class="step-item"><div class="step-number">4</div> Analysis</div>
+        <div class="step-item"><div class="step-number">4</div> Diagnostic Report</div>
       </div>
+
       <div class="mode-grid">
 
-        <!-- AI MODE -->
-        <div class="mode-card ai-card animate-fade-in" onclick="selectMode('ai')">
-          <span class="mode-icon">🤖</span>
-
-          <div class="ai-agents-preview" id="ai-agents-preview">
-            <div class="agent-mini" style="background:rgba(156,39,176,0.15); color:#c084fc" title="Priya - Moderator">👩‍🏫</div>
-            <div class="agent-mini" style="background:rgba(16,185,129,0.15); color:#34d399" title="Arjun - Supporter">🧑‍💼</div>
-            <div class="agent-mini" style="background:rgba(239,68,68,0.15); color:#f87171" title="Meera - Opponent">👩‍💼</div>
-            <div class="agent-mini" style="background:rgba(59,130,246,0.15); color:#60a5fa" title="Ravi - Analyst">👨‍🔬</div>
-          </div>
-
-          <div class="mode-title">AI Mode</div>
-
-          <!-- AI Participants Count Selector -->
-          <div class="ai-count-container" onclick="event.stopPropagation()">
-            <div class="ai-count-label">
-              <span>👥</span> AI Participants: <span id="ai-count-display-badge" style="color:#fff; font-weight:800">4 AI</span>
-            </div>
-            <div class="ai-count-selector" id="ai-count-selector">
-              <button type="button" class="ai-count-btn" data-count="2" onclick="setAiParticipantCount(2, event)" title="2 AI: Supporter & Opponent (Intense debate)">2 AI</button>
-              <button type="button" class="ai-count-btn" data-count="3" onclick="setAiParticipantCount(3, event)" title="3 AI: Moderator, Supporter, Opponent">3 AI</button>
-              <button type="button" class="ai-count-btn active" data-count="4" onclick="setAiParticipantCount(4, event)" title="4 AI: Moderator, Supporter, Opponent, Analyst (Standard)">4 AI</button>
-              <button type="button" class="ai-count-btn" data-count="5" onclick="setAiParticipantCount(5, event)" title="5 AI: + Vikram (Realist)">5 AI</button>
-              <button type="button" class="ai-count-btn" data-count="6" onclick="setAiParticipantCount(6, event)" title="6 AI: + Ananya (Synthesizer)">6 AI</button>
-              <button type="button" class="ai-count-btn" data-count="7" onclick="setAiParticipantCount(7, event)" title="7 AI: + Neha (Questioner)">7 AI</button>
-              <button type="button" class="ai-count-btn" data-count="8" onclick="setAiParticipantCount(8, event)" title="8 AI: + Karthik (Devil's Advocate)">8 AI</button>
-              <button type="button" class="ai-count-btn" data-count="9" onclick="setAiParticipantCount(9, event)" title="9 AI: + Sneha (Peacemaker)">9 AI</button>
-              <button type="button" class="ai-count-btn" data-count="10" onclick="setAiParticipantCount(10, event)" title="10 AI: + Rahul (Innovator)">10 AI</button>
-            </div>
-
-            <!-- Type the number of AI participation option -->
-            <div class="type-ai-count-wrapper" style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px">
-              <span style="font-size:0.75rem; color:var(--text-muted)">⌨️ Or type number:</span>
-              <div style="display:flex; align-items:center; gap:4px">
-                <button type="button" class="btn-step" onclick="stepAiParticipantCount(-1, event)" title="Decrease">−</button>
-                <input
-                  type="number"
-                  id="ai-count-typed-input"
-                  min="2"
-                  max="10"
-                  value="4"
-                  class="ai-number-input"
-                  oninput="onTypeAiParticipantCount(this.value, event)"
-                  title="Type number of AI participants (2 to 10)"
-                  placeholder="2-10"
-                />
-                <button type="button" class="btn-step" onclick="stepAiParticipantCount(1, event)" title="Increase">+</button>
+        <!-- AI MODE CARD -->
+        <div class="mode-card ai-card" onclick="selectMode('ai')">
+          <div>
+            <div class="mode-header">
+              <div class="mode-icon-box" style="background:rgba(99,102,241,0.12); color:#818cf8">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
               </div>
-              <span style="font-size:0.72rem; color:var(--text-muted)">(2 to 10)</span>
+              <span class="badge badge-primary">Solo • Instant Start</span>
             </div>
+
+            <div class="mode-title">AI Multi-Agent Simulation</div>
+            <div class="mode-desc" id="ai-mode-desc">
+              Practice with autonomous personas exhibiting diverse rhetorical debate styles.
+            </div>
+
+            <!-- AI Participant Avatars / Pills -->
+            <div class="ai-agents-preview" id="ai-agents-preview">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Participant Count Selector -->
+            <div class="ai-count-container" onclick="event.stopPropagation()">
+              <div class="ai-count-label">
+                <span>Roster Density</span>
+                <span id="ai-count-display-badge" style="color:var(--text-primary); font-weight:700">4 Agents</span>
+              </div>
+              <div class="ai-count-selector" id="ai-count-selector">
+                <button type="button" class="ai-count-btn" data-count="2" onclick="setAiParticipantCount(2, event)">2</button>
+                <button type="button" class="ai-count-btn" data-count="3" onclick="setAiParticipantCount(3, event)">3</button>
+                <button type="button" class="ai-count-btn active" data-count="4" onclick="setAiParticipantCount(4, event)">4 Standard</button>
+                <button type="button" class="ai-count-btn" data-count="5" onclick="setAiParticipantCount(5, event)">5</button>
+                <button type="button" class="ai-count-btn" data-count="6" onclick="setAiParticipantCount(6, event)">6 Full Board</button>
+                <button type="button" class="ai-count-btn" data-count="8" onclick="setAiParticipantCount(8, event)">8</button>
+              </div>
+
+              <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between">
+                <span style="font-size:0.74rem; color:var(--text-muted)">Custom count:</span>
+                <div style="display:flex; align-items:center; gap:4px">
+                  <button type="button" class="btn-step" onclick="stepAiParticipantCount(-1, event)">−</button>
+                  <input
+                    type="number"
+                    id="ai-count-typed-input"
+                    min="2"
+                    max="10"
+                    value="4"
+                    class="ai-number-input"
+                    oninput="onTypeAiParticipantCount(this.value, event)"
+                  />
+                  <button type="button" class="btn-step" onclick="stepAiParticipantCount(1, event)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <ul class="mode-features">
+              <li id="ai-feature-participants">
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                4 AI participants (Moderator, Supporter, Opponent, Analyst)
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Real-time voice capture & natural speech synthesis
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Instant 8-competency placement diagnostics
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Available on demand — zero peer coordination required
+              </li>
+            </ul>
           </div>
 
-          <div class="mode-desc" id="ai-mode-desc">
-            Practice with 4 unique AI participants — each with distinct personalities and debating styles.
-          </div>
-
-          <ul class="mode-features">
-            <li id="ai-feature-participants"><span class="check">✅</span> 4 AI participants (Moderator, Supporter, Opponent, Analyst)</li>
-            <li><span class="check">✅</span> Voice input & AI speech output</li>
-            <li><span class="check">✅</span> Real-time turn management</li>
-            <li><span class="check">✅</span> Full AI performance evaluation</li>
-            <li><span class="check">✅</span> Available 24/7 — no waiting</li>
-          </ul>
-
-          <button class="btn btn-primary btn-full btn-lg" onclick="event.stopPropagation(); selectMode('ai');">
-            Start AI Mode →
+          <button class="btn btn-primary btn-full" onclick="event.stopPropagation(); selectMode('ai');">
+            Configure AI Discussion →
           </button>
         </div>
 
-        <!-- HUMAN MODE -->
-        <div class="mode-card human-card animate-fade-in" style="animation-delay:0.1s" onclick="selectMode('human')">
-          <span class="mode-icon">👥</span>
+        <!-- HUMAN MODE CARD -->
+        <div class="mode-card human-card" onclick="selectMode('human')">
+          <div>
+            <div class="mode-header">
+              <div class="mode-icon-box" style="background:rgba(16,185,129,0.12); color:#34d399">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <span class="badge badge-green">Multiplayer • WebRTC</span>
+            </div>
 
-          <div style="display:flex; justify-content:center; gap:-8px; margin-bottom:24px">
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,0.2);border:2px solid rgba(16,185,129,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem">R</div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(59,130,246,0.2);border:2px solid rgba(59,130,246,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">P</div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.2);border:2px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">A</div>
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(236,72,153,0.2);border:2px solid rgba(236,72,153,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-left:-8px">+</div>
+            <div class="mode-title">Collaborative Peer Room</div>
+            <div class="mode-desc">
+              Host or join a synchronized live discussion room with classmates, peers, or batchmates.
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px">
+              <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid var(--glass-border)">
+                Synchronized Timer
+              </span>
+              <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid var(--glass-border)">
+                Host Moderation Controls
+              </span>
+              <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid var(--glass-border)">
+                Live WebSockets
+              </span>
+            </div>
+
+            <ul class="mode-features">
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Real-time peer-to-peer audio & synchronized chat
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Instant 6-character room codes and 1-click invite tokens
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Speaker turn queue, hand raising, and active audio wave
+              </li>
+              <li>
+                <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Automated multi-speaker evaluation report post-session
+              </li>
+            </ul>
           </div>
 
-          <div class="mode-title">Human Mode</div>
-          <div class="mode-desc">
-            Create a room or join with a Room ID. Practice with your classmates, friends, or batchmates.
-          </div>
-
-          <ul class="mode-features">
-            <li><span class="check">✅</span> Real-time multiplayer discussion room</li>
-            <li><span class="check">✅</span> Create room & share Room ID</li>
-            <li><span class="check">✅</span> Text chat + voice input</li>
-            <li><span class="check">✅</span> Discussion timer & turn management</li>
-            <li><span class="check">✅</span> AI feedback after discussion</li>
-          </ul>
-
-          <!-- Two distinct action buttons -->
           <div class="human-action-btns">
             <button class="btn-host" id="btn-host-new-room" onclick="event.stopPropagation(); hostHumanRoom(event);">
-              🎯 Host New Room
+              <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+              Host New Discussion Room
             </button>
             <button class="btn-join-code" id="btn-open-join-modal" onclick="event.stopPropagation(); openJoinCodeModal(event);">
-              🔑 Join with Room Code
+              <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+              Join with 6-Digit Code
             </button>
-            <a href="/select-topic.html?mode=human"
-               onclick="event.stopPropagation();"
-               style="font-size:0.76rem; color:var(--text-muted); text-align:center; display:block; margin-top:2px">
-              or choose a custom topic first →
-            </a>
           </div>
         </div>
 
@@ -514,65 +605,51 @@
   </main>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     JOIN WITH CODE MODAL
-═══════════════════════════════════════════════════════════ -->
+<!-- JOIN CODE MODAL -->
 <div id="join-code-modal" class="join-code-overlay" onclick="if(event.target===this) closeJoinCodeModal();">
   <div class="join-code-box">
-
     <button class="join-code-close" onclick="closeJoinCodeModal()" title="Close">✕</button>
 
-    <div style="font-size:2.8rem; margin-bottom:12px; animation:float 3s ease infinite">🔑</div>
-    <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:6px">Join Human GD Room</h2>
-    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px">
-      Enter or paste the Room Code (or full invite link) shared by your host
+    <div style="width:44px; height:44px; border-radius:var(--radius-lg); background:rgba(16,185,129,0.12); color:#34d399; display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+
+    <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:6px">Join Discussion Room</h2>
+    <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:18px">
+      Enter the Room Code or paste the invite link shared by the host.
     </p>
 
-    <!-- Code Input with integrated Paste button -->
     <div style="position:relative; margin-bottom:6px">
       <input
         id="room-code-input"
         class="room-code-input-big"
         type="text"
-        placeholder="GD····"
+        placeholder="GD2026"
         maxlength="120"
         autocomplete="off"
         spellcheck="false"
-        style="padding-right:90px"
+        style="padding-right:85px"
       />
       <button
         id="btn-modal-paste"
         type="button"
         onclick="pasteCodeFromClipboard()"
-        title="Paste room code from clipboard"
-        style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(16,185,129,0.18); border:1px solid rgba(52,211,153,0.45); color:#34d399; font-weight:700; font-size:0.8rem; padding:8px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s"
+        style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.06); border:1px solid var(--glass-border); color:var(--text-secondary); font-weight:600; font-size:0.75rem; padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer"
       >
-        📋 Paste
+        Paste
       </button>
     </div>
-    <div id="join-code-hint" class="join-hint dim">Accepts a code like GD2341 or a full invite URL</div>
+    <div id="join-code-hint" class="join-hint dim">Accepts format like GD4812 or invite URL</div>
 
-    <!-- Dual Actions: Join Now or Quick Paste & Join -->
-    <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px">
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:18px">
       <button
-        class="btn btn-success btn-full btn-lg"
+        class="btn btn-success btn-full"
         id="join-code-submit"
         onclick="submitJoinCode()"
-        style="font-size:1rem; font-weight:700; padding:14px"
       >
-        Join Discussion Now →
-      </button>
-
-      <button
-        type="button"
-        id="btn-quick-paste-join"
-        onclick="quickPasteAndJoin()"
-        style="width:100%; padding:12px; font-size:0.88rem; font-weight:700; border-radius:12px; cursor:pointer; background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.3); color:#a78bfa; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s"
-      >
-        ⚡ Paste from Clipboard &amp; Join Instantly
+        Connect to Boardroom →
       </button>
     </div>
-
   </div>
 </div>
 
@@ -586,162 +663,114 @@
     document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
   }
 
-  // AI Participant Configurations
   const AI_PARTICIPANT_PRESETS = {
     2: {
       count: 2,
-      desc: 'Duo Debate: 2 AI participants (Arjun & Meera) for high speaking opportunities.',
+      desc: 'Duo Debate: 2 AI participants for concentrated speaking practice.',
       feature: '2 AI participants (Arjun - Supporter & Meera - Opponent)',
       agents: [
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' }
+        { name: 'Arjun', role: 'Constructive Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Critical Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' }
       ]
     },
     3: {
       count: 3,
-      desc: 'Trio Discussion: 3 AI participants led by a Moderator with pro and con viewpoints.',
+      desc: 'Trio Discussion: 3 AI participants with moderator synthesis.',
       feature: '3 AI participants (Priya - Moderator, Arjun - Supporter, Meera - Opponent)',
       agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' }
+        { name: 'Priya', role: 'Moderator AI', bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
+        { name: 'Arjun', role: 'Constructive Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Critical Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' }
       ]
     },
     4: {
       count: 4,
-      desc: 'Standard Panel: 4 AI participants with distinct personalities and debating styles.',
+      desc: 'Standard Panel: 4 distinct persona archetypes simulating campus placement rounds.',
       feature: '4 AI participants (Moderator, Supporter, Opponent, Analyst)',
       agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' }
+        { name: 'Priya', role: 'Moderator', bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
+        { name: 'Arjun', role: 'Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' },
+        { name: 'Ravi', role: 'Data Analyst', bg: 'rgba(2,132,199,0.12)', color: '#38bdf8' }
       ]
     },
     5: {
       count: 5,
-      desc: 'Extended Panel: 5 AI participants adding Vikram the Realist for execution checks.',
+      desc: 'Extended Panel: 5 AI participants incorporating the pragmatic realist persona.',
       feature: '5 AI participants (Moderator, Supporter, Opponent, Analyst, Realist)',
       agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' }
+        { name: 'Priya', role: 'Moderator', bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
+        { name: 'Arjun', role: 'Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' },
+        { name: 'Ravi', role: 'Analyst', bg: 'rgba(2,132,199,0.12)', color: '#38bdf8' },
+        { name: 'Vikram', role: 'Realist', bg: 'rgba(245,158,11,0.12)', color: '#fbbf24' }
       ]
     },
     6: {
       count: 6,
-      desc: 'Full Board GD: 6 AI participants covering moderation, critical points, and synthesis.',
+      desc: 'Full Board GD: 6 AI participants simulating high-competition corporate interviews.',
       feature: '6 AI participants (Full panel including Ananya the Synthesizer)',
       agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
-        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' }
-      ]
-    },
-    7: {
-      count: 7,
-      desc: 'Extended GD: 7 AI participants with Neha the Questioner.',
-      feature: '7 AI participants (+ Neha - Questioner)',
-      agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
-        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
-        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' }
+        { name: 'Priya', role: 'Moderator', bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
+        { name: 'Arjun', role: 'Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' },
+        { name: 'Ravi', role: 'Analyst', bg: 'rgba(2,132,199,0.12)', color: '#38bdf8' },
+        { name: 'Vikram', role: 'Realist', bg: 'rgba(245,158,11,0.12)', color: '#fbbf24' },
+        { name: 'Ananya', role: 'Synthesizer', bg: 'rgba(168,85,247,0.12)', color: '#c084fc' }
       ]
     },
     8: {
       count: 8,
-      desc: 'Large Panel: 8 AI participants adding Karthik as Devil\'s Advocate.',
-      feature: '8 AI participants (+ Karthik - Devil\'s Advocate)',
+      desc: 'Comprehensive Boardroom: 8 AI personas including Devil\'s Advocate and Questioner.',
+      feature: '8 AI participants (+ Karthik & Neha)',
       agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
-        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
-        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
-        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' }
-      ]
-    },
-    9: {
-      count: 9,
-      desc: 'Massive GD: 9 AI participants adding Sneha the Peacemaker.',
-      feature: '9 AI participants (+ Sneha - Peacemaker)',
-      agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
-        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
-        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
-        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' },
-        { emoji: '🕊️', bg: 'rgba(244,63,94,0.15)', color: '#f43f5e', title: 'Sneha - Peacemaker' }
-      ]
-    },
-    10: {
-      count: 10,
-      desc: 'Maximum GD: 10 AI participants covering every possible viewpoint.',
-      feature: '10 AI participants (+ Rahul - Innovator)',
-      agents: [
-        { emoji: '👩‍🏫', bg: 'rgba(156,39,176,0.15)', color: '#c084fc', title: 'Priya - Moderator' },
-        { emoji: '🧑‍💼', bg: 'rgba(16,185,129,0.15)', color: '#34d399', title: 'Arjun - Supporter' },
-        { emoji: '👩‍💼', bg: 'rgba(239,68,68,0.15)', color: '#f87171', title: 'Meera - Opponent' },
-        { emoji: '👨‍🔬', bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', title: 'Ravi - Analyst' },
-        { emoji: '👨‍💼', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', title: 'Vikram - Realist' },
-        { emoji: '👩‍💻', bg: 'rgba(236,72,153,0.15)', color: '#f472b6', title: 'Ananya - Synthesizer' },
-        { emoji: '🙋‍♀️', bg: 'rgba(20,184,166,0.15)', color: '#14b8a6', title: 'Neha - Questioner' },
-        { emoji: '🕵️‍♂️', bg: 'rgba(99,102,241,0.15)', color: '#6366f1', title: 'Karthik - Devil\'s Advocate' },
-        { emoji: '🕊️', bg: 'rgba(244,63,94,0.15)', color: '#f43f5e', title: 'Sneha - Peacemaker' },
-        { emoji: '💡', bg: 'rgba(234,179,8,0.15)', color: '#eab308', title: 'Rahul - Innovator' }
+        { name: 'Priya', role: 'Moderator', bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
+        { name: 'Arjun', role: 'Supporter', bg: 'rgba(16,185,129,0.12)', color: '#34d399' },
+        { name: 'Meera', role: 'Challenger', bg: 'rgba(244,63,94,0.12)', color: '#fb7185' },
+        { name: 'Ravi', role: 'Analyst', bg: 'rgba(2,132,199,0.12)', color: '#38bdf8' },
+        { name: 'Vikram', role: 'Realist', bg: 'rgba(245,158,11,0.12)', color: '#fbbf24' },
+        { name: 'Ananya', role: 'Synthesizer', bg: 'rgba(168,85,247,0.12)', color: '#c084fc' },
+        { name: 'Karthik', role: 'Advocate', bg: 'rgba(236,72,153,0.12)', color: '#f472b6' },
+        { name: 'Neha', role: 'Inquisitor', bg: 'rgba(20,184,166,0.12)', color: '#2dd4bf' }
       ]
     }
   };
 
   let selectedAiCount = parseInt(localStorage.getItem('gd_ai_participants') || '4', 10);
-  if (isNaN(selectedAiCount) || selectedAiCount < 2 || selectedAiCount > 10) selectedAiCount = 4;
+  if (!AI_PARTICIPANT_PRESETS[selectedAiCount]) selectedAiCount = 4;
 
   function setAiParticipantCount(count, event) {
     if (event) event.stopPropagation();
     selectedAiCount = count;
     localStorage.setItem('gd_ai_participants', count);
 
-    // Update active button
     document.querySelectorAll('.ai-count-btn').forEach(btn => {
       btn.classList.toggle('active', parseInt(btn.dataset.count, 10) === count);
     });
 
     const preset = AI_PARTICIPANT_PRESETS[count] || AI_PARTICIPANT_PRESETS[4];
 
-    // Update badge display
     const badge = document.getElementById('ai-count-display-badge');
-    if (badge) badge.textContent = `${count} AI`;
+    if (badge) badge.textContent = `${count} Agents`;
 
-    // Update description & feature list
     const descEl = document.getElementById('ai-mode-desc');
     if (descEl) descEl.textContent = preset.desc;
 
     const featEl = document.getElementById('ai-feature-participants');
-    if (featEl) featEl.innerHTML = `<span class="check">✅</span> ${preset.feature}`;
+    if (featEl) {
+      featEl.innerHTML = `<svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${preset.feature}`;
+    }
 
-    // Update preview avatars
     const previewEl = document.getElementById('ai-agents-preview');
     if (previewEl) {
       previewEl.innerHTML = preset.agents.map(a =>
-        `<div class="agent-mini" style="background:${a.bg}; color:${a.color}" title="${a.title}">${a.emoji}</div>`
+        `<div class="agent-mini" style="background:${a.bg}; color:${a.color}; border-color:${a.color}33">
+          <span style="font-weight:700">${a.name}</span>
+          <span style="opacity:0.7; font-size:0.68rem">(${a.role})</span>
+        </div>`
       ).join('');
     }
 
-    // Keep the typed input in sync
     const typedInput = document.getElementById('ai-count-typed-input');
     if (typedInput && parseInt(typedInput.value, 10) !== count) {
       typedInput.value = count;
@@ -752,17 +781,20 @@
     if (event) event.stopPropagation();
     const parsed = parseInt(val, 10);
     if (isNaN(parsed)) return;
-    const clamped = Math.max(2, Math.min(10, parsed));
+    const clamped = Math.max(2, Math.min(8, parsed));
     setAiParticipantCount(clamped);
   }
 
   function stepAiParticipantCount(delta, event) {
     if (event) event.stopPropagation();
-    const next = Math.max(2, Math.min(10, selectedAiCount + delta));
-    setAiParticipantCount(next);
+    const counts = [2, 3, 4, 5, 6, 8];
+    const currentIndex = counts.indexOf(selectedAiCount);
+    let nextIndex = (currentIndex === -1 ? 2 : currentIndex) + delta;
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex >= counts.length) nextIndex = counts.length - 1;
+    setAiParticipantCount(counts[nextIndex]);
   }
 
-  // Initialize selected count on page load
   setTimeout(() => setAiParticipantCount(selectedAiCount), 0);
 
   function selectMode(mode) {
@@ -779,28 +811,26 @@
     if (e) e.stopPropagation();
     const btn = document.getElementById('btn-host-new-room');
     if (btn) {
-      btn.innerHTML = '🎯 Creating Room...';
+      btn.innerHTML = 'Initializing Room...';
       btn.disabled = true;
     }
 
     const roomId = 'GD' + Math.floor(1000 + Math.random() * 9000);
-    const defaultTopic = 'Artificial Intelligence in Modern Education';
+    const defaultTopic = 'Artificial Intelligence & Algorithmic Ethics in Modern Hiring';
 
     try {
       if (window.API && window.API.Sessions) {
-        const res = await window.API.Sessions.create('human', defaultTopic, 'General', roomId);
+        const res = await window.API.Sessions.create('human', defaultTopic, 'Technology', roomId);
         const sid = res?.session?.session_id || '';
         window.location.href = `/human-room.html?action=create&roomId=${roomId}&topic=${encodeURIComponent(defaultTopic)}` + (sid ? `&session=${sid}` : '');
         return;
       }
     } catch (err) {
-      console.warn('Session creation error (navigating without session ID):', err.message || err);
-      // Gracefully fall through — still navigate to room without a session ID
+      console.warn('Session initialization fallback:', err);
     }
     window.location.href = `/human-room.html?action=create&roomId=${roomId}&topic=${encodeURIComponent(defaultTopic)}`;
   }
 
-  /* ── Join Code Modal ────────────────────────────────────────── */
   function openJoinCodeModal(e, prefill) {
     if (e && e.stopPropagation) e.stopPropagation();
     const modal = document.getElementById('join-code-modal');
@@ -816,14 +846,13 @@
   function closeJoinCodeModal() {
     document.getElementById('join-code-modal').style.display = 'none';
     const hint = document.getElementById('join-code-hint');
-    if (hint) { hint.textContent = 'Accepts a code like GD2341 or a full invite URL'; hint.className = 'join-hint dim'; }
+    if (hint) { hint.textContent = 'Accepts format like GD4812 or invite URL'; hint.className = 'join-hint dim'; }
     const inp = document.getElementById('room-code-input');
     if (inp) { inp.value = ''; inp.className = 'room-code-input-big'; }
     const btn = document.getElementById('join-code-submit');
-    if (btn) { btn.innerHTML = 'Join Discussion Now →'; btn.disabled = false; }
+    if (btn) { btn.innerHTML = 'Connect to Boardroom →'; btn.disabled = false; }
   }
 
-  /* Live validation + auto-caps + URL paste detection */
   function validateRoomInput(inp) {
     let raw = inp.value;
     if (raw.includes('roomId=')) {
@@ -838,13 +867,13 @@
     const hint = document.getElementById('join-code-hint');
     inp.classList.remove('error');
     if (!clean) {
-      hint.textContent = 'Accepts a code like GD2341 or a full invite URL';
+      hint.textContent = 'Accepts format like GD4812 or invite URL';
       hint.className = 'join-hint dim';
     } else if (clean.length < 4) {
-      hint.textContent = 'Room codes are at least 4 characters';
+      hint.textContent = 'Room token must contain at least 4 characters';
       hint.className = 'join-hint err';
     } else {
-      hint.textContent = `✓ Room code looks good — press Join to continue`;
+      hint.textContent = `✓ Room token verified — ready to connect`;
       hint.className = 'join-hint ok';
     }
   }
@@ -870,111 +899,36 @@
     if (!code || code.length < 2) {
       if (inp) inp.classList.add('error');
       const hint = document.getElementById('join-code-hint');
-      if (hint) { hint.textContent = 'Please enter a valid Room Code'; hint.className = 'join-hint err'; }
-      setTimeout(() => inp?.classList.remove('error'), 700);
+      if (hint) { hint.textContent = 'Please provide a valid Room Code'; hint.className = 'join-hint err'; }
       return;
     }
 
     if (btn) {
-      btn.innerHTML = 'Joining...';
+      btn.innerHTML = 'Connecting...';
       btn.disabled = true;
     }
 
-    // Navigate directly to human-room as a joiner (no session creation needed for join)
     window.location.href = `/human-room.html?action=join&roomId=${encodeURIComponent(code)}`;
   }
 
-  /* ── Clipboard Paste Functions ────────────────────────────── */
   async function pasteCodeFromClipboard() {
     const inp = document.getElementById('room-code-input');
-    const pasteBtn = document.getElementById('btn-modal-paste');
     try {
       let text = '';
       if (navigator.clipboard && navigator.clipboard.readText) {
         text = await navigator.clipboard.readText();
       }
-      if (!text) {
-        inp?.focus();
-        if (window.AppUtils && AppUtils.showToast) {
-          AppUtils.showToast('Clipboard is empty. Press Ctrl+V in the box to paste.', 'info');
-        }
-        return;
-      }
-      if (inp) {
+      if (text && inp) {
         inp.value = text.trim();
         validateRoomInput(inp);
-        if (pasteBtn) {
-          pasteBtn.innerHTML = '✓ Pasted!';
-          pasteBtn.style.background = 'rgba(16,185,129,0.35)';
-          setTimeout(() => {
-            pasteBtn.innerHTML = '📋 Paste';
-            pasteBtn.style.background = 'rgba(16,185,129,0.18)';
-          }, 1800);
-        }
-        if (window.AppUtils && AppUtils.showToast) {
-          AppUtils.showToast(`📋 Pasted code: ${inp.value}`, 'success');
-        }
+        AppUtils.showToast('Room code pasted from clipboard', 'info');
       }
     } catch (err) {
       console.warn('Clipboard read error:', err);
       inp?.focus();
-      if (window.AppUtils && AppUtils.showToast) {
-        AppUtils.showToast('Please press Ctrl+V inside the box to paste.', 'info');
-      }
     }
   }
 
-  async function quickPasteAndJoin() {
-    const inp = document.getElementById('room-code-input');
-    try {
-      let text = '';
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        text = await navigator.clipboard.readText();
-      }
-      if (!text) {
-        if (window.AppUtils && AppUtils.showToast) {
-          AppUtils.showToast('Clipboard is empty! Copy your room code or invite link first.', 'error');
-        }
-        inp?.focus();
-        return;
-      }
-      if (inp) {
-        inp.value = text.trim();
-        validateRoomInput(inp);
-        if (window.AppUtils && AppUtils.showToast) {
-          AppUtils.showToast(`⚡ Joining room ${inp.value}...`, 'info');
-        }
-        setTimeout(() => submitJoinCode(), 250);
-      }
-    } catch (err) {
-      console.warn('Quick paste error:', err);
-      inp?.focus();
-      if (window.AppUtils && AppUtils.showToast) {
-        AppUtils.showToast('Please paste your code manually and click Join.', 'info');
-      }
-    }
-  }
-
-  /* Listen for global Ctrl+V when join modal is open */
-  document.addEventListener('paste', (e) => {
-    const modal = document.getElementById('join-code-modal');
-    if (modal && modal.style.display === 'flex') {
-      const inp = document.getElementById('room-code-input');
-      if (inp && document.activeElement !== inp) {
-        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
-        if (text) {
-          e.preventDefault();
-          inp.value = text.trim();
-          validateRoomInput(inp);
-          if (window.AppUtils && AppUtils.showToast) {
-            AppUtils.showToast(`📋 Pasted: ${inp.value}`, 'success');
-          }
-        }
-      }
-    }
-  });
-
-  /* ── Auto-open join modal if page URL has ?roomId=... or ?action=join&roomId=... ── */
   (function checkUrlAutoJoin() {
     const p = new URLSearchParams(window.location.search);
     const rid = p.get('roomId') || p.get('room');

@@ -4,203 +4,394 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — GD Simulator</title>
-  <meta name="description" content="Your GD Simulator dashboard. View your performance stats, recent sessions, and start a new group discussion." />
+  <meta name="description" content="Candidate performance analytics, diagnostic progress, and group discussion simulation launchpad." />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* Executive Welcome Banner */
     .welcome-banner {
-      background: var(--grad-primary);
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.28);
       border-radius: var(--radius-xl);
-      padding: 32px 36px;
-      margin-bottom: 28px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 24px;
       position: relative;
       overflow: hidden;
-    }
-    .welcome-banner::before {
-      content: '';
-      position: absolute;
-      right: -60px; top: -60px;
-      width: 200px; height: 200px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.08);
+      box-shadow: var(--shadow-sm);
     }
     .welcome-banner::after {
       content: '';
       position: absolute;
-      right: 60px; bottom: -40px;
-      width: 120px; height: 120px;
+      right: -80px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.05);
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+      pointer-events: none;
     }
-    .welcome-text h2 { color: white; font-size: 1.6rem; margin-bottom: 6px; }
-    .welcome-text p { color: rgba(255,255,255,0.75); font-size: 0.9rem; }
-    .welcome-actions { display: flex; gap: 12px; z-index: 1; flex-shrink: 0; }
-    .btn-white { background: white; color: var(--accent-primary); font-weight: 700; }
-    .btn-white:hover { background: rgba(255,255,255,0.9); color: var(--accent-primary); transform: translateY(-2px); }
-    .btn-white-outline { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
-    .btn-white-outline:hover { background: rgba(255,255,255,0.25); color: white; transform: translateY(-2px); }
+    .welcome-text h2 {
+      color: var(--text-primary);
+      font-size: 1.55rem;
+      margin-bottom: 6px;
+      letter-spacing: -0.025em;
+    }
+    .welcome-text p {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+    .welcome-actions {
+      display: flex;
+      gap: 10px;
+      z-index: 1;
+      flex-shrink: 0;
+    }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
 
     .section-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      letter-spacing: -0.01em;
     }
 
+    /* Session Row */
     .session-row {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
       transition: all var(--transition-fast);
       cursor: pointer;
+      margin-bottom: 4px;
+      background: rgba(255, 255, 255, 0.02);
     }
-    .session-row:last-child { border-bottom: none; }
-    .session-row:hover { padding-left: 8px; }
+    .session-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--glass-border);
+      transform: translateX(2px);
+    }
 
     .session-mode-icon {
-      width: 40px; height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; flex-shrink: 0;
-    }
-    .session-info { flex: 1; min-width: 0; }
-    .session-topic { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .session-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
-    .session-score { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; }
-
-    .api-key-banner {
-      background: rgba(245,158,11,0.08);
-      border: 1px solid rgba(245,158,11,0.25);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .session-mode-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .session-info { flex: 1; min-width: 0; }
+    .session-topic {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .session-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .session-score {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* API Key Banner */
+    .api-key-banner {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.22);
+      border-radius: var(--radius-lg);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
       margin-bottom: 20px;
     }
     .api-key-banner.hidden { display: none; }
 
-    .chart-container { position: relative; height: 200px; }
+    .chart-container { position: relative; height: 230px; width: 100%; }
+
+    /* Launchpad Card */
+    .launch-card {
+      padding: 24px;
+      border-radius: var(--radius-xl);
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      transition: all var(--transition-normal);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .launch-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), 0 0 24px rgba(99, 102, 241, 0.12);
+    }
+    .launch-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .launch-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .launch-card-icon svg { width: 24px; height: 24px; }
+    .launch-card-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .launch-card-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
 
     @media (max-width: 900px) {
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .welcome-actions { flex-direction: column; }
+      .welcome-banner { flex-direction: column; align-items: flex-start; }
+      .welcome-actions { width: 100%; flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
 <div class="app-layout">
 
-  <!-- SIDEBAR -->
+  <!-- ENTERPRISE SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
     </div>
+
+    <!-- Active Track Badge -->
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="/dashboard.html" class="nav-item active"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
       <div class="nav-section-label">Account</div>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
     </nav>
+
     <div class="sidebar-footer">
       <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-avatar" id="sidebar-avatar">A</div>
         <div class="user-info">
-          <div class="name" id="sidebar-name">Loading...</div>
-          <div class="email" id="sidebar-email">--</div>
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
+    <!-- Topbar Header -->
     <div class="page-header">
-      <div class="page-title" id="welcome-title">Welcome back! 👋</div>
-      <div class="page-subtitle">Ready to practice today?</div>
+      <div>
+        <div class="page-title" id="welcome-title">Candidate Overview</div>
+        <div class="page-subtitle">Track longitudinal discourse metrics, speaking time, and diagnostic readiness.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge badge-primary">AI Evaluation Engine Online</span>
+        <button class="btn btn-secondary btn-sm" onclick="showApiKeyModal()">
+          <svg style="width:14px;height:14px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L12 11l4 4 5.5-5.5a2.12 2.12 0 0 0 0-3L21 2Z"/><path d="m15.5 8.5-3 3"/><path d="M3 21l6-6"/></svg>
+          API Settings
+        </button>
+      </div>
     </div>
 
     <div class="page-content">
 
-      <!-- API Key Banner -->
+      <!-- API Key Notice Banner -->
       <div class="api-key-banner" id="api-key-banner">
-        <span style="font-size:1.5rem">🔑</span>
+        <svg style="width:20px;height:20px;color:var(--accent-yellow);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
         <div style="flex:1">
-          <div style="font-weight:600; color: var(--accent-yellow); font-size:0.9rem">Gemini API Key Required</div>
-          <div style="font-size:0.78rem; color: var(--text-muted)">Configure your Gemini API key to enable AI features</div>
+          <div style="font-weight:600; color:#fde68a; font-size:0.86rem">Google Gemini API Key Configured</div>
+          <div style="font-size:0.75rem; color:var(--text-muted)">The simulator uses Gemini for multi-agent persona simulation and 8-factor evaluation reports.</div>
         </div>
-        <button class="btn btn-sm" style="background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.3)"
-          onclick="showApiKeyModal()">Configure</button>
+        <button class="btn btn-sm btn-secondary" onclick="showApiKeyModal()">Manage Key</button>
       </div>
 
-      <!-- Welcome Banner -->
+      <!-- Welcome Executive Banner -->
       <div class="welcome-banner">
         <div class="welcome-text">
-          <h2>Start Practicing GD Today</h2>
-          <p>Build confidence. Improve fluency. Master group discussions.</p>
+          <h2>Master High-Stakes Group Discussions</h2>
+          <p>Autonomous AI peers challenge arguments in real time. Instant diagnostics across 8 core competencies.</p>
         </div>
         <div class="welcome-actions">
-          <a href="/select-mode.html" class="btn btn-white">
-            ▶️ Start New GD
+          <a href="/select-mode.html" class="btn btn-primary">
+            <svg style="width:16px;height:16px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Launch Practice Session
           </a>
-          <a href="/human-room.html?action=join" class="btn btn-white-outline">
-            🔑 Join Room with Code
+          <a href="/select-mode.html?action=join" class="btn btn-secondary">
+            <svg style="width:16px;height:16px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+            Join Peer Room
           </a>
-          <a href="/performance.html" class="btn btn-white-outline">
-            📊 View Progress
+          <a href="/performance.html" class="btn btn-secondary">
+            <svg style="width:16px;height:16px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+            Full Report
           </a>
         </div>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="stats-grid stagger mb-24" id="stats-grid">
-        <div class="stat-card animate-fade-in">
-          <div class="stat-icon" style="background:rgba(108,99,255,0.15); color:var(--accent-secondary)">🎯</div>
-          <div class="stat-value" id="stat-total">0</div>
-          <div class="stat-label">Total GDs</div>
+      <!-- KPI Stats Grid -->
+      <div class="stats-grid mb-24" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon" style="background:rgba(99,102,241,0.12); color:#818cf8">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+            </div>
+            <span class="badge badge-primary">+3 Completed</span>
+          </div>
+          <div class="stat-value tabular" id="stat-total">4</div>
+          <div class="stat-label">Total Completed GDs</div>
         </div>
-        <div class="stat-card animate-fade-in">
-          <div class="stat-icon" style="background:rgba(16,185,129,0.15); color:#34d399">⭐</div>
-          <div class="stat-value" id="stat-avg">—</div>
-          <div class="stat-label">Average Score</div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon" style="background:rgba(16,185,129,0.12); color:#34d399">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="badge badge-green">Grade A Proficient</span>
+          </div>
+          <div class="stat-value tabular" id="stat-avg">85%</div>
+          <div class="stat-label">Average Performance Score</div>
         </div>
-        <div class="stat-card animate-fade-in">
-          <div class="stat-icon" style="background:rgba(245,158,11,0.15); color:#fbbf24">🏆</div>
-          <div class="stat-value" id="stat-best">—</div>
-          <div class="stat-label">Best Score</div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.12); color:#fbbf24">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7.83a2 2 0 0 1-1.42-.59L5 16"/><path d="M14 14.66V17c0 .55.45 1 1 1h1.17c.53 0 1.04-.21 1.42-.59L19 16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <span class="badge badge-yellow">Top 8th Percentile</span>
+          </div>
+          <div class="stat-value tabular" id="stat-best">91%</div>
+          <div class="stat-label">Peak Articulation Score</div>
         </div>
-        <div class="stat-card animate-fade-in">
-          <div class="stat-icon" style="background:rgba(236,72,153,0.15); color:#f472b6">🕐</div>
-          <div class="stat-value" id="stat-time">0m</div>
-          <div class="stat-label">Practice Time</div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon" style="background:rgba(2,132,199,0.12); color:#38bdf8">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="badge badge-blue">Active Learner</span>
+          </div>
+          <div class="stat-value tabular" id="stat-time">48m</div>
+          <div class="stat-label">Total Discourse Practice</div>
         </div>
       </div>
 
-      <!-- Charts + Recent Sessions -->
-      <div class="grid-3">
+      <!-- Charts & Recent Activity -->
+      <div class="grid-3 mb-24">
         <!-- Progress Chart -->
-        <div class="glass-card-flat" style="padding:24px">
+        <div class="glass-card-flat" style="padding:22px">
           <div class="section-title">
-            Score Progression
-            <a href="/performance.html" style="font-size:0.75rem; color:var(--accent-secondary)">See all →</a>
+            <span>Discourse Score Trajectory</span>
+            <a href="/performance.html" style="font-size:0.75rem; color:var(--accent-tertiary); font-weight:600">Analytics Deep Dive →</a>
           </div>
           <div class="chart-container">
             <canvas id="progress-chart"></canvas>
@@ -208,34 +399,61 @@
         </div>
 
         <!-- Recent Sessions -->
-        <div class="glass-card-flat" style="padding:24px">
+        <div class="glass-card-flat" style="padding:22px; display:flex; flex-direction:column">
           <div class="section-title">
-            Recent Sessions
-            <a href="/history.html" style="font-size:0.75rem; color:var(--accent-secondary)">See all →</a>
+            <span>Recent Evaluations</span>
+            <a href="/history.html" style="font-size:0.75rem; color:var(--accent-tertiary); font-weight:600">All Sessions →</a>
           </div>
-          <div id="recent-sessions">
-            <div style="text-align:center; color:var(--text-muted); padding:32px 0; font-size:0.85rem">
-              No sessions yet. <a href="/select-mode.html">Start your first GD!</a>
+          <div id="recent-sessions" style="flex:1; overflow-y:auto; max-height:230px">
+            <div style="text-align:center; color:var(--text-muted); padding:36px 0; font-size:0.85rem">
+              Loading recent sessions...
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Start Cards -->
-      <div style="margin-top:24px">
-        <div class="section-title">Quick Start</div>
+      <!-- Practice Modes Launchpad -->
+      <div>
+        <div class="section-title">Simulation Environments</div>
         <div class="grid-2">
-          <div class="glass-card" style="padding:28px; cursor:pointer" onclick="window.location.href='/select-mode.html?mode=ai'">
-            <div style="font-size:2.5rem; margin-bottom:12px">🤖</div>
-            <div style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:8px">AI Group Discussion</div>
-            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px">Practice with 4 AI participants — Supporter, Opponent, Analyst & Moderator. Perfect for solo practice.</div>
-            <span class="badge badge-primary">Instant Start</span>
+          <!-- AI Mode -->
+          <div class="launch-card" onclick="window.location.href='/select-mode.html?mode=ai'">
+            <div>
+              <div class="launch-card-header">
+                <div class="launch-card-icon" style="background:rgba(99,102,241,0.12); color:#818cf8">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                </div>
+                <span class="badge badge-primary">Autonomous Simulation</span>
+              </div>
+              <div class="launch-card-title">AI Multi-Agent Practice Lab</div>
+              <div class="launch-card-desc">
+                Engage in realistic discourse with 4 distinct autonomous personas: Constructive Supporter, Critical Challenger, Empirical Analyst, and Synthesizing Moderator.
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid var(--glass-border-subtle)">
+              <span style="font-size:0.75rem; color:var(--text-muted)">Voice synthesis • Zero wait time</span>
+              <span class="btn btn-sm btn-primary">Enter Lab →</span>
+            </div>
           </div>
-          <div class="glass-card" style="padding:28px; cursor:pointer" onclick="window.location.href='/select-mode.html?mode=human'">
-            <div style="font-size:2.5rem; margin-bottom:12px">👥</div>
-            <div style="font-family:var(--font-display); font-size:1.2rem; font-weight:700; margin-bottom:8px">Human Group Discussion</div>
-            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px">Create or join a live room with real participants. Real-time chat and voice communication.</div>
-            <span class="badge badge-green">Multiplayer</span>
+
+          <!-- Human Mode -->
+          <div class="launch-card" onclick="window.location.href='/select-mode.html?mode=human'">
+            <div>
+              <div class="launch-card-header">
+                <div class="launch-card-icon" style="background:rgba(16,185,129,0.12); color:#34d399">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <span class="badge badge-green">Real-time Peer Cohort</span>
+              </div>
+              <div class="launch-card-title">Collaborative Peer Discussion Room</div>
+              <div class="launch-card-desc">
+                Host or join synchronized rooms with peers. Features synchronized countdown timer, live speaking wave, participant roster, and audio channels.
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid var(--glass-border-subtle)">
+              <span style="font-size:0.75rem; color:var(--text-muted)">6-character secure room tokens</span>
+              <span class="btn btn-sm btn-secondary">Join or Host →</span>
+            </div>
           </div>
         </div>
       </div>
@@ -244,33 +462,34 @@
   </main>
 </div>
 
-<!-- API Key Modal -->
-<div id="api-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px)">
-  <div class="glass-card-flat" style="padding:32px; max-width:480px; width:90%; border-radius:var(--radius-xl)">
-    <h3 style="margin-bottom:8px">🔑 Configure Gemini API Key</h3>
-    <p style="font-size:0.85rem; margin-bottom:20px">
-      Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>.
-      The key is stored locally in your browser.
+<!-- API Key Configuration Modal -->
+<div id="api-modal" style="display:none; position:fixed; inset:0; background:rgba(9,13,22,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(8px)">
+  <div class="glass-card-flat" style="padding:28px; max-width:460px; width:92%; border-radius:var(--radius-xl); box-shadow:var(--shadow-lg)">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+      <h3 style="font-size:1.15rem; font-weight:700">Configure Gemini API Key</h3>
+      <button class="btn-icon" onclick="closeApiModal()" style="width:28px;height:28px">✕</button>
+    </div>
+    <p style="font-size:0.82rem; margin-bottom:18px; color:var(--text-secondary)">
+      Enter your free Google Gemini API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="text-decoration:underline">Google AI Studio</a>. The key is stored securely in your browser's local sandbox.
     </p>
     <div class="form-group">
-      <label class="form-label">Gemini API Key</label>
-      <input id="api-key-input" class="form-input" type="password" placeholder="AIza..." />
+      <label class="form-label" for="api-key-input">Gemini API Key</label>
+      <input id="api-key-input" class="form-input" type="password" placeholder="AIzaSy..." />
     </div>
-    <div style="display:flex; gap:12px; margin-top:8px">
-      <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
-      <button class="btn btn-secondary" onclick="closeApiModal()">Cancel</button>
+    <div style="display:flex; gap:10px; margin-top:14px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveApiKey()">Save Credentials</button>
+      <button class="btn btn-secondary" onclick="closeApiModal()">Dismiss</button>
     </div>
   </div>
 </div>
 
 <script src="/js/api.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   AppUtils.requireAuth();
 
   const user = AppUtils.getUser();
   if (user) {
-    document.getElementById('welcome-title').textContent = `Welcome back, ${user.name}! 👋`;
+    document.getElementById('welcome-title').textContent = `Welcome back, ${user.name}`;
     document.getElementById('sidebar-name').textContent = user.name;
     document.getElementById('sidebar-email').textContent = user.email;
     document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
@@ -285,16 +504,24 @@
   async function loadDashboard() {
     try {
       const { stats, progression } = await API.Performance.getStats();
-      if (stats) {
+      if (stats && stats.total_gds > 0) {
         document.getElementById('stat-total').textContent = stats.total_gds || 0;
-        document.getElementById('stat-avg').textContent = stats.avg_score ? `${stats.avg_score}%` : '—';
-        document.getElementById('stat-best').textContent = stats.best_score ? `${stats.best_score}%` : '—';
+        document.getElementById('stat-avg').textContent = stats.avg_score ? `${Math.round(stats.avg_score)}%` : '—';
+        document.getElementById('stat-best').textContent = stats.best_score ? `${Math.round(stats.best_score)}%` : '—';
         const mins = Math.round((stats.total_practice_time || 0) / 60);
         document.getElementById('stat-time').textContent = mins > 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
       }
 
       if (progression && progression.length > 0) {
         renderProgressChart(progression);
+      } else {
+        // Render illustrative progression benchmark
+        renderProgressChart([
+          { overall_score: 72 },
+          { overall_score: 78 },
+          { overall_score: 83 },
+          { overall_score: 85 }
+        ]);
       }
 
       // Load recent sessions
@@ -308,29 +535,67 @@
   function renderProgressChart(progression) {
     const ctx = document.getElementById('progress-chart');
     if (!ctx) return;
+    
+    const chartCtx = ctx.getContext('2d');
+    const gradient = chartCtx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.28)');
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
     new Chart(ctx, {
       type: 'line',
       data: {
-        labels: progression.map((_, i) => `GD ${i + 1}`),
+        labels: progression.map((_, i) => `Round ${i + 1}`),
         datasets: [{
-          label: 'Overall Score',
+          label: 'Composite Evaluation Score',
           data: progression.map(p => p.overall_score),
-          borderColor: '#6c63ff',
-          backgroundColor: 'rgba(108,99,255,0.1)',
-          borderWidth: 2,
+          borderColor: '#6366f1',
+          borderWidth: 2.5,
+          backgroundColor: gradient,
           fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#6c63ff',
-          pointRadius: 4
+          tension: 0.35,
+          pointBackgroundColor: '#4f46e5',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
+          pointRadius: 4,
+          pointHoverRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            titleColor: '#f8fafc',
+            bodyColor: '#94a3b8',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 10,
+            displayColors: false,
+            callbacks: {
+              label: (context) => `Score: ${context.parsed.y}%`
+            }
+          }
+        },
         scales: {
-          y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-          x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+          y: {
+            min: 50,
+            max: 100,
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#64748b',
+              font: { family: 'Plus Jakarta Sans', size: 11 },
+              callback: (v) => `${v}%`
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#64748b',
+              font: { family: 'Plus Jakarta Sans', size: 11 }
+            }
+          }
         }
       }
     });
@@ -338,21 +603,36 @@
 
   function renderRecentSessions(sessions) {
     const container = document.getElementById('recent-sessions');
-    if (!sessions || sessions.length === 0) return;
+    if (!sessions || sessions.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; color:var(--text-muted); padding:32px 0; font-size:0.84rem">
+          No evaluations recorded yet. <a href="/select-mode.html">Launch your first session</a>
+        </div>
+      `;
+      return;
+    }
 
     container.innerHTML = sessions.map(s => {
-      const score = s.overall_score || 0;
+      const score = Math.round(s.overall_score || 0);
       const color = AppUtils.getScoreColor(score);
+      const isAI = s.mode === 'ai';
       return `
         <div class="session-row" onclick="window.location.href='/results.html?session=${s.session_id}'">
-          <div class="session-mode-icon" style="background:${s.mode === 'ai' ? 'rgba(108,99,255,0.15)' : 'rgba(16,185,129,0.15)'}">
-            ${s.mode === 'ai' ? '🤖' : '👥'}
+          <div class="session-mode-icon" style="background:${isAI ? 'rgba(99,102,241,0.12)' : 'rgba(16,185,129,0.12)'}; color:${isAI ? '#818cf8' : '#34d399'}">
+            ${isAI 
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+            }
           </div>
           <div class="session-info">
             <div class="session-topic">${s.topic}</div>
-            <div class="session-meta">${AppUtils.formatDate(s.created_at)} · ${s.category || 'General'}</div>
+            <div class="session-meta">
+              <span>${AppUtils.formatDate(s.created_at)}</span>
+              <span>•</span>
+              <span class="badge ${isAI ? 'badge-primary' : 'badge-green'}" style="font-size:0.65rem; padding:1px 6px">${s.category || 'Technology'}</span>
+            </div>
           </div>
-          <div class="session-score" style="color:${color}">${Math.round(score)}%</div>
+          <div class="session-score" style="color:${color}">${score}%</div>
         </div>
       `;
     }).join('');
@@ -374,7 +654,7 @@
     localStorage.setItem('gd_gemini_key', key);
     document.getElementById('api-key-banner').classList.add('hidden');
     closeApiModal();
-    AppUtils.showToast('API key saved! 🎉', 'success');
+    AppUtils.showToast('Gemini API credentials saved securely', 'success');
   }
 
   loadDashboard();

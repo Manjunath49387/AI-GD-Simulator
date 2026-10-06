@@ -172,25 +172,86 @@
 </head>
 <body>
 <div class="app-layout">
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
     </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
     <nav class="sidebar-nav">
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item active"><span class="icon">▶️</span> Start GD</a>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item active">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
     </nav>
+
     <div class="sidebar-footer">
-      <div class="user-card">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
         <div class="user-info">
-          <div class="name" id="sidebar-name">Loading...</div>
-          <div class="email" id="sidebar-email">--</div>
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
         </div>
       </div>
     </div>
@@ -202,11 +263,11 @@
         <button onclick="goBackToTopic()" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; cursor:pointer">
           ← Back to Topic Selection
         </button>
-        <div class="page-title">GD Instructions</div>
-        <div class="page-subtitle">Read carefully before starting the discussion</div>
+        <div class="page-title">Discussion Protocol & Instructions</div>
+        <div class="page-subtitle">Review rubric rules and turn etiquette before entering the boardroom.</div>
       </div>
       <a href="/dashboard.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px">
-        🏠 Dashboard
+        Dashboard
       </a>
     </div>
 
@@ -214,8 +275,8 @@
       <div class="instructions-layout">
 
         <!-- Topic Hero -->
-        <div class="topic-hero animate-fade-in">
-          <div class="topic-label">📌 Today's GD Topic</div>
+        <div class="topic-hero animate-fade-in" style="background:var(--bg-card); border:1px solid var(--glass-border); border-radius:var(--radius-xl); box-shadow:var(--shadow-sm)">
+          <div class="topic-label" style="color:var(--accent-tertiary)">Problem Statement</div>
           <div class="topic-text" id="topic-display">"Loading topic..."</div>
           <div class="topic-meta">
             <div class="meta-item">⏱️ <span class="label">Prep Time</span>&nbsp;<span class="value">30 sec</span></div>

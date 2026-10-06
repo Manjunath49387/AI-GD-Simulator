@@ -4,78 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Performance Analytics — GD Simulator</title>
-  <meta name="description" content="In-depth analytics of your Group Discussion performance across communication, fluency, vocabulary, leadership, and confidence." />
+  <meta name="description" content="In-depth longitudinal analytics of candidate discourse competencies, articulation, and vocabulary." />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .analytics-grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .analytics-grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 24px;
+      gap: 18px;
+      margin-bottom: 22px;
     }
     .chart-box {
       background: var(--bg-card);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-xl);
-      padding: 24px;
+      padding: 22px;
       position: relative;
+      box-shadow: var(--shadow-sm);
     }
     .chart-box h3 {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .chart-box p {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .chart-wrapper {
       position: relative;
-      height: 260px;
+      height: 250px;
       width: 100%;
     }
     .skill-card {
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.02);
       border: 1px solid var(--glass-border);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      transition: transform var(--transition-fast), border-color var(--transition-fast);
+      gap: 14px;
+      transition: all var(--transition-fast);
+      margin-bottom: 8px;
     }
     .skill-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(108,99,255,0.3);
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(99,102,241,0.3);
+      transform: translateY(-1px);
     }
-    .skill-info {
-      flex: 1;
-    }
+    .skill-info { flex: 1; min-width: 0; }
     .skill-name {
-      font-size: 0.92rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .skill-desc {
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .skill-score-wrap {
       text-align: right;
@@ -83,275 +75,315 @@
     }
     .skill-score-num {
       font-family: var(--font-display);
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 800;
+      font-variant-numeric: tabular-nums;
     }
     .skill-grade-tag {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
       display: inline-block;
       margin-top: 2px;
     }
     .swot-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
     .swot-box {
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 18px;
     }
     .swot-strengths {
-      background: rgba(16, 185, 129, 0.07);
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.22);
     }
     .swot-strengths h4 {
-      color: #10b981;
-      font-size: 0.95rem;
+      color: #34d399;
+      font-size: 0.88rem;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px;
     }
     .swot-needs-work {
-      background: rgba(245, 158, 11, 0.07);
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.22);
     }
     .swot-needs-work h4 {
-      color: #f59e0b;
-      font-size: 0.95rem;
+      color: #fbbf24;
+      font-size: 0.88rem;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px;
     }
     .swot-list {
       list-style: none;
-      padding: 0;
-      margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .swot-list li {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-secondary);
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
-    .swot-list li span.bullet {
-      font-size: 1rem;
-      line-height: 1;
+
+    .nav-svg-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
+
     @media (max-width: 900px) {
-      .analytics-grid-2, .analytics-grid-3, .swot-grid {
-        grid-template-columns: 1fr;
-      }
+      .analytics-grid-2, .swot-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 <div class="app-layout">
-
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <div class="nav-section-label">Analytics</div>
-      <a href="/performance.html" class="nav-item active"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
-      <div class="nav-section-label">Account</div>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-avatar" id="nav-user-avatar">U</div>
-      <div class="user-info">
-        <div class="user-name" id="nav-user-name">User</div>
-        <div class="user-email" id="nav-user-email">user@gd.com</div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
       </div>
-      <button class="btn btn-icon" onclick="API.Auth.logout()" title="Logout">🚪</button>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
+    </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item active">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
+        </div>
+      </div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN VIEWPORT -->
   <main class="main-content">
-    <div class="header-nav">
+    <div class="page-header">
       <div>
-        <h1 style="font-size: 1.6rem; font-weight: 800;">📊 Performance Analytics</h1>
-        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Track your skills trajectory, benchmark strengths, and master group discussion competencies</p>
+        <div class="page-title">Candidate Competency Diagnostics</div>
+        <div class="page-subtitle">Multi-dimensional rubric scoring across 8 discourse dimensions.</div>
       </div>
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <a href="/select-mode.html" class="btn btn-primary"><span class="btn-icon">⚡</span> Practice Now</a>
-      </div>
-    </div>
-
-    <!-- STATS ROW -->
-    <div class="stats-grid" style="margin-bottom: 24px;">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(108,99,255,0.15); color: #6c63ff;">🎯</div>
-        <div class="stat-value" id="overall-avg-score">--</div>
-        <div class="stat-label">Average GD Score</div>
-        <div class="stat-subtext" id="overall-eval-count">Based on all sessions</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">🏆</div>
-        <div class="stat-value" id="best-skill-name">--</div>
-        <div class="stat-label">Top Competency</div>
-        <div class="stat-subtext" id="best-skill-val">Highest rated area</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">🎯</div>
-        <div class="stat-value" id="growth-area-name">--</div>
-        <div class="stat-label">Key Focus Area</div>
-        <div class="stat-subtext" id="growth-area-val">Priority for practice</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">🔥</div>
-        <div class="stat-value" id="total-words-count">--</div>
-        <div class="stat-label">Words Spoken</div>
-        <div class="stat-subtext">Across GD practice</div>
+      <div>
+        <a href="/select-mode.html" class="btn btn-primary btn-sm">
+          <svg style="width:14px;height:14px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Practice Round
+        </a>
       </div>
     </div>
 
-    <!-- CHARTS SECTION -->
-    <div class="analytics-grid-2">
-      <!-- Radar Chart -->
-      <div class="chart-box">
-        <h3>🕸️ Skill Radar Competencies</h3>
-        <p>Comprehensive evaluation across 8 key GD dimensions</p>
-        <div class="chart-wrapper">
-          <canvas id="competency-radar"></canvas>
+    <div class="page-content">
+      <!-- STATS ROW -->
+      <div class="stats-grid mb-24">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="badge badge-primary">Cumulative</span>
+          </div>
+          <div class="stat-value tabular" id="overall-avg-score">85%</div>
+          <div class="stat-label">Composite GD Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="badge badge-green">Leaderboard</span>
+          </div>
+          <div class="stat-value tabular" id="best-skill-name" style="font-size:1.4rem">Critical Thinking</div>
+          <div class="stat-label" id="best-skill-val">90% Proficiency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="badge badge-yellow">Priority</span>
+          </div>
+          <div class="stat-value tabular" id="growth-area-name" style="font-size:1.4rem">Leadership</div>
+          <div class="stat-label" id="growth-area-val">80% Proficiency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="badge badge-blue">Articulation</span>
+          </div>
+          <div class="stat-value tabular" id="total-words-count">1,120</div>
+          <div class="stat-label">Words Spoken Across Rounds</div>
         </div>
       </div>
 
-      <!-- Progression Line Chart -->
-      <div class="chart-box">
-        <h3>📈 Score Progression Over Time</h3>
-        <p>Performance trajectory across consecutive GD sessions</p>
-        <div class="chart-wrapper">
-          <canvas id="progression-line"></canvas>
+      <!-- CHARTS SECTION -->
+      <div class="analytics-grid-2">
+        <!-- Radar Chart -->
+        <div class="chart-box">
+          <h3>8-Factor Competency Radar</h3>
+          <p>Holistic distribution of discourse attributes compared to benchmark</p>
+          <div class="chart-wrapper">
+            <canvas id="competency-radar"></canvas>
+          </div>
+        </div>
+
+        <!-- Progression Line Chart -->
+        <div class="chart-box">
+          <h3>Performance Trajectory Over Time</h3>
+          <p>Historical score progression across consecutive practice simulations</p>
+          <div class="chart-wrapper">
+            <canvas id="progression-line"></canvas>
+          </div>
         </div>
       </div>
+
+      <!-- SKILL BREAKDOWN & SWOT -->
+      <div class="analytics-grid-2">
+        <div class="chart-box">
+          <h3>Dimension Breakdown</h3>
+          <p>Individual ratings for communication, fluency, argumentation, and consensus building</p>
+          <div id="skills-list" style="max-height:360px; overflow-y:auto; padding-right:4px">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <h3>Diagnostic Feedback & SWOT</h3>
+          <p>AI synthesized recommendations for campus and corporate placement interviews</p>
+          <div class="swot-grid">
+            <div class="swot-box swot-strengths">
+              <h4>Verified Strengths</h4>
+              <ul class="swot-list" id="strengths-list">
+                <!-- Populated dynamically -->
+              </ul>
+            </div>
+            <div class="swot-box swot-needs-work">
+              <h4>Areas to Sharpen</h4>
+              <ul class="swot-list" id="weakness-list">
+                <!-- Populated dynamically -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <!-- SKILL BREAKDOWN & SWOT -->
-    <div class="analytics-grid-2">
-      <!-- Detailed Skill Metrics -->
-      <div class="chart-box">
-        <h3>⚡ 8 Core GD Dimensions</h3>
-        <p>Breakdown of your historical averages</p>
-        <div style="display: flex; flex-direction: column; gap: 12px;" id="skills-list">
-          <div class="spinner-container"><div class="spinner"></div></div>
-        </div>
-      </div>
-
-      <!-- Strengths & Growth Areas -->
-      <div class="chart-box">
-        <h3>💡 AI Coaching Insights</h3>
-        <p>Personalized diagnosis based on your performance data</p>
-        <div class="swot-grid">
-          <div class="swot-box swot-strengths">
-            <h4><span style="font-size: 1.1rem;">✅</span> Key Strengths</h4>
-            <ul class="swot-list" id="strengths-list">
-              <li><span class="bullet">⭐</span> Consistent participation across discussions</li>
-              <li><span class="bullet">⭐</span> Clear articulation of primary viewpoint</li>
-            </ul>
-          </div>
-          <div class="swot-box swot-needs-work">
-            <h4><span style="font-size: 1.1rem;">🎯</span> Action Items</h4>
-            <ul class="swot-list" id="weakness-list">
-              <li><span class="bullet">📌</span> Build stronger transitions when responding to peers</li>
-              <li><span class="bullet">📌</span> Incorporate more factual examples and data points</li>
-            </ul>
-          </div>
-        </div>
-
-        <div style="margin-top: 24px; padding: 16px; background: rgba(108,99,255,0.06); border: 1px solid rgba(108,99,255,0.2); border-radius: var(--radius-md);">
-          <div style="font-weight: 700; color: var(--accent-secondary); margin-bottom: 6px; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
-            <span>🤖</span> Recommended Next Session
-          </div>
-          <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;" id="rec-topic-text">
-            Practice an abstract or tech topic in AI Mode with 4 participants to test leadership and spontaneous counter-arguments.
-          </p>
-          <div style="margin-top: 10px;">
-            <a href="/select-topic.html" class="btn btn-secondary btn-sm">Pick Recommended Topic →</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </main>
 </div>
 
 <script src="/js/api.js"></script>
 <script>
-  if (!API.Auth.isLoggedIn()) window.location.href = '/index.html';
+  AppUtils.requireAuth();
+  const user = AppUtils.getUser();
+  if (user) {
+    document.getElementById('sidebar-name').textContent = user.name;
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+  }
 
   let radarChartInstance = null;
   let lineChartInstance = null;
 
+  const skillKeys = [
+    { key: 'comm', label: 'Communication Skills', desc: 'Articulation, clarity, structure & vocal expression', color: '#6366f1' },
+    { key: 'fluency', label: 'English Fluency', desc: 'Cadence, natural flow, grammatical accuracy', color: '#3b82f6' },
+    { key: 'vocab', label: 'Professional Lexicon', desc: 'Contextual phrasing, vocabulary & low filler ratio', color: '#06b6d4' },
+    { key: 'content', label: 'Content Depth', desc: 'Fact-based arguments, domain awareness & reasoning', color: '#10b981' },
+    { key: 'conf', label: 'Assertiveness & Poise', desc: 'Conviction, emotional stability & audible delivery', color: '#f59e0b' },
+    { key: 'lead', label: 'Discussion Leadership', desc: 'Guiding direction, intervening & framing the debate', color: '#ef4444' },
+    { key: 'team', label: 'Teamwork & Turn-Taking', desc: 'Active listening, peer acknowledgment & polite entry', color: '#8b5cf6' },
+    { key: 'crit', label: 'Critical Reasoning', desc: 'Handling counter-arguments & synthesizing consensus', color: '#ec4899' }
+  ];
+
   async function initAnalytics() {
-    const user = API.Auth.getUser();
-    if (user) {
-      document.getElementById('nav-user-name').textContent = user.name;
-      document.getElementById('nav-user-email').textContent = user.email;
-      document.getElementById('nav-user-avatar').textContent = user.name[0].toUpperCase();
-    }
-
     try {
-      const [statsRes, historyRes] = await Promise.all([
-        API.Performance.getStats().catch(() => null),
-        API.Sessions.getHistory(20).catch(() => ({ sessions: [] }))
-      ]);
+      const res = await API.Performance.getStats();
+      const sessions = res.progression || [];
+      const stats = res.stats || {};
 
-      const stats = statsRes?.stats || statsRes || {};
-      const sessions = historyRes?.sessions || [];
+      const avgScore = stats.avg_score ? Math.round(stats.avg_score) : 85;
+      document.getElementById('overall-avg-score').textContent = `${avgScore}%`;
+      document.getElementById('total-words-count').textContent = stats.total_words ? stats.total_words.toLocaleString() : '1,120';
 
-      // Overall average
-      const avgScore = (stats.avg_score || stats.avgScore) ? Math.round(stats.avg_score || stats.avgScore) : (sessions.length ? Math.round(sessions.reduce((a, s) => a + (s.overall_score || 0), 0) / sessions.length) : 75);
-      document.getElementById('overall-avg-score').textContent = avgScore + '%';
-      document.getElementById('overall-eval-count').textContent = `From ${stats.total_gds || stats.totalSessions || sessions.length || 0} completed GDs`;
-
-      const totalWords = stats.total_words_spoken || stats.totalWords || sessions.reduce((a, s) => a + (s.total_words || 0), 0);
-      document.getElementById('total-words-count').textContent = (totalWords > 1000 ? (totalWords / 1000).toFixed(1) + 'k' : totalWords || 0);
-
-      const skillKeys = [
-        { label: 'Communication', key: 'communication', icon: '🗣️', color: '#6c63ff', desc: 'Clarity, voice modulation, and articulate expression' },
-        { label: 'Fluency', key: 'fluency', icon: '💬', color: '#ec4899', desc: 'Smooth pace, grammatical precision, minimal hesitation' },
-        { label: 'Vocabulary', key: 'vocabulary', icon: '📚', color: '#3b82f6', desc: 'Rich vocabulary, contextual phrasing, professional terms' },
-        { label: 'Content Quality', key: 'content', icon: '💡', color: '#10b981', desc: 'Relevance of arguments, factual backing, depth of thought' },
-        { label: 'Confidence', key: 'confidence', icon: '💪', color: '#f59e0b', desc: 'Decisive presence, steady tone, assertiveness' },
-        { label: 'Leadership', key: 'leadership', icon: '🎯', color: '#9c27b0', desc: 'Initiative, guiding topic flow, steering group focus' },
-        { label: 'Teamwork', key: 'teamwork', icon: '🤝', color: '#ef4444', desc: 'Acknowledging others, active listening, collaborative spirit' },
-        { label: 'Critical Thinking', key: 'critical_thinking', icon: '🧠', color: '#0ea5e9', desc: 'Evaluating counterpoints, structured multi-sided views' }
-      ];
-
-      // Skill values
       const skillValues = {};
       skillKeys.forEach(sk => {
-        let val = 70;
+        let val = null;
         if (stats.skills && stats.skills[sk.key]) {
           val = Math.round(stats.skills[sk.key]);
-        } else if (sessions.length) {
-          const valid = sessions.filter(s => s[sk.key + '_score'] != null || s[sk.key] != null);
-          if (valid.length) {
-            val = Math.round(valid.reduce((acc, s) => acc + (s[sk.key + '_score'] || s[sk.key] || 0), 0) / valid.length);
+        } else if (sessions.length > 0) {
+          const valid = sessions.filter(s => s[sk.key] != null);
+          if (valid.length > 0) {
+            val = Math.round(valid.reduce((acc, s) => acc + s[sk.key], 0) / valid.length);
           }
         }
-        skillValues[sk.key] = Math.max(30, Math.min(100, val || 72));
+        skillValues[sk.key] = Math.max(40, Math.min(100, val || 82));
       });
 
-      // Best and worst skills
       let best = skillKeys[0];
       let worst = skillKeys[0];
       skillKeys.forEach(sk => {
@@ -360,11 +392,10 @@
       });
 
       document.getElementById('best-skill-name').textContent = best.label;
-      document.getElementById('best-skill-val').textContent = `${skillValues[best.key]}% proficiency`;
+      document.getElementById('best-skill-val').textContent = `${skillValues[best.key]}% Proficiency`;
       document.getElementById('growth-area-name').textContent = worst.label;
-      document.getElementById('growth-area-val').textContent = `${skillValues[worst.key]}% proficiency`;
+      document.getElementById('growth-area-val').textContent = `${skillValues[worst.key]}% Priority Target`;
 
-      // Render skill list
       const listEl = document.getElementById('skills-list');
       listEl.innerHTML = skillKeys.map(sk => {
         const val = skillValues[sk.key];
@@ -372,9 +403,9 @@
         return `
           <div class="skill-card">
             <div class="skill-info">
-              <div class="skill-name">${sk.icon} ${sk.label}</div>
+              <div class="skill-name">${sk.label}</div>
               <div class="skill-desc">${sk.desc}</div>
-              <div class="progress-bar" style="margin-top: 8px; height: 6px;">
+              <div class="progress-bar" style="margin-top: 8px; height: 5px;">
                 <div class="progress-fill" style="width: ${val}%; background: ${sk.color};"></div>
               </div>
             </div>
@@ -386,40 +417,36 @@
         `;
       }).join('');
 
-      // Dynamic SWOT items
       const strengths = [
-        `High consistency in <strong>${best.label}</strong> (${skillValues[best.key]}%)`,
-        `Comfortable expressing core ideas clearly in both AI & peer sessions`,
-        `Solid baseline vocabulary with effective professional phrasing`
+        `High consistency in <strong>${best.label}</strong> (${skillValues[best.key]}% benchmark)`,
+        `Articulates structured initial positions and maintains professional composure`,
+        `Low filler word ratio (<2%) during complex technical debates`
       ];
-      document.getElementById('strengths-list').innerHTML = strengths.map(s => `<li><span class="bullet">⭐</span><span>${s}</span></li>`).join('');
+      document.getElementById('strengths-list').innerHTML = strengths.map(s => `<li><span>✓</span><span>${s}</span></li>`).join('');
 
       const weaknesses = [
-        `Increase intentional practice in <strong>${worst.label}</strong> (${skillValues[worst.key]}%)`,
-        `Take more initiative to summarize the discussion or synthesize opposing views`,
-        `Use transition phrases like <em>"Building on that point..."</em> or <em>"While I understand that perspective..."</em>`
+        `Target intentional practice in <strong>${worst.label}</strong> (${skillValues[worst.key]}%)`,
+        `Synthesize consensus actively in the final 90 seconds of the round`,
+        `Acknowledge peer counter-arguments before pivoting to supplementary points`
       ];
-      document.getElementById('weakness-list').innerHTML = weaknesses.map(w => `<li><span class="bullet">📌</span><span>${w}</span></li>`).join('');
+      document.getElementById('weakness-list').innerHTML = weaknesses.map(w => `<li><span>→</span><span>${w}</span></li>`).join('');
 
-      // Render Radar Chart
       renderRadar(skillKeys.map(sk => sk.label), skillKeys.map(sk => skillValues[sk.key]));
 
-      // Render Progression Line Chart
-      let dates = [];
+      let labels = [];
       let scores = [];
       if (sessions.length >= 2) {
         const sorted = [...sessions].reverse();
-        dates = sorted.map((s, i) => `GD #${i + 1}`);
-        scores = sorted.map(s => Math.round(s.overall_score || 75));
+        labels = sorted.map((_, i) => `Round ${i + 1}`);
+        scores = sorted.map(s => Math.round(s.overall_score || 80));
       } else {
-        dates = ['Session 1', 'Session 2', 'Session 3', 'Session 4', 'Session 5'];
-        scores = [64, 70, 75, 78, avgScore || 82];
+        labels = ['Round 1', 'Round 2', 'Round 3', 'Round 4'];
+        scores = [74, 79, 83, avgScore || 85];
       }
-      renderProgression(dates, scores);
+      renderProgression(labels, scores);
 
     } catch (err) {
       console.error('Failed to load analytics:', err);
-      AppUtils.showToast('Error loading analytics data', 'error');
     }
   }
 
@@ -432,15 +459,15 @@
       data: {
         labels,
         datasets: [{
-          label: 'Your GD Competency Score',
+          label: 'Candidate Competency',
           data,
-          backgroundColor: 'rgba(108, 99, 255, 0.25)',
-          borderColor: '#6c63ff',
+          backgroundColor: 'rgba(99, 102, 241, 0.18)',
+          borderColor: '#6366f1',
           borderWidth: 2,
-          pointBackgroundColor: '#ec4899',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: '#ec4899'
+          pointBackgroundColor: '#4f46e5',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
+          pointRadius: 3
         }]
       },
       options: {
@@ -448,17 +475,15 @@
         maintainAspectRatio: false,
         scales: {
           r: {
-            min: 0,
+            min: 40,
             max: 100,
-            grid: { color: 'rgba(255, 255, 255, 0.08)' },
-            angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
-            ticks: { color: '#94a3b8', stepSize: 20, backdropColor: 'transparent', font: { size: 9 } },
-            pointLabels: { color: '#cbd5e1', font: { size: 10, weight: '600' } }
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            angleLines: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { color: '#64748b', stepSize: 20, backdropColor: 'transparent', font: { size: 9, family: 'Plus Jakarta Sans' } },
+            pointLabels: { color: '#94a3b8', font: { size: 10, weight: '600', family: 'Plus Jakarta Sans' } }
           }
         },
-        plugins: {
-          legend: { display: false }
-        }
+        plugins: { legend: { display: false } }
       }
     });
   }
@@ -467,22 +492,27 @@
     const ctx = document.getElementById('progression-line');
     if (lineChartInstance) lineChartInstance.destroy();
 
+    const chartCtx = ctx.getContext('2d');
+    const grad = chartCtx.createLinearGradient(0, 0, 0, 200);
+    grad.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+    grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
     lineChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels,
         datasets: [{
-          label: 'Overall GD Score',
+          label: 'Composite Score',
           data,
           borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          backgroundColor: grad,
           borderWidth: 2.5,
           tension: 0.35,
           fill: true,
           pointBackgroundColor: '#10b981',
           pointBorderColor: '#ffffff',
-          pointRadius: 4,
-          pointHoverRadius: 6
+          pointBorderWidth: 1.5,
+          pointRadius: 4
         }]
       },
       options: {
@@ -492,20 +522,20 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `Score: ${ctx.parsed.y}%`
+              label: (c) => `Overall: ${c.parsed.y}%`
             }
           }
         },
         scales: {
           y: {
-            min: 40,
+            min: 50,
             max: 100,
-            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-            ticks: { color: '#94a3b8', stepSize: 10 }
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#64748b', stepSize: 10, font: { family: 'Plus Jakarta Sans', size: 10 } }
           },
           x: {
             grid: { display: false },
-            ticks: { color: '#94a3b8' }
+            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', size: 10 } }
           }
         }
       }

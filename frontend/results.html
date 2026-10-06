@@ -11,25 +11,86 @@
 </head>
 <body>
 <div class="app-layout">
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🎤</div>
-      <div class="sidebar-logo-text">GD Simulator <span>AI Practice Platform</span></div>
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        GD Simulator
+        <span>Assessment Lab</span>
+      </div>
     </div>
+
+    <div class="sidebar-badge">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="dot"></span>
+        Placement Cohort 2026
+      </span>
+      <span style="font-size:0.68rem;opacity:0.8">Tier 1</span>
+    </div>
+
     <nav class="sidebar-nav">
-      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> Dashboard</a>
-      <a href="/select-mode.html" class="nav-item"><span class="icon">▶️</span> Start GD</a>
-      <a href="/performance.html" class="nav-item"><span class="icon">📊</span> Performance</a>
-      <a href="/history.html" class="nav-item"><span class="icon">📋</span> GD History</a>
-      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> Profile</a>
-      <a href="#" class="nav-item" onclick="API.Auth.logout()"><span class="icon">🚪</span> Logout</a>
+      <div class="nav-section-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        Executive Dashboard
+      </a>
+      <a href="/select-mode.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </span>
+        Launch Discussion
+      </a>
+
+      <div class="nav-section-label">Diagnostics & Analytics</div>
+      <a href="/performance.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        Competency Metrics
+      </a>
+      <a href="/history.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+        </span>
+        Discussion History
+      </a>
+      <a href="/gd-instructions.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+        </span>
+        Scoring Rubric & Guide
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="/profile.html" class="nav-item">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Candidate Profile
+      </a>
+      <a href="#" class="nav-item" onclick="API.Auth.logout()">
+        <span class="icon">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        </span>
+        Sign Out
+      </a>
     </nav>
+
     <div class="sidebar-footer">
-      <div class="user-card">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
+      <div class="user-card" onclick="window.location.href='/profile.html'" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
         <div class="user-info">
-          <div class="name" id="sidebar-name">Loading...</div>
-          <div class="email" id="sidebar-email">--</div>
+          <div class="name" id="sidebar-name">Alex Morgan</div>
+          <div class="email" id="sidebar-email">demo@gd.com</div>
         </div>
       </div>
     </div>
@@ -39,9 +100,9 @@
 
     <!-- Loading State -->
     <div id="loading-state" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:16px">
-      <div class="spinner" style="width:48px; height:48px; border-width:4px"></div>
-      <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary)">Analyzing your GD performance...</div>
-      <div style="font-size:0.85rem; color:var(--text-muted)">The AI is reviewing the full transcript. This takes a few seconds.</div>
+      <div class="spinner" style="width:40px; height:40px; border-width:3px"></div>
+      <div style="font-size:1.05rem; font-weight:700; color:var(--text-primary)">Synthesizing Diagnostic Evaluation...</div>
+      <div style="font-size:0.82rem; color:var(--text-muted)">The AI evaluation model is reviewing turns, coherence, and candidate speech structure.</div>
     </div>
 
     <!-- Results Content (hidden until loaded) -->
@@ -49,76 +110,77 @@
 
       <!-- Hero Section -->
       <div class="results-hero">
-        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.2); border-radius:var(--radius-full); font-size:0.8rem; color:var(--accent-secondary); margin-bottom:20px">
-          🏆 GD Performance Results
+        <div style="display:inline-flex; align-items:center; gap:8px; padding:4px 14px; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); border-radius:var(--radius-full); font-size:0.75rem; color:var(--accent-tertiary); font-weight:600; margin-bottom:18px">
+          Diagnostic Assessment Report
         </div>
 
         <!-- Animated Score Ring -->
         <div class="overall-score-ring">
-          <svg width="180" height="180" viewBox="0 0 180 180">
-            <circle cx="90" cy="90" r="78" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="14"/>
-            <circle id="score-circle" cx="90" cy="90" r="78" fill="none" stroke="url(#scoreGrad)" stroke-width="14"
-              stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"
-              style="transition: stroke-dashoffset 2s cubic-bezier(0.4,0,0.2,1)"/>
+          <svg width="170" height="170" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12"/>
+            <circle id="score-circle" cx="90" cy="90" r="76" fill="none" stroke="url(#scoreGrad)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="478" stroke-dashoffset="478"
+              style="transition: stroke-dashoffset 1.8s cubic-bezier(0.16,1,0.3,1)"/>
             <defs>
               <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#6c63ff"/>
-                <stop offset="100%" stop-color="#ec4899"/>
+                <stop offset="0%" stop-color="#4f46e5"/>
+                <stop offset="100%" stop-color="#6366f1"/>
               </linearGradient>
             </defs>
           </svg>
           <div class="score-ring-text">
-            <div class="overall-score-value text-gradient" id="overall-score-display">0</div>
-            <div style="font-size:0.75rem; color:var(--text-muted)">out of 100</div>
+            <div class="overall-score-value tabular" id="overall-score-display">0</div>
+            <div style="font-size:0.72rem; color:var(--text-muted)">Composite Score</div>
           </div>
         </div>
 
         <div class="score-grade" id="score-grade-badge">Loading...</div>
-        <h1 style="font-size:1.5rem; margin:8px 0 4px" id="results-topic">GD Performance Analysis</h1>
-        <p id="results-meta" style="font-size:0.82rem; color:var(--text-muted)"></p>
+        <h1 style="font-size:1.35rem; margin:6px 0 4px" id="results-topic">Discussion Performance Analysis</h1>
+        <p id="results-meta" style="font-size:0.8rem; color:var(--text-muted)"></p>
 
         <!-- Placement Readiness -->
-        <div class="placement-badge" id="placement-badge" style="display:none; margin-top:20px">
-          <div class="placement-badge-icon" id="placement-icon">🎓</div>
+        <div class="placement-badge" id="placement-badge" style="display:none; margin-top:18px">
+          <div class="placement-badge-icon" id="placement-icon">
+            <svg style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
           <div>
-            <div class="placement-badge-label">Placement Readiness</div>
+            <div class="placement-badge-label">Placement Readiness Benchmark</div>
             <div class="placement-badge-text" id="placement-text"></div>
           </div>
         </div>
       </div>
 
       <!-- Quick Executive Summary Banner -->
-      <div style="padding:0 40px 20px" id="summary-section">
-        <div class="exec-summary-card">
-          <div class="exec-summary-header">
-            <span style="font-size:1.4rem">💡</span>
-            <span style="font-weight:700; font-size:1.1rem; color:var(--text-primary)">Simple Performance Verdict</span>
+      <div style="padding:0 36px 18px" id="summary-section">
+        <div class="exec-summary-card" style="background:var(--bg-card); border:1px solid var(--glass-border); border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm)">
+          <div class="exec-summary-header" style="display:flex; align-items:center; gap:8px; margin-bottom:14px">
+            <span style="font-weight:700; font-size:0.95rem; color:var(--text-primary)">Executive Assessment Summary</span>
           </div>
-          <div class="exec-summary-grid">
-            <div class="exec-box strength-box">
-              <div class="exec-box-title">🟢 Top Strength</div>
-              <div class="exec-box-content" id="exec-strength">Loading...</div>
+          <div class="exec-summary-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px">
+            <div class="exec-box strength-box" style="padding:14px; border-radius:var(--radius-md); background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.2)">
+              <div class="exec-box-title" style="font-size:0.75rem; font-weight:700; color:#34d399; margin-bottom:4px">Key Distinction</div>
+              <div class="exec-box-content" id="exec-strength" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.45">Loading...</div>
             </div>
-            <div class="exec-box focus-box">
-              <div class="exec-box-title">🔴 Key Focus Area</div>
-              <div class="exec-box-content" id="exec-focus">Loading...</div>
+            <div class="exec-box focus-box" style="padding:14px; border-radius:var(--radius-md); background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2)">
+              <div class="exec-box-title" style="font-size:0.75rem; font-weight:700; color:#fbbf24; margin-bottom:4px">Growth Opportunity</div>
+              <div class="exec-box-content" id="exec-focus" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.45">Loading...</div>
             </div>
-            <div class="exec-box action-box">
-              <div class="exec-box-title">🚀 Immediate Action Step</div>
-              <div class="exec-box-content" id="exec-action">Loading...</div>
+            <div class="exec-box action-box" style="padding:14px; border-radius:var(--radius-md); background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2)">
+              <div class="exec-box-title" style="font-size:0.75rem; font-weight:700; color:#a5b4fc; margin-bottom:4px">Actionable Recommendation</div>
+              <div class="exec-box-content" id="exec-action" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.45">Loading...</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Navigation Tabs for Easy Section Switching -->
-      <div style="padding:0 40px 24px; display:flex; gap:10px; overflow-x:auto; flex-wrap:wrap">
-        <button class="results-tab active" onclick="switchResultTab('all', this)">🌐 All Analysis</button>
-        <button class="results-tab" onclick="switchResultTab('summary', this)">💡 Verdict Summary</button>
-        <button class="results-tab" onclick="switchResultTab('projection', this)">🧮 Score Projection</button>
-        <button class="results-tab" onclick="switchResultTab('metrics', this)">📊 10-Metric Breakdown</button>
-        <button class="results-tab" onclick="switchResultTab('plan', this)">🎯 Action Plan</button>
-        <button class="results-tab" onclick="switchResultTab('transcript', this)">📝 Transcript</button>
+      <div style="padding:0 36px 20px; display:flex; gap:8px; overflow-x:auto; flex-wrap:wrap">
+        <button class="results-tab filter-btn active" onclick="switchResultTab('all', this)">All Diagnostics</button>
+        <button class="results-tab filter-btn" onclick="switchResultTab('summary', this)">Executive Summary</button>
+        <button class="results-tab filter-btn" onclick="switchResultTab('projection', this)">Score Formula</button>
+        <button class="results-tab filter-btn" onclick="switchResultTab('metrics', this)">Competencies</button>
+        <button class="results-tab filter-btn" onclick="switchResultTab('plan', this)">Feedback & Plan</button>
+        <button class="results-tab filter-btn" onclick="switchResultTab('transcript', this)">Verbatim Transcript</button>
       </div>
 
       <!-- Behavioral Stats Panel -->

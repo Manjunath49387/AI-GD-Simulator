@@ -1,15 +1,17 @@
 /* ============================================================
-   AI ROOM — Specific Styles
+   AI ROOM — Modern Boardroom Environment Styles
+   Visual Style: Executive Virtual Meeting with Real-time AI Avatars
    ============================================================ */
 
 /* ─── ROOM LAYOUT ────────────────────────────────────────── */
 .room-layout {
   display: grid;
-  grid-template-columns: 280px 1fr 300px;
+  grid-template-columns: 290px 1fr 310px;
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   gap: 0;
   overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
 /* ─── ROOM HEADER ─────────────────────────────────────────── */
@@ -18,30 +20,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: rgba(13,20,36,0.95);
+  padding: 14px 24px;
+  background: rgba(14, 21, 38, 0.95);
   border-bottom: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
   z-index: 10;
 }
 
 .room-topic {
   flex: 1;
   text-align: center;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 .room-topic-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
 
 .room-topic-text {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
   display: -webkit-box;
@@ -54,36 +56,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 80px;
+  min-width: 90px;
 }
 
 .timer-display {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
-  line-height: 1;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .timer-display.warning { color: var(--accent-yellow); }
-.timer-display.danger { color: var(--accent-red); animation: pulse 1s infinite; }
+.timer-display.danger { color: var(--accent-red); animation: pulseGlow 1s infinite; }
 
 .timer-label {
   font-size: 0.65rem;
   color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* ─── PARTICIPANTS PANEL (Left) ──────────────────────────── */
 .participants-panel {
-  background: rgba(13,20,36,0.9);
+  background: rgba(11, 17, 32, 0.95);
   border-right: 1px solid var(--glass-border);
-  padding: 20px 16px;
+  padding: 18px 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel-title {
@@ -91,42 +95,45 @@
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* AI Participant Card */
+/* Participant Card */
 .participant-card {
-  padding: 14px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-card);
   border: 1px solid var(--glass-border);
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
 
 .participant-card.speaking {
-  border-color: rgba(108,99,255,0.5);
-  background: rgba(108,99,255,0.08);
-  box-shadow: 0 0 20px rgba(108,99,255,0.2);
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
 }
 
 .participant-card.user-card-room {
-  border-color: rgba(16,185,129,0.4);
-  background: rgba(16,185,129,0.06);
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.06);
 }
 
 .participant-avatar-large {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  margin-bottom: 10px;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
   position: relative;
 }
 
@@ -136,21 +143,21 @@
   inset: -3px;
   border-radius: var(--radius-full);
   border: 2px solid transparent;
-  transition: border-color 0.3s;
+  transition: border-color 0.2s;
 }
 
 .participant-card.speaking .participant-avatar-large::after {
-  border-color: var(--accent-primary);
-  animation: speakingRing 1s ease infinite;
+  border-color: var(--accent-secondary);
+  animation: speakingRing 1.2s ease-in-out infinite;
 }
 
 @keyframes speakingRing {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.6; }
 }
 
 .participant-name {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -164,52 +171,52 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  margin-top: 8px;
-  height: 16px;
+  margin-top: 6px;
+  height: 14px;
 }
 
 .speaking-indicator.hidden { opacity: 0; }
 
 .speaking-bar {
   width: 3px;
-  background: var(--accent-primary);
+  background: var(--accent-secondary);
   border-radius: 2px;
-  animation: soundWave 0.6s ease infinite alternate;
+  animation: soundWave 0.5s ease infinite alternate;
 }
 
-.speaking-bar:nth-child(2) { animation-delay: 0.1s; height: 10px; }
-.speaking-bar:nth-child(3) { animation-delay: 0.2s; height: 14px; }
-.speaking-bar:nth-child(4) { animation-delay: 0.15s; height: 8px; }
-.speaking-bar:nth-child(5) { animation-delay: 0.05s; height: 12px; }
+.speaking-bar:nth-child(2) { animation-delay: 0.1s; height: 9px; }
+.speaking-bar:nth-child(3) { animation-delay: 0.2s; height: 13px; }
+.speaking-bar:nth-child(4) { animation-delay: 0.15s; height: 7px; }
+.speaking-bar:nth-child(5) { animation-delay: 0.05s; height: 11px; }
 
 @keyframes soundWave {
   from { height: 3px; }
-  to { height: 16px; }
+  to { height: 14px; }
 }
 
-/* ─── CHAT TRANSCRIPT (Center) ───────────────────────────── */
+/* ─── CHAT TRANSCRIPT (Center Area) ───────────────────────── */
 .chat-area {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg-secondary);
+  background: #090d16;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Message bubble */
+/* Message Bubble */
 .message-bubble {
   display: flex;
   gap: 12px;
-  max-width: 85%;
-  animation: fadeIn 0.3s ease;
+  max-width: 82%;
+  animation: fadeIn 0.25s ease;
 }
 
 .message-bubble.user {
@@ -218,18 +225,18 @@
 }
 
 .message-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
-.message-content { flex: 1; }
+.message-content { flex: 1; min-width: 0; }
 
 .message-header {
   display: flex;
@@ -240,8 +247,9 @@
 .message-bubble.user .message-header { flex-direction: row-reverse; }
 
 .message-speaker {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
 .message-time {
@@ -252,31 +260,32 @@
 .message-text {
   padding: 12px 16px;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  background: rgba(255,255,255,0.05);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  background: var(--bg-card);
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
 }
 
 .message-bubble.user .message-text {
-  background: rgba(108,99,255,0.15);
-  border-color: rgba(108,99,255,0.3);
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.32);
 }
 
-/* AI thinking indicator */
+/* AI Typing Indicator */
 .typing-indicator {
   display: flex;
   gap: 12px;
-  max-width: 85%;
+  max-width: 80%;
   align-items: flex-end;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .typing-dots {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.05);
+  background: var(--bg-card);
   border: 1px solid var(--glass-border);
   display: flex;
   gap: 4px;
@@ -284,8 +293,8 @@
 }
 
 .typing-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--text-muted);
   animation: bounce 1.2s ease infinite;
@@ -295,17 +304,17 @@
 
 @keyframes bounce {
   0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-6px); }
+  40% { transform: translateY(-5px); }
 }
 
 /* ─── INPUT AREA (Bottom Center) ─────────────────────────── */
 .input-area {
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-top: 1px solid var(--glass-border);
-  background: rgba(13,20,36,0.95);
+  background: rgba(14, 21, 38, 0.95);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .input-row {
@@ -316,168 +325,169 @@
 
 .chat-input {
   flex: 1;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
+  padding: 11px 16px;
+  background: var(--bg-input);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-primary);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   resize: none;
-  max-height: 100px;
-  min-height: 44px;
+  max-height: 90px;
+  min-height: 42px;
   outline: none;
   transition: all var(--transition-fast);
 }
 
 .chat-input:focus {
-  border-color: var(--accent-primary);
-  background: rgba(108,99,255,0.06);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
 }
 
 .chat-input::placeholder { color: var(--text-muted); }
 
-/* Voice button */
+/* Voice Button */
 .voice-btn {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-full);
-  border: none;
-  background: var(--grad-primary);
-  color: white;
-  font-size: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+  box-shadow: var(--shadow-sm);
 }
 
-.voice-btn:hover { transform: scale(1.05); box-shadow: 0 6px 30px rgba(108,99,255,0.5); }
+.voice-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+}
 .voice-btn.recording {
   background: var(--grad-red);
-  animation: pulse 1s infinite;
-  box-shadow: 0 0 30px rgba(239,68,68,0.5);
+  animation: pulseGlow 1s infinite;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.5);
 }
 
 /* ─── INSIGHTS PANEL (Right) ─────────────────────────────── */
 .insights-panel {
-  background: rgba(13,20,36,0.9);
+  background: rgba(11, 17, 32, 0.95);
   border-left: 1px solid var(--glass-border);
-  padding: 20px 16px;
+  padding: 18px 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .live-stat {
   padding: 14px;
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-card);
   border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-xs);
 }
 
 .live-stat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .live-stat-value {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Turn indicator */
 .turn-indicator {
-  padding: 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: rgba(108,99,255,0.1);
-  border: 1px solid rgba(108,99,255,0.2);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
   text-align: center;
 }
 
 .turn-text {
-  font-size: 0.8rem;
-  color: var(--accent-secondary);
+  font-size: 0.78rem;
+  color: var(--accent-tertiary);
   font-weight: 600;
 }
 
-/* Status badge */
 .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
-  animation: pulse 2s infinite;
+  animation: pulseGlow 1.8s infinite;
 }
 
 /* ─── PREP TIMER OVERLAY ─────────────────────────────────── */
 .prep-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(8,12,20,0.95);
+  background: rgba(9, 13, 22, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 }
 
 .prep-card {
   text-align: center;
-  padding: 48px;
+  padding: 40px;
   border-radius: var(--radius-xl);
-  background: var(--bg-card);
+  background: var(--bg-card-solid);
   border: 1px solid var(--glass-border);
-  max-width: 480px;
+  max-width: 460px;
   width: 90%;
+  box-shadow: var(--shadow-lg);
 }
 
 .prep-countdown {
-  font-family: var(--font-display);
-  font-size: 6rem;
-  font-weight: 900;
-  background: var(--grad-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: var(--font-mono);
+  font-size: 4.5rem;
+  font-weight: 800;
+  color: var(--accent-secondary);
   line-height: 1;
-  animation: pulse 1s ease infinite;
+  margin: 14px 0;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .room-layout {
-    grid-template-columns: 220px 1fr 240px;
+    grid-template-columns: 240px 1fr 240px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .room-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto 1fr auto;
   }
-
   .participants-panel { display: none; }
   .insights-panel { display: none; }
-  .chat-area { border-radius: 0; }
 }
