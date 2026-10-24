@@ -2,6 +2,22 @@
  * api.js — Centralized API client for GD Simulator backend
  */
 
+// Initialize UI theme immediately to prevent any visual flash
+(function () {
+  const currentTheme = localStorage.getItem('gd_theme') || 'emerald';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  if (!document.querySelector('script[src*="theme.js"]')) {
+    const s = document.createElement('script');
+    s.src = '/js/theme.js';
+    document.head.appendChild(s);
+  }
+  if (!document.querySelector('script[src*="user-switcher.js"]')) {
+    const us = document.createElement('script');
+    us.src = '/js/user-switcher.js';
+    document.head.appendChild(us);
+  }
+})();
+
 // Uses window.API_BASE_URL set by config.js (Render URL in prod, same-origin locally)
 const API_BASE = window.API_BASE_URL || (window.location.origin + '/api');
 
@@ -160,6 +176,23 @@ const Auth = {
       try { _supabaseClient.auth.signOut(); } catch {}
     }
     window.location.href = '/login.html';
+  },
+
+  async getDemoUsers() {
+    return apiFetch('/auth/demo-users');
+  },
+
+  async quickSwitch(identifier) {
+    const body = typeof identifier === 'number' ? { user_id: identifier } : { email: identifier };
+    const res = await apiFetch('/auth/quick-switch', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    if (res.token) {
+      localStorage.setItem('gd_token', res.token);
+      localStorage.setItem('gd_user', JSON.stringify(res.user));
+    }
+    return res;
   },
 
   isLoggedIn() {
@@ -328,6 +361,61 @@ function getScoreGrade(score) {
   return { grade: 'Needs Work', cls: 'grade-poor' };
 }
 
+// ─── ROOMS (Human GD — DB-backed, separate sessions per user) ───────────────
+const Rooms = {
+  /**
+   * Host creates a room. Returns { room_id, room, session_id }.
+   * session_id is the host's own isolated gd_sessions row.
+   */
+  async create(topic, category, roomId) {
+    return apiFetch('/rooms/create', {
+      method: 'POST',
+      body: JSON.stringify({ topic, category: category || 'General', room_id: roomId })
+    });
+  },
+
+  /**
+   * Participant joins via code. Returns { room_id, room, session_id, participants }.
+   * session_id is THIS user's own isolated gd_sessions row.
+   */
+  async join(roomId) {
+    return apiFetch('/rooms/join', {
+      method: 'POST',
+      body: JSON.stringify({ room_id: roomId })
+    });
+  },
+
+  /**
+   * Get room info + all participants + sessionMap.
+   * sessionMap = { user_id -> session_id }
+   */
+  async getRoom(roomId) {
+    return apiFetch(`/rooms/${roomId.trim().toUpperCase()}`);
+  },
+
+  /**
+   * Get this user's session_id for a given room (reconnect helper).
+   */
+  async getMySession(roomId) {
+    return apiFetch(`/rooms/${roomId.trim().toUpperCase()}/my-session`);
+  },
+
+  /**
+   * Mark room as active in DB (called by host when starting discussion).
+   */
+  async start(roomId) {
+    return apiFetch(`/rooms/${roomId.trim().toUpperCase()}/start`, { method: 'POST' });
+  },
+
+  /**
+   * End room in DB — closes all participant sessions.
+   * Returns { sessionMap } so each client can trigger their own evaluation.
+   */
+  async end(roomId) {
+    return apiFetch(`/rooms/${roomId.trim().toUpperCase()}/end`, { method: 'POST' });
+  }
+};
+
 // Export everything to window for global access
-window.API = { Auth, Sessions, AI, Performance };
+window.API = { Auth, Sessions, AI, Performance, Rooms };
 window.AppUtils = { requireAuth, showToast, formatDuration, formatDate, getScoreColor, getScoreGrade, getUser, getToken, getGeminiKey };

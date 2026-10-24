@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const sessionsRoutes = require('./routes/sessions');
 const aiRoutes = require('./routes/ai');
 const performanceRoutes = require('./routes/performance');
+const roomsRoutes = require('./routes/rooms');
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/rooms', roomsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -86,8 +88,17 @@ function _endRoom(cleanRoomId, message) {
     }
   }
 
-  // Build a map of userId -> sessionId and socketId -> sessionId
-  const sessionMap = {};
+  // Build sessionMap from DB (authoritative) merged with in-memory
+  let sessionMap = {};
+  try {
+    const dbParticipants = db.prepare(
+      'SELECT user_id, session_id FROM room_participants WHERE room_id = ?'
+    ).all(cleanRoomId);
+    dbParticipants.forEach(p => { if (p.session_id) sessionMap[p.user_id] = p.session_id; });
+  } catch (e) {
+    console.warn('[EndRoom] DB sessionMap fallback to in-memory:', e.message);
+  }
+  // Merge in-memory registrations (covers users that haven't called /api/rooms/join yet)
   (room.participants || []).forEach(p => {
     if (p.userId && p.sessionId) sessionMap[p.userId] = p.sessionId;
     if (p.socketId && p.sessionId) sessionMap[p.socketId] = p.sessionId;

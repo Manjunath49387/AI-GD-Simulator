@@ -180,3 +180,7 @@ Final_demo_GD/
 | Auth | JWT (JSON Web Tokens) |
 | Speech | Web Speech API (SpeechRecognition + SpeechSynthesis) |
 | Charts | Chart.js |
+
+
+
+i use vercel link to open project and use different mail id to login in different devices but both discussion history is same .

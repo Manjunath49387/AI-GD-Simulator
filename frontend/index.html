@@ -111,44 +111,101 @@
       display: block;
     }
 
-    /* Demo Quick Fill Pill */
-    .demo-credential-strip {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: var(--radius-md);
-      padding: 10px 14px;
+    /* Multi-User Fast Switch Styles */
+    .multi-user-box {
+      background: rgba(var(--accent-rgb, 13, 148, 136), 0.08);
+      border: 1px solid var(--glass-border-hover);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
       margin-bottom: 20px;
+    }
+    .multi-user-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      margin-bottom: 10px;
     }
-    .demo-info {
+    .multi-user-title {
       font-size: 0.76rem;
-      color: var(--text-secondary);
-      line-height: 1.35;
-    }
-    .demo-info strong {
-      color: var(--text-primary);
-      display: block;
-      font-weight: 600;
-    }
-    .btn-quick-demo {
-      background: rgba(99, 102, 241, 0.18);
-      color: var(--accent-tertiary);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      border-radius: var(--radius-sm);
-      padding: 5px 10px;
-      font-size: 0.72rem;
       font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.01em;
+    }
+    .multi-user-hint {
+      font-size: 0.68rem;
+      color: var(--text-accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .candidate-quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .candidate-quick-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
       cursor: pointer;
       transition: all var(--transition-fast);
-      white-space: nowrap;
+      text-align: left;
     }
-    .btn-quick-demo:hover {
-      background: var(--accent-primary);
-      color: #ffffff;
-      border-color: var(--accent-primary);
+    .candidate-quick-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(var(--accent-rgb, 13, 148, 136), 0.2);
+    }
+    .c-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-full);
+      background: var(--accent-gradient);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .c-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .c-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .c-role {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .c-action {
+      font-size: 0.7rem;
+      color: var(--text-accent);
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .candidate-quick-card:hover .c-action {
+      opacity: 1;
     }
 
     /* Features List */
@@ -228,13 +285,51 @@
       </a>
     </div>
 
-    <!-- Quick Demo Credential Bar -->
-    <div class="demo-credential-strip">
-      <div class="demo-info">
-        <strong>Demo Candidate Account</strong>
-        <span>demo@gd.com • password: demo123</span>
+    <!-- Multi-User Fast Sign-In Box -->
+    <div class="multi-user-box">
+      <div class="multi-user-header">
+        <div class="multi-user-title">
+          <svg style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Multi-User Fast Sign-In
+        </div>
+        <span class="multi-user-hint">1-Click Sign In</span>
       </div>
-      <button class="btn-quick-demo" type="button" onclick="fillDemoCredentials()">Fill Demo</button>
+      <div class="candidate-quick-grid">
+        <button type="button" class="candidate-quick-card" onclick="quickLoginCandidate('demo@gd.com', 'Alex Morgan')" title="Sign in as Alex Morgan">
+          <div class="c-avatar">A</div>
+          <div class="c-info">
+            <div class="c-name">Alex Morgan</div>
+            <div class="c-role">Tech • Score 83%</div>
+          </div>
+          <span class="c-action">Login →</span>
+        </button>
+        <button type="button" class="candidate-quick-card" onclick="quickLoginCandidate('sarah@gd.com', 'Sarah Chen')" title="Sign in as Sarah Chen">
+          <div class="c-avatar">S</div>
+          <div class="c-info">
+            <div class="c-name">Sarah Chen</div>
+            <div class="c-role">Consulting • Score 86%</div>
+          </div>
+          <span class="c-action">Login →</span>
+        </button>
+        <button type="button" class="candidate-quick-card" onclick="quickLoginCandidate('rahul@gd.com', 'Rahul Sharma')" title="Sign in as Rahul Sharma">
+          <div class="c-avatar">R</div>
+          <div class="c-info">
+            <div class="c-name">Rahul Sharma</div>
+            <div class="c-role">Engineering • Score 76%</div>
+          </div>
+          <span class="c-action">Login →</span>
+        </button>
+        <button type="button" class="candidate-quick-card" onclick="quickLoginCandidate('priya@gd.com', 'Priya Patel')" title="Sign in as Priya Patel">
+          <div class="c-avatar">P</div>
+          <div class="c-info">
+            <div class="c-name">Priya Patel</div>
+            <div class="c-role">Product • Score 89%</div>
+          </div>
+          <span class="c-action">Login →</span>
+        </button>
+      </div>
     </div>
 
     <!-- LOGIN PANEL -->
@@ -338,10 +433,32 @@
   }
 
   function fillDemoCredentials() {
+    quickLoginCandidate('demo@gd.com', 'Alex Morgan');
+  }
+
+  async function quickLoginCandidate(email, name) {
     switchTab('login');
-    document.getElementById('login-email').value = 'demo@gd.com';
+    document.getElementById('login-email').value = email;
     document.getElementById('login-password').value = 'demo123';
-    AppUtils.showToast('Demo credentials populated', 'info', 1800);
+    AppUtils.showToast(`Signing in as ${name}...`, 'info', 1500);
+
+    try {
+      const res = await API.Auth.quickSwitch(email);
+      if (res && res.token) {
+        AppUtils.showToast(`Welcome back, ${res.user.name}!`, 'success', 2000);
+        setTimeout(() => window.location.href = '/dashboard.html', 300);
+      }
+    } catch (err) {
+      try {
+        const res2 = await API.Auth.login(email, 'demo123');
+        if (res2 && res2.token) {
+          AppUtils.showToast(`Welcome back, ${res2.user.name}!`, 'success', 2000);
+          setTimeout(() => window.location.href = '/dashboard.html', 300);
+        }
+      } catch (e) {
+        AppUtils.showToast(`Credentials filled for ${name}. Click Sign In.`, 'info');
+      }
+    }
   }
 
   async function handleLogin(e) {

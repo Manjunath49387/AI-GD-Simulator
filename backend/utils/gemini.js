@@ -5,41 +5,63 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-// ─── CURATED OFFLINE TOPICS BY CATEGORY ──────────────────────────────────────
+// ─── CURATED OFFLINE TOPICS BY CATEGORY (FAMILIAR & RELATABLE) ───────────────
 const FALLBACK_TOPICS = {
-  Technology: [
-    'Is Artificial Intelligence helping human creativity or replacing jobs?',
-    'Should Social Media platforms be held responsible for fake news and misinformation?',
-    'Data Privacy in the Digital Age: Is personal privacy still possible online?',
-    'Self-Driving Cars: Are automated vehicles safe and ready for Indian roads?',
-    'Work From Home vs Office: Which is better for productivity and career growth?',
-    'Digital Currency and Crypto: The future of money or a risky gamble?'
+  'Campus & College': [
+    'Is a College Degree still necessary to build a successful career today?',
+    'Online Classes vs Traditional Offline Classrooms: Which offers better learning?',
+    'Should attendance in college lectures be strictly mandatory or optional?',
+    'Marks and CGPA vs Practical Skills: What truly determines campus placement success?',
+    'AI tools (like ChatGPT) in assignments: Smart study aid or cheating?',
+    'Coding from school age: Essential future skill or unnecessary student stress?',
+    'Are college internships genuinely useful or just low-paid repetitive work?'
   ],
-  Economy: [
-    'Universal Basic Income: A helpful safety net or a discouragement to work?',
-    'Online Shopping vs Local Stores: Does online shopping hurt small shopkeepers?',
-    'Startups in India: Are company valuations realistic or overhyped?',
-    'Gig Economy and Delivery Apps: Freedom of work or lack of job security?',
-    'Local Manufacturing vs Global Trade: Should countries prioritize making everything locally?',
-    'Solar and Green Energy: Can countries grow fast while cutting pollution?'
+  'Technology & Social Media': [
+    'Social Media: Is it connecting people more or making youth feel lonelier?',
+    'Artificial Intelligence: Will AI take away entry-level jobs or create new opportunities?',
+    'Impact of Instagram Reels and YouTube Shorts on student focus and attention spans',
+    'UPI and Digital Payments: Has India become a truly cashless society?',
+    'Electric Vehicles (EVs) vs Petrol/Diesel: Are EVs practically ready for everyone?',
+    'Smartphones for school kids: Helpful for education or harmful digital addiction?',
+    'Data Privacy: Are we giving away too much personal info for free apps?'
   ],
-  'Social Issues': [
-    'Impact of Short Videos (Reels and Shorts) on student focus and mental health',
-    'Work-Life Balance: Are long working hours necessary to succeed?',
-    'Exams and Marks: Do test scores reflect real intelligence or block creativity?',
-    'Climate Change: What is more effective — individual habits or government rules?',
-    'Gender Equality: Are modern workplaces truly giving equal opportunities?',
-    'Mental Health: How can schools and colleges talk more openly about stress?'
+  'Career & Workplace': [
+    'Work From Home (WFH) vs Work From Office (WFO): Finding the right balance',
+    'Hard Work vs Smart Work: Which is more important for rapid promotions?',
+    'Startup Culture vs Stable MNC/Government Job: What should fresh graduates pick?',
+    'Moonlighting (working two jobs): Legitimate hustle or breach of company trust?',
+    'Work-Life Balance: Is it realistic in fast-paced corporate environments?',
+    'Communication Skills vs Technical Skills: What matters more in interview rounds?',
+    'Job Hopping every 2 years vs Company Loyalty: Best path for salary growth?'
+  ],
+  'Society & Lifestyle': [
+    'Fast Food & Instant Delivery Apps (Zomato/Blinkit) vs Home Cooking & Healthy Living',
+    'OTT Platforms (Netflix, Hotstar) vs Cinema Theatres: Is cinema theatre culture fading?',
+    'Single-Use Plastic Ban: Can environmental bans work without cheap alternatives?',
+    'Influencer Culture: Inspiring creative role models or unrealistic life standards?',
+    'Mental Health Awareness: Are families and colleges talking openly about stress?',
+    'Cash on Delivery vs Pre-payments: Trust and fraud issues in online shopping'
   ],
   General: [
-    'Has social media made people more connected or more lonely?',
-    'Is a college degree still necessary to build a successful career?',
-    'Leadership vs Management: Which is more important during difficult times?',
-    'Voting: Should voting in national elections be made compulsory?',
-    'Hard Skills vs Communication Skills: What matters more for getting hired?',
-    'Ethics vs Profit: Can modern businesses be honest and still make high profits?'
+    'Is English fluency given too much importance over actual talent in job selections?',
+    'Examinations & Test Scores: Do they measure real intelligence or memory power?',
+    'Cryptocurrency and Stock Trading among college students: Smart investing or gambling?',
+    'Nepotism vs Pure Merit: Does raw talent always win in competitive careers?',
+    'Should voting in elections be made legally compulsory for all citizens?',
+    'Ethics vs Maximum Profit: Can modern businesses be completely honest?'
   ]
 };
+
+// Aliases for backward compatibility
+FALLBACK_TOPICS['Technology'] = FALLBACK_TOPICS['Technology & Social Media'];
+FALLBACK_TOPICS['Artificial Intelligence'] = FALLBACK_TOPICS['Technology & Social Media'];
+FALLBACK_TOPICS['Education'] = FALLBACK_TOPICS['Campus & College'];
+FALLBACK_TOPICS['Career'] = FALLBACK_TOPICS['Career & Workplace'];
+FALLBACK_TOPICS['Business'] = FALLBACK_TOPICS['Career & Workplace'];
+FALLBACK_TOPICS['Economy'] = FALLBACK_TOPICS['Career & Workplace'];
+FALLBACK_TOPICS['Environment'] = FALLBACK_TOPICS['Society & Lifestyle'];
+FALLBACK_TOPICS['Social Issues'] = FALLBACK_TOPICS['Society & Lifestyle'];
+FALLBACK_TOPICS['Ethics & Policy'] = FALLBACK_TOPICS['General'];
 
 // ─── CURATED AGENT FALLBACK STATEMENTS (SIMPLE VOCABULARY) ──────────────────
 const FALLBACK_PERSONA_RESPONSES = {
@@ -186,17 +208,18 @@ async function generateTopics(category, apiKey) {
   const key = apiKey || GEMINI_API_KEY;
 
   if (!key) {
-    const list = FALLBACK_TOPICS[category] || FALLBACK_TOPICS.General;
+    const list = FALLBACK_TOPICS[category] || FALLBACK_TOPICS['Campus & College'] || FALLBACK_TOPICS.General;
     // Shuffle and return 6
     return [...list].sort(() => 0.5 - Math.random()).slice(0, 6);
   }
 
   try {
-    const prompt = `Generate exactly 6 thought-provoking Group Discussion topics for the category: "${category}".
+    const prompt = `Generate exactly 6 familiar, engaging, and relatable Group Discussion topics for campus placement preparation in the category: "${category}".
+Ensure the topics are easy to understand for college students and young professionals. Focus on real-world, familiar dilemmas (avoid obscure academic jargon, geopolitical treaties, or overly dense economic theories).
 Return ONLY a valid JSON array of strings, like:
 ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5", "Topic 6"]`;
 
-    const result = await geminiChat('You are a GD topic expert.', [], prompt, key);
+    const result = await geminiChat('You are a helpful GD topic expert focused on clear, familiar campus placement topics.', [], prompt, key);
     const match = result.match(/\[[\s\S]*\]/);
     if (match) {
       return JSON.parse(match[0]);
@@ -205,7 +228,7 @@ Return ONLY a valid JSON array of strings, like:
     console.warn('Gemini topic generation fallback:', err.message);
   }
 
-  return FALLBACK_TOPICS[category] || FALLBACK_TOPICS.General;
+  return FALLBACK_TOPICS[category] || FALLBACK_TOPICS['Campus & College'] || FALLBACK_TOPICS.General;
 }
 
 /**

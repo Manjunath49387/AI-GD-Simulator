@@ -239,6 +239,61 @@ router.post('/login', async (req, res) => {
   });
 });
 
+// ─── GET /api/auth/demo-users ────────────────────────────────────────────────
+// Returns curated candidates for instant multi-user simulation & pair testing
+router.get('/demo-users', (req, res) => {
+  try {
+    const users = db.prepare(`
+      SELECT 
+        u.user_id, u.name, u.email, u.avatar, u.bio,
+        COUNT(s.session_id) as total_sessions,
+        ROUND(AVG(p.overall_score), 1) as avg_score
+      FROM users u
+      LEFT JOIN gd_sessions s ON u.user_id = s.user_id AND s.status = 'completed'
+      LEFT JOIN performance p ON s.session_id = p.session_id
+      GROUP BY u.user_id
+      ORDER BY u.user_id ASC
+      LIMIT 8
+    `).all();
+
+    res.json({ users });
+  } catch (err) {
+    console.error('Demo users error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve candidate profiles.' });
+  }
+});
+
+// ─── POST /api/auth/quick-switch ─────────────────────────────────────────────
+// Instantly sign in as a demo candidate (ideal for pair testing, multi-user simulation)
+router.post('/quick-switch', (req, res) => {
+  const { email, user_id, userId } = req.body;
+  const targetId = user_id || userId;
+
+  let user;
+  if (targetId) {
+    user = db.prepare('SELECT * FROM users WHERE user_id = ?').get(targetId);
+  } else if (email) {
+    user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim());
+  }
+
+  if (!user) {
+    return res.status(404).json({ error: 'Candidate profile not found.' });
+  }
+
+  const token = jwt.sign(
+    { user_id: user.user_id, name: user.name, email: user.email },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  res.json({
+    message: `Switched account to ${user.name}`,
+    token,
+    auth_provider: user.auth_provider || 'local',
+    user: { user_id: user.user_id, name: user.name, email: user.email, avatar: user.avatar }
+  });
+});
+
 // ─── POST /api/auth/supabase-callback ───────────────────────────────────────
 // Called by frontend after successful Supabase social login (Google/GitHub)
 // Syncs the Supabase user to the local SQLite database

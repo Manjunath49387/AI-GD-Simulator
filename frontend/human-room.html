@@ -1047,15 +1047,61 @@
     // ── Update all Room ID displays ────────────────────────────
     let mySessionId = sessionId || null;
 
-    // Helper: Ensure current user has their own database session for separate evaluation
+    // Helper: Ensure current user has their own DB session for separate evaluation
+    // Hosts call /api/rooms/create, participants call /api/rooms/join.
+    // Both are idempotent — safe to call multiple times on reconnect.
     async function ensureUserSession() {
       if (mySessionId) return mySessionId;
       try {
-        const res = await API.Sessions.create('human', topic || 'Group Discussion', 'General', currentRoomId);
-        if (res && res.session) {
-          mySessionId = res.session.session_id;
-          console.log('✅ Created individual session:', mySessionId);
-          if (socket && socket.connected && currentRoomId) {
+        let res;
+        if (isHost) {
+          res = await API.Rooms.create(topic || 'Group Discussion', 'General', currentRoomId);
+          if (res && res.session_id) {
+            mySessionId = res.session_id;
+            // Use the canonical room_id returned by backend
+            if (res.room_id) currentRoomId = res.room_id;
+            console.log(`✅ Host session created in DB: ${mySessionId} (room ${currentRoomId})`);
+          }
+        } else if (currentRoomId) {
+          res = await API.Rooms.join(currentRoomId);
+          if (res && res.session_id) {
+            mySessionId = res.session_id;
+            if (res.room_id) currentRoomId = res.room_id;
+            console.log(`✅ Participant session created in DB: ${mySessionId} (room ${currentRoomId})`);
+          }
+        }
+
+        // Register the session with the socket so the server can sync transcripts
+        if (mySessionId && socket && socket.connected && currentRoomId) {
+          socket.emit('room:register_session', {
+            roomId: currentRoomId,
+            userId: user.user_id,
+            sessionId: mySessionId
+          });
+        }
+      } catch (err) {
+        console.warn('Could not register room session in DB:', err.message || err);
+        // Fallback: try legacy sessions route so user still gets evaluated
+        try {
+          const fallback = await API.Sessions.create('human', topic || 'Group Discussion', 'General', currentRoomId);
+          if (fallback && fallback.session) {
+            mySessionId = fallback.session.session_id;
+            console.warn('Used fallback session create:', mySessionId);
+          }
+        } catch (_) {}
+      }
+      return mySessionId;
+    }
+
+    // Reconnect helper: if page was refreshed and we lost mySessionId, fetch it from DB
+    async function recoverSessionIfNeeded() {
+      if (mySessionId || !currentRoomId) return;
+      try {
+        const rec = await API.Rooms.getMySession(currentRoomId);
+        if (rec && rec.session_id) {
+          mySessionId = rec.session_id;
+          console.log(`🔄 Recovered session ${mySessionId} from DB for room ${currentRoomId}`);
+          if (socket && socket.connected) {
             socket.emit('room:register_session', {
               roomId: currentRoomId,
               userId: user.user_id,
@@ -1063,10 +1109,7 @@
             });
           }
         }
-      } catch (err) {
-        console.warn('Could not auto-create session yet:', err);
-      }
-      return mySessionId;
+      } catch (_) { /* no existing session in DB — fresh join */ }
     }
 
     // ── Update all Room ID displays ────────────────────────────
@@ -1120,7 +1163,21 @@
       document.getElementById('join-modal').style.display = 'none';
       document.getElementById('host-controls')?.classList.remove('hidden');
       showWaitingHall(true);
-      await ensureUserSession();
+
+      // Persist room + create host's individual session in DB
+      try {
+        const roomRes = await API.Rooms.create(topic || 'Group Discussion', 'General', currentRoomId);
+        if (roomRes && roomRes.session_id) {
+          mySessionId = roomRes.session_id;
+          if (roomRes.room_id) currentRoomId = roomRes.room_id;
+          updateRoomDisplay(currentRoomId);
+          console.log(`✅ Room registered in DB: ${currentRoomId}, host session: ${mySessionId}`);
+        }
+      } catch (e) {
+        console.warn('API.Rooms.create failed, falling back to ensureUserSession:', e.message || e);
+        await ensureUserSession();
+      }
+
       if (socket && socket.connected) {
         socket.emit('room:create', {
           roomId: currentRoomId,
@@ -1133,10 +1190,12 @@
       setTimeout(() => openShareModal(), 300);
     };
 
-    // Global start discussion trigger
-    window.startDiscussionFromWaitingHall = function() {
+    // Global start discussion trigger (host only)
+    window.startDiscussionFromWaitingHall = async function() {
       const duration = parseInt(document.getElementById('wh-duration-select')?.value || '600');
       if (socket && socket.connected && currentRoomId) {
+        // Mark room as active in DB
+        try { await API.Rooms.start(currentRoomId); } catch (_) {}
         socket.emit('room:start', { roomId: currentRoomId, duration });
       }
     };
@@ -1162,10 +1221,10 @@
     let isMuted = false;
 
     socket.on('connect', async () => {
+      await recoverSessionIfNeeded();
       await ensureUserSession();
 
       if (isHost && currentRoomId) {
-        // Host: hide join modal, enter waiting hall as host, emit create
         updateRoomDisplay(currentRoomId);
         document.getElementById('join-modal').style.display = 'none';
         showWaitingHall(true);
@@ -1177,7 +1236,6 @@
           sessionId: mySessionId
         });
       } else if (currentRoomId) {
-        // Guest joining: hide join modal, enter waiting hall as guest, emit join
         updateRoomDisplay(currentRoomId);
         document.getElementById('join-modal').style.display = 'none';
         showWaitingHall(false);
@@ -1189,7 +1247,6 @@
         });
         AppUtils.showToast(`Connected to Waiting Hall for room ${currentRoomId}`, 'info');
       } else {
-        // No room ID provided: prompt with join/create modal
         document.getElementById('join-modal').style.display = 'flex';
       }
     });
@@ -1296,30 +1353,36 @@
       const evalOverlay = document.getElementById('eval-loading-overlay');
       if (evalOverlay) evalOverlay.style.display = 'flex';
 
-      // Pick out this participant's individual session ID
-      const targetSessionId = (data.sessionMap && (data.sessionMap[user.user_id] || data.sessionMap[socket.id])) || mySessionId;
+      // Try to get sessionId from DB-authoritative sessionMap first,
+      // then fall back to socket-id map, then in-memory mySessionId
+      const userId = user.user_id;
+      const targetSessionId = (data.sessionMap && (data.sessionMap[userId] || data.sessionMap[socket.id])) || mySessionId;
       console.log('🏁 Discussion ended. Processing separate evaluation for session:', targetSessionId);
 
       if (targetSessionId) {
-        try {
-          await API.Sessions.end(targetSessionId);
-        } catch (err) {
+        try { await API.Sessions.end(targetSessionId); } catch (err) {
           console.warn('Session end API error:', err);
         }
-
-        try {
-          await API.AI.evaluate(targetSessionId);
-        } catch (evalErr) {
+        try { await API.AI.evaluate(targetSessionId); } catch (evalErr) {
           console.warn('AI evaluate API error:', evalErr);
         }
-
         setTimeout(() => {
           window.location.href = `/results.html?session=${targetSessionId}&human=1`;
         }, 1500);
       } else {
-        setTimeout(() => {
-          window.location.href = '/history.html';
-        }, 2000);
+        // Last resort: fetch from DB
+        try {
+          const rec = currentRoomId ? await API.Rooms.getMySession(currentRoomId) : null;
+          if (rec && rec.session_id) {
+            try { await API.Sessions.end(rec.session_id); } catch (_) {}
+            try { await API.AI.evaluate(rec.session_id); } catch (_) {}
+            setTimeout(() => {
+              window.location.href = `/results.html?session=${rec.session_id}&human=1`;
+            }, 1500);
+            return;
+          }
+        } catch (_) {}
+        setTimeout(() => { window.location.href = '/history.html'; }, 2000);
       }
     });
 
@@ -1376,16 +1439,30 @@
     document.getElementById('join-submit')?.addEventListener('click', async () => {
       const inputId = document.getElementById('room-id-input')?.value.trim().toUpperCase();
       if (!inputId) { AppUtils.showToast('Enter a Room ID', 'error'); return; }
+
+      // Validate room exists in DB before proceeding
+      let roomData;
+      try {
+        roomData = await API.Rooms.join(inputId);
+      } catch (err) {
+        AppUtils.showToast(err.message || 'Room not found. Check the code.', 'error');
+        return;
+      }
+
       currentRoomId = inputId;
+      mySessionId = roomData.session_id;  // Already created in DB
+      isHost = false;
+
       document.getElementById('join-modal').style.display = 'none';
       showWaitingHall(false);
-      await ensureUserSession();
+
       socket.emit('room:join', {
         roomId: inputId,
         userName: user.name,
         userId: user.user_id,
         sessionId: mySessionId
       });
+      AppUtils.showToast(`🔌 Joined room ${inputId}`, 'success');
     });
 
     function updateParticipants(participants) {

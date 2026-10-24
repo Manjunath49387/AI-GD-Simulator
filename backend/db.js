@@ -131,23 +131,43 @@ db.exec(`
   );
 `);
 
+// ── human_rooms: persisted room registry (survives server restarts / deployments) ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS human_rooms (
+    room_id      TEXT PRIMARY KEY,
+    topic        TEXT NOT NULL,
+    category     TEXT DEFAULT 'General',
+    created_by   INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    status       TEXT DEFAULT 'waiting' CHECK(status IN ('waiting', 'active', 'ended')),
+    started_at   DATETIME,
+    ended_at     DATETIME,
+    duration     INTEGER DEFAULT 0,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+// ── room_participants: one row per (room, user), stores their individual session ──
 db.exec(`
   CREATE TABLE IF NOT EXISTS room_participants (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    room_id    TEXT NOT NULL,
-    user_id    INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    name       TEXT NOT NULL,
-    socket_id  TEXT,
-    is_muted   INTEGER DEFAULT 0,
-    joined_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id     TEXT NOT NULL REFERENCES human_rooms(room_id) ON DELETE CASCADE,
+    user_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    session_id  INTEGER REFERENCES gd_sessions(session_id) ON DELETE SET NULL,
+    name        TEXT NOT NULL,
+    is_host     INTEGER DEFAULT 0,
+    is_muted    INTEGER DEFAULT 0,
+    joined_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(room_id, user_id)
   );
 `);
 
 db.exec(`
-  CREATE INDEX IF NOT EXISTS idx_sessions_user          ON gd_sessions(user_id);
-  CREATE INDEX IF NOT EXISTS idx_transcripts_session    ON gd_transcripts(session_id);
-  CREATE INDEX IF NOT EXISTS idx_performance_user       ON performance(user_id);
-  CREATE INDEX IF NOT EXISTS idx_room_participants_room ON room_participants(room_id);
+  CREATE INDEX IF NOT EXISTS idx_sessions_user            ON gd_sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_sessions_room            ON gd_sessions(room_id);
+  CREATE INDEX IF NOT EXISTS idx_transcripts_session      ON gd_transcripts(session_id);
+  CREATE INDEX IF NOT EXISTS idx_performance_user         ON performance(user_id);
+  CREATE INDEX IF NOT EXISTS idx_room_participants_room   ON room_participants(room_id);
+  CREATE INDEX IF NOT EXISTS idx_room_participants_user   ON room_participants(user_id);
 `);
 
 // ============================================================
@@ -173,11 +193,38 @@ const MIGRATIONS = [
   `ALTER TABLE performance ADD COLUMN placement_readiness    TEXT DEFAULT ''`,
   `ALTER TABLE performance ADD COLUMN improvement_suggestions TEXT DEFAULT '[]'`,
   `ALTER TABLE performance ADD COLUMN score_projection       TEXT DEFAULT '{}'`,
+  // human_rooms table (new — added for persistent room + per-user session separation)
+  `CREATE TABLE IF NOT EXISTS human_rooms (
+    room_id      TEXT PRIMARY KEY,
+    topic        TEXT NOT NULL,
+    category     TEXT DEFAULT 'General',
+    created_by   INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    status       TEXT DEFAULT 'waiting',
+    started_at   DATETIME,
+    ended_at     DATETIME,
+    duration     INTEGER DEFAULT 0,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`,
 ];
+
 
 for (const sql of MIGRATIONS) {
   try { db.exec(sql); } catch (_) { /* column already exists — skip */ }
 }
+
+// ─── Upgrade room_participants to new schema (add missing columns) ────────────
+// These are try/catch so they silently skip if the column already exists.
+const ROOM_PARTICIPANT_UPGRADES = [
+  `ALTER TABLE room_participants ADD COLUMN session_id INTEGER REFERENCES gd_sessions(session_id) ON DELETE SET NULL`,
+  `ALTER TABLE room_participants ADD COLUMN is_host    INTEGER DEFAULT 0`,
+  `ALTER TABLE room_participants ADD COLUMN is_muted   INTEGER DEFAULT 0`,
+  // The UNIQUE(room_id, user_id) constraint cannot be added via ALTER TABLE in SQLite.
+  // The ON CONFLICT DO UPDATE in rooms.js handles duplicates at query level instead.
+];
+for (const sql of ROOM_PARTICIPANT_UPGRADES) {
+  try { db.exec(sql); } catch (_) { /* skip if column already exists */ }
+}
+
 
 console.log('✅ Database initialized successfully via node:sqlite:', dbFilePath);
 

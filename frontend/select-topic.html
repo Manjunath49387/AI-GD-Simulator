@@ -70,9 +70,9 @@
     }
 
     .topic-card.selected {
-      background: rgba(99, 102, 241, 0.12);
+      background: rgba(var(--accent-rgb, 13, 148, 136), 0.15);
       border-color: var(--accent-secondary);
-      box-shadow: 0 0 18px rgba(99, 102, 241, 0.2);
+      box-shadow: var(--shadow-accent);
     }
 
     .topic-top-meta {
@@ -129,8 +129,8 @@
     .selected-topic-banner {
       padding: 14px 20px;
       border-radius: var(--radius-lg);
-      background: rgba(99, 102, 241, 0.12);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(var(--accent-rgb, 13, 148, 136), 0.15);
+      border: 1px solid var(--glass-border-active);
       display: flex;
       align-items: center;
       gap: 14px;
@@ -280,14 +280,11 @@
 
       <!-- Category Filter Chips -->
       <div class="categories-row" id="categories-row">
-        <button class="category-chip active" onclick="loadTopics('Technology', this)">Technology & Systems</button>
-        <button class="category-chip" onclick="loadTopics('Artificial Intelligence', this)">Artificial Intelligence</button>
-        <button class="category-chip" onclick="loadTopics('Business', this)">Corporate Strategy</button>
-        <button class="category-chip" onclick="loadTopics('Economics', this)">Macroeconomics</button>
-        <button class="category-chip" onclick="loadTopics('Ethics & Policy', this)">Ethics & Governance</button>
-        <button class="category-chip" onclick="loadTopics('Education', this)">Higher Education</button>
-        <button class="category-chip" onclick="loadTopics('Environment', this)">Climate & Energy</button>
-        <button class="category-chip" onclick="loadTopics('Career', this)">Workplace Dynamics</button>
+        <button class="category-chip active" onclick="loadTopics('Campus & College', this)">Campus & College Life</button>
+        <button class="category-chip" onclick="loadTopics('Technology & Social Media', this)">Everyday Tech & Social Media</button>
+        <button class="category-chip" onclick="loadTopics('Career & Workplace', this)">Career & Workplace</button>
+        <button class="category-chip" onclick="loadTopics('Society & Lifestyle', this)">Society & Daily Habits</button>
+        <button class="category-chip" onclick="loadTopics('General', this)">General & Placement GDs</button>
       </div>
 
       <!-- Action Row -->
@@ -297,7 +294,7 @@
             <svg style="width:14px;height:14px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Generate Fresh AI Prompts
           </button>
-          <span style="font-size:0.78rem; color:var(--text-muted)">Curated for Tier-1 corporate placement rubrics</span>
+          <span style="font-size:0.78rem; color:var(--text-muted)">Familiar, high-impact topics for placement interviews</span>
         </div>
       </div>
 
@@ -315,7 +312,7 @@
           <label class="form-label">Or Propose a Custom Discussion Problem Statement</label>
           <div style="display:flex; gap:10px">
             <input id="custom-topic" class="form-input" type="text"
-              placeholder="e.g., Should central banks prioritize inflation targeting over industrial growth mandates?" 
+              placeholder="e.g., Social Media: Connecting people or making us lonely?" 
               onkeydown="if(event.key==='Enter'){selectCustomTopic();}" />
             <button class="btn btn-secondary" onclick="selectCustomTopic()" style="white-space:nowrap">
               Apply Custom Topic
@@ -356,66 +353,63 @@
   document.getElementById('mode-label').textContent = mode === 'ai' ? `Autonomous AI Mode • ${aiCount} Persona Agents` : 'Collaborative Peer Cohort Mode';
 
   let selectedTopic = '';
-  let currentCategory = 'Technology';
+  let currentCategory = 'Campus & College';
 
   const FALLBACK_TOPICS = {
-    'Technology': [
-      'Should foundational AI models be open-source or proprietary to ensure global security?',
-      'Semiconductor sovereignty: Can domestic subsidies replace international supply chains?',
-      'Are social media algorithms destroying adolescent attention spans and mental health?',
-      'Central Bank Digital Currencies (CBDCs): Financial inclusion vs total surveillance',
-      'Should software developers be held legally accountable for algorithmic failure?'
+    'Campus & College': [
+      'Is a College Degree still necessary to build a successful career today?',
+      'Online Classes vs Traditional Offline Classrooms: Which offers better learning?',
+      'Should attendance in college lectures be strictly mandatory or optional?',
+      'Marks and CGPA vs Practical Skills: What truly determines campus placement success?',
+      'AI tools (like ChatGPT) in assignments: Smart study aid or cheating?',
+      'Coding from school age: Essential future skill or unnecessary student stress?',
+      'Are college internships genuinely useful or just low-paid repetitive work?'
     ],
-    'Artificial Intelligence': [
-      'Is Generative AI devaluing human creativity or democratizing expression?',
-      'Will autonomous AI agents eliminate junior knowledge-work roles within five years?',
-      'Autonomous military drones: The imperative for an international regulatory ban',
-      'Data sovereignty and training sets: Do creators deserve perpetual AI licensing royalties?',
-      'AGI alignment: Technical engineering problem vs political governance crisis'
+    'Technology & Social Media': [
+      'Social Media: Is it connecting people more or making youth feel lonelier?',
+      'Artificial Intelligence: Will AI take away entry-level jobs or create new opportunities?',
+      'Impact of Instagram Reels and YouTube Shorts on student focus and attention spans',
+      'UPI and Digital Payments: Has India become a truly cashless society?',
+      'Electric Vehicles (EVs) vs Petrol/Diesel: Are EVs practically ready for everyone?',
+      'Smartphones for school kids: Helpful for education or harmful digital addiction?',
+      'Data Privacy: Are we giving away too much personal info for free apps?'
     ],
-    'Business': [
-      'Remote Work vs In-Office Mandates: Long-term corporate culture vs employee autonomy',
-      'Venture capital subsidization: Does blitzscaling build monopolies or generate real value?',
-      'ESG Metrics: Legitimate accountability framework or corporate greenwashing marketing?',
-      'Moonlighting and employee loyalty: Should corporations restrict secondary income?',
-      'Is the traditional 4-year MBA obsolete in the age of specialized micro-credentials?'
+    'Career & Workplace': [
+      'Work From Home (WFH) vs Work From Office (WFO): Finding the right balance',
+      'Hard Work vs Smart Work: Which is more important for rapid promotions?',
+      'Startup Culture vs Stable MNC/Government Job: What should fresh graduates pick?',
+      'Moonlighting (working two jobs): Legitimate hustle or breach of company trust?',
+      'Work-Life Balance: Is it realistic in fast-paced corporate environments?',
+      'Communication Skills vs Technical Skills: What matters more in interview rounds?',
+      'Job Hopping every 2 years vs Company Loyalty: Best path for salary growth?'
     ],
-    'Economics': [
-      'Universal Basic Income vs targeted job guarantee programs in developing nations',
-      'De-dollarization: Can regional trading blocs realistically displace the US Dollar?',
-      'Cryptocurrency regulation: Innovation catalyst vs systemic financial instability threat',
-      'Free market competition vs state industrial policy in accelerating clean energy',
-      'Wealth taxation vs consumption taxation: Balancing equity and capital reinvestment'
+    'Society & Lifestyle': [
+      'Fast Food & Instant Delivery Apps (Zomato/Blinkit) vs Home Cooking & Healthy Living',
+      'OTT Platforms (Netflix, Hotstar) vs Cinema Theatres: Is cinema theatre culture fading?',
+      'Single-Use Plastic Ban: Can environmental bans work without cheap alternatives?',
+      'Influencer Culture: Inspiring creative role models or unrealistic life standards?',
+      'Mental Health Awareness: Are families and colleges talking openly about stress?',
+      'Cash on Delivery vs Pre-payments: Trust and fraud issues in online shopping'
     ],
-    'Ethics & Policy': [
-      'Should facial recognition surveillance in public spaces be universally banned?',
-      'Universal Healthcare: Economic burden vs fundamental human right obligation',
-      'Is meritocracy in higher education an objective metric or a systemic illusion?',
-      'Free speech absolutism vs platform moderation on public digital squares',
-      'Gene editing technology: Unlocking disease cures vs engineering genetic inequality'
-    ],
-    'Education': [
-      'Standardized examination scoring vs holistic portfolio evaluation in university admissions',
-      'Should coding and data literacy replace traditional humanities requirements?',
-      'The student debt crisis: Institutional responsibility vs individual risk',
-      'AI detection in academia: Fostering honesty vs alienating authentic student reasoning',
-      'Vocational apprenticeship models vs white-collar university credentialism'
-    ],
-    'Environment': [
-      'Nuclear energy adoption: Non-negotiable base-load clean power vs unacceptable risk',
-      'Carbon border tax adjustments: Climate justice vs trade protectionism against the global south',
-      'Electric vehicle subsidies: Solving emission problems or displacing ecological damage to mining regions?',
-      'Corporate net-zero pledges: Genuine transition roadmaps vs greenwashing rhetoric',
-      'Single-use plastic bans: Consumer responsibility vs corporate packaging reform'
-    ],
-    'Career': [
-      'Early career specialization vs broad multidisciplinary skill development',
-      'The gig economy: Flexible entrepreneurial freedom vs eroded labor security',
-      'Is company loyalty rewarded in modern tech or does job hopping yield optimal growth?',
-      'AI copilots in knowledge work: Raising output ceilings or reducing hiring headcount?',
-      'Emotional intelligence (EQ) vs raw analytical aptitude (IQ) in leadership promotion'
+    'General': [
+      'Is English fluency given too much importance over actual talent in job selections?',
+      'Examinations & Test Scores: Do they measure real intelligence or memory power?',
+      'Cryptocurrency and Stock Trading among college students: Smart investing or gambling?',
+      'Nepotism vs Pure Merit: Does raw talent always win in competitive careers?',
+      'Should voting in elections be made legally compulsory for all citizens?',
+      'Ethics vs Maximum Profit: Can modern businesses be completely honest?'
     ]
   };
+
+  // Aliases for backward compatibility
+  FALLBACK_TOPICS['Technology'] = FALLBACK_TOPICS['Technology & Social Media'];
+  FALLBACK_TOPICS['Artificial Intelligence'] = FALLBACK_TOPICS['Technology & Social Media'];
+  FALLBACK_TOPICS['Education'] = FALLBACK_TOPICS['Campus & College'];
+  FALLBACK_TOPICS['Career'] = FALLBACK_TOPICS['Career & Workplace'];
+  FALLBACK_TOPICS['Business'] = FALLBACK_TOPICS['Career & Workplace'];
+  FALLBACK_TOPICS['Economics'] = FALLBACK_TOPICS['Career & Workplace'];
+  FALLBACK_TOPICS['Environment'] = FALLBACK_TOPICS['Society & Lifestyle'];
+  FALLBACK_TOPICS['Ethics & Policy'] = FALLBACK_TOPICS['General'];
 
   function loadTopics(category, btnElement) {
     currentCategory = category;
@@ -423,11 +417,14 @@
     if (btnElement) {
       btnElement.classList.add('active');
     } else {
-      const match = Array.from(document.querySelectorAll('.category-chip')).find(c => c.textContent.includes(category));
+      const match = Array.from(document.querySelectorAll('.category-chip')).find(c => 
+        c.textContent.trim().toLowerCase().includes(category.toLowerCase()) || 
+        category.toLowerCase().includes(c.textContent.trim().toLowerCase())
+      );
       if (match) match.classList.add('active');
     }
 
-    const topics = FALLBACK_TOPICS[category] || FALLBACK_TOPICS['Technology'];
+    const topics = FALLBACK_TOPICS[category] || FALLBACK_TOPICS['Campus & College'] || FALLBACK_TOPICS['Technology & Social Media'];
     renderTopics(topics);
   }
 
@@ -521,7 +518,7 @@
     }
   }
 
-  loadTopics('Technology');
+  loadTopics('Campus & College');
 </script>
 </body>
 </html>

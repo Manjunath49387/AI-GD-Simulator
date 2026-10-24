@@ -10,8 +10,8 @@
   <style>
     /* Executive Welcome Banner */
     .welcome-banner {
-      background: linear-gradient(135deg, rgba(79, 70, 229, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border: 1px solid rgba(99, 102, 241, 0.28);
+      background: linear-gradient(135deg, rgba(var(--accent-rgb, 13, 148, 136), 0.16) 0%, var(--bg-card) 100%);
+      border: 1px solid var(--glass-border-active);
       border-radius: var(--radius-xl);
       padding: 28px 32px;
       margin-bottom: 24px;
@@ -31,7 +31,7 @@
       width: 240px;
       height: 240px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(var(--accent-secondary-rgb, 20, 184, 166), 0.16) 0%, transparent 70%);
       pointer-events: none;
     }
     .welcome-text h2 {
@@ -154,7 +154,7 @@
       background: var(--bg-card-hover);
       border-color: var(--glass-border-hover);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-md), 0 0 24px rgba(99, 102, 241, 0.12);
+      box-shadow: var(--shadow-md), 0 0 24px rgba(var(--accent-rgb, 13, 148, 136), 0.15);
     }
     .launch-card-header {
       display: flex;
@@ -537,9 +537,11 @@
     if (!ctx) return;
     
     const chartCtx = ctx.getContext('2d');
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim() || '#14b8a6';
+    const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary-rgb').trim() || '20, 184, 166';
     const gradient = chartCtx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.28)');
-    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+    gradient.addColorStop(0, `rgba(${accentRgb}, 0.28)`);
+    gradient.addColorStop(1, `rgba(${accentRgb}, 0.0)`);
 
     new Chart(ctx, {
       type: 'line',
@@ -548,12 +550,12 @@
         datasets: [{
           label: 'Composite Evaluation Score',
           data: progression.map(p => p.overall_score),
-          borderColor: '#6366f1',
+          borderColor: accentColor,
           borderWidth: 2.5,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
-          pointBackgroundColor: '#4f46e5',
+          pointBackgroundColor: accentColor,
           pointBorderColor: '#ffffff',
           pointBorderWidth: 1.5,
           pointRadius: 4,
